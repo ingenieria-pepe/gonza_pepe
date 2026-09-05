@@ -1,0 +1,419 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mercado UY multi-origen — Almar</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
+  --border:rgba(11,11,11,0.10); --good:#006300; --bad:#c0392b; --deemph:#b8b7b0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
+         --border:rgba(255,255,255,0.10); --good:#0ca30c; --bad:#e05c4a; --deemph:#56554f;
+         --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:26px 18px 60px}
+header h1{font-size:23px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 4px}
+.meta{color:var(--faint);font-size:12px;margin:10px 0 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 18px 20px;margin:20px 0}
+.card h2{font-size:17px;margin:0 0 4px}
+.card .sub{margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:18px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px}
+.tile .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .val{font-size:25px;font-weight:650;margin:3px 0 1px;line-height:1.1}
+.tile .u{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.tile .dl{font-size:12px;color:var(--muted)}
+.tile.good .val{color:var(--good)} .tile.bad .val{color:var(--bad)}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+tbody tr.hi{background:rgba(42,120,214,.07);font-weight:600}
+tbody tr.tot{border-top:2px solid var(--border);font-weight:650}
+td.pos{color:var(--good)} td.neg{color:var(--bad)} td.nil{color:var(--faint)}
+.legend{list-style:none;display:flex;flex-wrap:wrap;gap:14px;padding:0;margin:0 0 10px;font-size:12.5px;color:var(--muted)}
+.legend li{display:flex;align-items:center;gap:6px}
+.swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+.plot{width:100%;overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.note p{margin:0 0 8px} .note p:last-child{margin:0}
+.flag{border-left:3px solid var(--s1);padding-left:11px;border-top:0;margin-top:14px}
+.warn{border-left-color:var(--bad)}
+code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🌎 Mercado uruguayo de banana — multi-origen</h1>
+  <p class="sub">Importaciones de Uruguay por origen e importador, de registros de aduana.
+     <span id="subCobertura"></span></p>
+  <p class="meta" id="meta"></p>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<section class="card">
+  <h2 id="h2mensual">Volumen mensual por origen</h2>
+  <p class="sub">Toneladas netas importadas cada mes. <span id="subMensual"></span></p>
+  <ul class="legend" id="lgMensual"></ul>
+  <div class="plot" id="pMensual"></div>
+</section>
+
+<section class="card">
+  <h2>¿Se achicó el mercado, o sólo cambió de origen?</h2>
+  <p class="sub" id="subEstacional"></p>
+  <div class="tblwrap"><table id="tblEstacional"></table></div>
+  <div class="note flag" id="notaEstacional"></div>
+</section>
+
+<section class="card">
+  <h2 id="h2Redistrib">La redistribución, año contra año</h2>
+  <p class="sub" id="subRedistrib"></p>
+  <div class="tblwrap"><table id="tblInter"></table></div>
+  <div class="note flag" id="notaInter"></div>
+</section>
+
+<section class="card">
+  <h2>Participación por origen</h2>
+  <p class="sub" id="subShare"></p>
+  <div class="tblwrap"><table id="tblOrigen"></table></div>
+</section>
+
+<section class="card">
+  <h2>Ranking de importadores</h2>
+  <p class="sub" id="subRanking"></p>
+  <div class="tblwrap"><table id="tblImp"></table></div>
+  <div class="note flag" id="notaImp"></div>
+</section>
+
+<section class="card">
+  <h2>Almar: cartera por origen</h2>
+  <p class="sub" id="subAlmar"></p>
+  <div class="tblwrap"><table id="tblAlmar"></table></div>
+</section>
+
+<section class="card">
+  <h2>Quién compra en cada origen</h2>
+  <p class="sub" id="subMatriz"></p>
+  <div class="tblwrap"><table id="tblMatriz"></table></div>
+</section>
+
+<div class="note flag warn" style="max-width:1080px">
+  <p><strong>Sobre las otras páginas.</strong> Las secciones de mercado que están en
+  <code>index.html</code>, <code>index_brasil.html</code> y <code>index_paraguay_bolivia.html</code>
+  tienen los números escritos a mano con datos de enero a 11 de mayo de 2026 y quedaron
+  desactualizadas. Esta página se regenera sola en cada corrida del script: es la que vale.</p>
+</div>
+
+</div>
+
+<script id="datosMercado" type="application/json">/*__MERCADO_JSON__*/{"generado":"2026-09-04 19:00","fuente":"Penta Transaction · NCM 0803.90 · importaciones Uruguay","archivos":["detalle_UYimport_2026-8-5-10711.xlsx (237 filas)","detalle_UYimport_2026-8-5-92812.xlsx (400 filas)"],"anio":2026,"corte":"2026-08-31","registros":637,"meses":8,"corteVentana":4,"origenes":["Brasil","Ecuador","Paraguay","Bolivia"],"mensual":{"Brasil":[2523.5,2090.7,3661.4,1787.7,2021.8,1690.3,1529.6,1551.6],"Ecuador":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5],"Paraguay":[519.1,879.5,179.9,147.8,802.5,672,1119.1,1130.6],"Bolivia":[427.3,468.5,571.9,247.4,221.5,44.1,249.6,309]},"porOrigen":[{"origen":"Brasil","v1":2516,"v2":1698,"fobV1":0.532,"fobV2":0.525},{"origen":"Ecuador","v1":1693,"v2":1245,"fobV1":1.002,"fobV2":1.007},{"origen":"Paraguay","v1":432,"v2":931,"fobV1":0.525,"fobV2":0.52},{"origen":"Bolivia","v1":429,"v2":206,"fobV1":0.614,"fobV2":0.611}],"importadores":[{"nombre":"ALMAR S.R.L.","v1":2565,"v2":2023,"porOrigen":{"Brasil":[1337,962],"Ecuador":[819,549],"Paraguay":[183,438],"Bolivia":[225,74]}},{"nombre":"CIRO GENTILE S.A.","v1":1212,"v2":921,"porOrigen":{"Brasil":[581,269],"Ecuador":[295,201],"Paraguay":[162,323],"Bolivia":[174,128]}},{"nombre":"GARMIN S.R.L.","v1":466,"v2":424,"porOrigen":{"Brasil":[466,399],"Ecuador":[0,0],"Paraguay":[0,24],"Bolivia":[0,0]}},{"nombre":"PROEXUR S R L","v1":351,"v2":262,"porOrigen":{"Brasil":[0,0],"Ecuador":[351,262],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"LINA FRESH URUGUAY SAS","v1":144,"v2":164,"porOrigen":{"Brasil":[0,0],"Ecuador":[144,164],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"EXPERTEX SA","v1":89,"v2":100,"porOrigen":{"Brasil":[47,27],"Ecuador":[0,0],"Paraguay":[42,73],"Bolivia":[0,0]}},{"nombre":"HENDERSON Y CIA S.A.","v1":83,"v2":69,"porOrigen":{"Brasil":[0,0],"Ecuador":[83,69],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","v1":61,"v2":44,"porOrigen":{"Brasil":[44,0],"Ecuador":[0,0],"Paraguay":[17,44],"Bolivia":[0,0]}},{"nombre":"JEMI SAS","v1":65,"v2":35,"porOrigen":{"Brasil":[24,30],"Ecuador":[0,0],"Paraguay":[11,0],"Bolivia":[30,5]}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","v1":16,"v2":28,"porOrigen":{"Brasil":[5,0],"Ecuador":[0,0],"Paraguay":[11,28],"Bolivia":[0,0]}},{"nombre":"RINALIR SOCIEDAD ANONIMA","v1":16,"v2":11,"porOrigen":{"Brasil":[11,11],"Ecuador":[0,0],"Paraguay":[6,0],"Bolivia":[0,0]}}],"interanual":{"Brasil":{"2024":2142,"2025":2964,"2026":1698},"Ecuador":{"2024":1107,"2025":1008,"2026":1245},"Paraguay":{"2024":866,"2025":184,"2026":931},"Bolivia":{"2024":0,"2025":0,"2026":206}},"estacional":[{"anio":2024,"v1":4912,"v2":4114},{"anio":2025,"v1":4995,"v2":4156},{"anio":2026,"v1":5070,"v2":4080}]}/*__END_MERCADO__*/</script>
+
+<script>
+(function () {
+  "use strict";
+  // Los marcadores van como regex ESCAPADOS a proposito: asi su texto literal no
+  // aparece en el codigo y la inyeccion del script no puede matchearlo aca dentro.
+  // (Ese fue el bug que rompio index_comparativo_anual.html el 03/09/2026: el
+  //  regex cruzo desde el tag de datos hasta el cierre del segundo .replace() y
+  //  metio el payload entero adentro del propio JS.) No escribir los marcadores
+  //  sin escapar en ningun lado de este archivo, ni siquiera en un comentario.
+  var D = JSON.parse(document.getElementById('datosMercado').textContent
+    .replace(/\/\*__MERCADO_JSON__\*\//, '').replace(/\/\*__END_MERCADO__\*\//, ''));
+
+  var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
+  var PALETA = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)'];
+  var COLOR = {};
+  (D.origenes || []).forEach(function (o, i) { COLOR[o] = PALETA[i % PALETA.length]; });
+
+  var nV1 = D.corteVentana, nV2 = (D.meses - D.corteVentana);
+  var lblV1 = nV1 > 0 ? MESES[0] + '-' + MESES[nV1 - 1] : 'v1';
+  var lblV2 = D.meses > 0 ? MESES[nV1] + '-' + MESES[D.meses - 1] : 'v2';
+
+  function el(t, c) { var e = document.createElement(t); if (c) e.className = c; return e; }
+  function svgEl(t, a) { var e = document.createElementNS('http://www.w3.org/2000/svg', t);
+    for (var k in a) e.setAttribute(k, a[k]); return e; }
+  function txt(id, s) { var n = document.getElementById(id); if (n) n.textContent = s; }
+  function fmt(v, d) { if (v === null || v === undefined || isNaN(v)) return '—';
+    return Number(v).toLocaleString('es-UY', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  function sgn(v, d) { return (v > 0 ? '+' : '') + fmt(v, d); }
+  function pct(a, b) { if (!a) return null; return (b / a - 1) * 100; }
+
+  if (!D.registros) {
+    txt('meta', 'Sin datos todavía. Poné los extractos detalle_UYimport_*.xlsx de Penta en la carpeta penta\\ y corré actualizar_precios.ps1.');
+    return;
+  }
+
+  // ---------- encabezado ----------
+  txt('subCobertura', D.origenes.join(' · ') + '.');
+  txt('meta', D.fuente + ' — ' + fmt(D.registros) + ' operaciones de ' + D.anio +
+    ', hasta el ' + D.corte + ' · generado ' + D.generado);
+  txt('subMensual', 'Cada punto es un mes cerrado de ' + D.anio + '.');
+  txt('subShare', 'Cómo se reparte el mercado entre orígenes, comparando ' + lblV1 + ' contra ' + lblV2 + '.');
+  txt('subRanking', 'Toneladas netas por mes, sumando todos los orígenes.');
+  txt('subAlmar', 'De dónde viene el volumen de Almar y cómo se movió.');
+  txt('subMatriz', 'Toneladas por mes en ' + lblV2 + '. Un cero significa que ese importador no opera ese origen.');
+
+  var totV1 = 0, totV2 = 0;
+  D.porOrigen.forEach(function (o) { totV1 += o.v1; totV2 += o.v2; });
+
+  var almar = null;
+  D.importadores.forEach(function (i) { if (/ALMAR/i.test(i.nombre)) almar = i; });
+
+  // ---------- KPIs ----------
+  var kp = document.getElementById('kpis');
+  var brasil = D.porOrigen.filter(function (o) { return /brasil/i.test(o.origen); })[0];
+  var tiles = [
+    { lab: 'Mercado total ' + lblV2, val: fmt(totV2), u: 't/mes',
+      dl: lblV1 + ': ' + fmt(totV1) + ' t/mes', cls: '' }
+  ];
+  if (almar) {
+    tiles.push({ lab: 'Almar, participación', val: fmt(almar.v2 / totV2 * 100, 1) + '%', u: '',
+      dl: lblV1 + ': ' + fmt(almar.v1 / totV1 * 100, 1) + '%', cls: '' });
+    tiles.push({ lab: 'Almar, volumen ' + lblV2, val: fmt(almar.v2), u: 't/mes',
+      dl: sgn(pct(almar.v1, almar.v2), 0) + '% vs ' + lblV1, cls: almar.v2 >= almar.v1 ? 'good' : 'bad' });
+  }
+  if (brasil) {
+    tiles.push({ lab: 'Brasil, variación', val: sgn(pct(brasil.v1, brasil.v2), 0) + '%', u: '',
+      dl: fmt(brasil.v1) + ' → ' + fmt(brasil.v2) + ' t/mes', cls: brasil.v2 >= brasil.v1 ? 'good' : 'bad' });
+  }
+  tiles.forEach(function (t) {
+    var c = el('div', 'tile' + (t.cls ? ' ' + t.cls : ''));
+    var l = el('div', 'lab'); l.textContent = t.lab; c.appendChild(l);
+    var v = el('div', 'val'); v.textContent = t.val;
+    if (t.u) { var u = el('span', 'u'); u.textContent = t.u; v.appendChild(u); }
+    c.appendChild(v);
+    var d = el('div', 'dl'); d.textContent = t.dl; c.appendChild(d);
+    kp.appendChild(c);
+  });
+
+  // ---------- leyenda ----------
+  var lg = document.getElementById('lgMensual');
+  D.origenes.forEach(function (o) {
+    var li = el('li');
+    var sw = el('span', 'swatch'); sw.style.background = COLOR[o];
+    li.appendChild(sw); li.appendChild(document.createTextNode(o));
+    lg.appendChild(li);
+  });
+
+  // ---------- chart mensual ----------
+  (function () {
+    var W = 1000, H = 320, M = { t: 18, r: 16, b: 34, l: 52 };
+    var iw = W - M.l - M.r, ih = H - M.t - M.b;
+    var vmax = 0;
+    D.origenes.forEach(function (o) {
+      (D.mensual[o] || []).forEach(function (v) { if (v > vmax) vmax = v; });
+    });
+    vmax = Math.ceil(vmax / 500) * 500 || 100;
+    var n = D.meses;
+    var x = function (i) { return M.l + (n === 1 ? iw / 2 : (i / (n - 1)) * iw); };
+    var y = function (v) { return M.t + ih - (v / vmax) * ih; };
+
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Volumen mensual importado por origen' });
+
+    for (var g = 0; g <= 4; g++) {
+      var vy = vmax * g / 4;
+      svg.appendChild(svgEl('line', { x1: M.l, x2: W - M.r, y1: y(vy), y2: y(vy),
+        stroke: 'var(--border)', 'stroke-width': 1 }));
+      var tl = svgEl('text', { x: M.l - 8, y: y(vy) + 4, 'text-anchor': 'end',
+        'font-size': 11, fill: 'var(--muted)' });
+      tl.textContent = fmt(vy); svg.appendChild(tl);
+    }
+    for (var i = 0; i < n; i++) {
+      var tx = svgEl('text', { x: x(i), y: H - 12, 'text-anchor': 'middle',
+        'font-size': 11, fill: 'var(--muted)' });
+      tx.textContent = MESES[i]; svg.appendChild(tx);
+    }
+    D.origenes.forEach(function (o) {
+      var serie = D.mensual[o] || [];
+      var d = '';
+      serie.forEach(function (v, i) { d += (i ? ' L' : 'M') + x(i) + ' ' + y(v); });
+      svg.appendChild(svgEl('path', { d: d, fill: 'none', stroke: COLOR[o], 'stroke-width': 2.4,
+        'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+      serie.forEach(function (v, i) {
+        svg.appendChild(svgEl('circle', { cx: x(i), cy: y(v), r: 3, fill: COLOR[o] }));
+      });
+    });
+    document.getElementById('pMensual').appendChild(svg);
+  })();
+
+  // ---------- helper de tablas ----------
+  function tabla(id, cols, filas) {
+    var t = document.getElementById(id); if (!t) return;
+    t.innerHTML = '';
+    var th = el('thead'), tr = el('tr');
+    cols.forEach(function (c) { var h = el('th'); h.textContent = c; tr.appendChild(h); });
+    th.appendChild(tr); t.appendChild(th);
+    var tb = el('tbody');
+    filas.forEach(function (f) {
+      var r = el('tr'); if (f.cls) r.className = f.cls;
+      f.cells.forEach(function (c) {
+        var td = el('td');
+        if (c && typeof c === 'object') { td.textContent = c.v; if (c.cls) td.className = c.cls; }
+        else { td.textContent = c; }
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+  }
+  function cellDelta(v) {
+    if (Math.abs(v) < 0.5) return { v: '0', cls: 'nil' };
+    return { v: sgn(v), cls: v > 0 ? 'pos' : 'neg' };
+  }
+
+  // ---------- estacionalidad ----------
+  (function () {
+    if (!D.estacional || !D.estacional.length) { return; }
+    var filas = D.estacional.map(function (e) {
+      var d = pct(e.v1, e.v2);
+      return { cls: e.anio === D.anio ? 'hi' : '',
+        cells: [e.anio, fmt(e.v1), fmt(e.v2), { v: fmt(d, 1) + '%', cls: 'neg' }] };
+    });
+    tabla('tblEstacional', ['Año', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'variación'], filas);
+
+    var act = D.estacional.filter(function (e) { return e.anio === D.anio; })[0];
+    var prev = D.estacional.filter(function (e) { return e.anio !== D.anio; });
+    var n = document.getElementById('notaEstacional');
+    var p = el('p');
+    if (prev.length && act) {
+      var promPrev = prev.reduce(function (a, e) { return a + e.v2; }, 0) / prev.length;
+      var dif = (act.v2 / promPrev - 1) * 100;
+      var veredicto = Math.abs(dif) < 5
+        ? 'El nivel absoluto de ' + lblV2 + ' en ' + D.anio + ' está en línea con los años anteriores: el mercado no se achicó, la caída dentro del año es estacional y pasa siempre.'
+        : (dif < 0
+            ? 'El nivel de ' + lblV2 + ' en ' + D.anio + ' está ' + fmt(Math.abs(dif), 1) + '% por debajo del promedio de los años previos: acá sí hay contracción real, no sólo estacionalidad.'
+            : 'El nivel de ' + lblV2 + ' en ' + D.anio + ' está ' + fmt(dif, 1) + '% por encima del promedio de los años previos: el mercado creció.');
+      p.appendChild(document.createTextNode(veredicto));
+    }
+    n.appendChild(p);
+    var p2 = el('p');
+    p2.appendChild(document.createTextNode('Ojo con leer la caída de ' + lblV1 + ' a ' + lblV2 +
+      ' como pérdida de mercado: comparar contra el mismo período del año anterior, no contra el semestre previo.'));
+    n.appendChild(p2);
+    txt('subEstacional', 'La caída de ' + lblV1 + ' a ' + lblV2 + ' se repite todos los años. Lo que importa es el nivel absoluto contra el mismo período del año pasado.');
+  })();
+
+  // ---------- interanual ----------
+  (function () {
+    var origs = Object.keys(D.interanual || {});
+    if (!origs.length) { return; }
+    var anios = Object.keys(D.interanual[origs[0]]).sort();
+    var prevAnio = anios[anios.length - 2], actAnio = anios[anios.length - 1];
+    txt('h2Redistrib', 'La redistribución: ' + lblV2 + ' ' + actAnio + ' contra ' + prevAnio);
+    txt('subRedistrib', 'Ésta es la comparación que corresponde — mismo período, distinto año.');
+
+    var filas = [], sumaPos = 0, sumaNeg = 0, tot = 0;
+    origs.forEach(function (o) {
+      var s = D.interanual[o];
+      var a = s[prevAnio], b = s[actAnio], d = b - a;
+      tot += d;
+      if (d > 0) sumaPos += d; else sumaNeg += d;
+      filas.push({ cells: [o].concat(anios.map(function (y) { return fmt(s[y]); })).concat([cellDelta(d)]) });
+    });
+    filas.push({ cls: 'tot', cells: ['NETO'].concat(anios.map(function () { return ''; })).concat([cellDelta(tot)]) });
+    tabla('tblInter', ['Origen'].concat(anios.map(function (y) { return y + ' (t/mes)'; })).concat(['Δ ' + prevAnio + '→' + actAnio]), filas);
+
+    var n = document.getElementById('notaInter');
+    var p = el('p');
+    p.appendChild(document.createTextNode(
+      'Los orígenes que perdieron suman ' + fmt(sumaNeg) + ' t/mes y los que ganaron ' + sgn(sumaPos) +
+      ' t/mes. El neto es ' + sgn(tot) + ' t/mes: ' +
+      (Math.abs(tot) < Math.abs(sumaNeg) * 0.25
+        ? 'casi todo lo que perdió un origen lo absorbieron los otros. Es una redistribución, no una caída de consumo.'
+        : 'una parte del volumen perdido no fue a ningún otro origen.')));
+    n.appendChild(p);
+  })();
+
+  // ---------- participación por origen ----------
+  (function () {
+    var filas = D.porOrigen.map(function (o) {
+      return { cells: [o.origen, fmt(o.v1), fmt(o.v2), cellDelta(o.v2 - o.v1),
+        fmt(o.v1 / totV1 * 100, 1) + '%', fmt(o.v2 / totV2 * 100, 1) + '%',
+        o.fobV2 ? fmt(o.fobV2, 3) : '—'] };
+    });
+    filas.push({ cls: 'tot', cells: ['TOTAL', fmt(totV1), fmt(totV2), cellDelta(totV2 - totV1), '100%', '100%', ''] });
+    tabla('tblOrigen', ['Origen', lblV1, lblV2, 'cambio', '% ' + lblV1, '% ' + lblV2, 'USD/kg ' + lblV2], filas);
+  })();
+
+  // ---------- ranking de importadores ----------
+  (function () {
+    var filas = D.importadores.filter(function (i) { return i.v1 + i.v2 >= 5; }).map(function (i) {
+      var d = pct(i.v1, i.v2);
+      return { cls: /ALMAR/i.test(i.nombre) ? 'hi' : '',
+        cells: [i.nombre, fmt(i.v1), fmt(i.v2), cellDelta(i.v2 - i.v1),
+          d === null ? '—' : { v: fmt(d, 0) + '%', cls: d >= 0 ? 'pos' : 'neg' },
+          fmt(i.v2 / totV2 * 100, 1) + '%'] };
+    });
+    tabla('tblImp', ['Importador', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio', 'var', '% mercado'], filas);
+
+    var n = document.getElementById('notaImp');
+    if (almar) {
+      var seg = D.importadores.filter(function (i) { return !/ALMAR/i.test(i.nombre); })[0];
+      var p = el('p');
+      var t1 = 'Almar es el importador más grande con ' + fmt(almar.v2 / totV2 * 100, 1) + '% del mercado';
+      if (seg) { t1 += ', ' + fmt(almar.v2 / seg.v2, 1) + '× el segundo (' + seg.nombre + ')'; }
+      p.appendChild(document.createTextNode(t1 + '.'));
+      n.appendChild(p);
+      var mercadoVar = pct(totV1, totV2), almarVar = pct(almar.v1, almar.v2);
+      var p2 = el('p');
+      p2.appendChild(document.createTextNode(
+        'Almar varió ' + fmt(almarVar, 0) + '% y el mercado ' + fmt(mercadoVar, 0) + '%: ' +
+        (almarVar > mercadoVar + 2 ? 'ganó participación.'
+          : (almarVar < mercadoVar - 2 ? 'perdió participación.'
+            : 'se movió con el mercado, así que la participación quedó igual.'))));
+      n.appendChild(p2);
+    }
+  })();
+
+  // ---------- Almar por origen ----------
+  (function () {
+    if (!almar) { return; }
+    var filas = D.origenes.map(function (o) {
+      var p = almar.porOrigen[o] || [0, 0];
+      return { cells: [o, fmt(p[0]), fmt(p[1]), cellDelta(p[1] - p[0])] };
+    });
+    filas.push({ cls: 'tot', cells: ['TOTAL', fmt(almar.v1), fmt(almar.v2), cellDelta(almar.v2 - almar.v1)] });
+    tabla('tblAlmar', ['Origen', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio'], filas);
+  })();
+
+  // ---------- matriz importador × origen ----------
+  (function () {
+    var imps = D.importadores.filter(function (i) { return i.v1 + i.v2 >= 5; });
+    var filas = imps.map(function (i) {
+      var cells = [i.nombre];
+      D.origenes.forEach(function (o) {
+        var p = i.porOrigen[o] || [0, 0];
+        cells.push(p[1] ? fmt(p[1]) : { v: '—', cls: 'nil' });
+      });
+      cells.push(fmt(i.v2));
+      return { cls: /ALMAR/i.test(i.nombre) ? 'hi' : '', cells: cells };
+    });
+    tabla('tblMatriz', ['Importador'].concat(D.origenes).concat(['total']), filas);
+
+    var soloUno = imps.filter(function (i) {
+      var n = 0; D.origenes.forEach(function (o) { if ((i.porOrigen[o] || [0, 0])[1] > 0) n++; });
+      return n === 1 && i.v2 > 0;
+    });
+    if (soloUno.length) {
+      var nombres = soloUno.map(function (i) { return i.nombre; }).join(', ');
+      txt('subMatriz', 'Toneladas por mes en ' + lblV2 + '. Operan un solo origen: ' + nombres + '.');
+    }
+  })();
+})();
+</script>
+</body>
+</html>

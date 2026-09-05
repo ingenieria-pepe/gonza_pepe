@@ -1,0 +1,117 @@
+================================================================
+  PLANTILLA DESCARGA — Almar S.R.L.
+  Copiar, llenar los blancos, mandar por WhatsApp.
+  Tip: usá un número correlativo o el código del productor (CK###).
+
+  ACTUALIZADA 04/09/2026 — se agregó el bloque 🔬 MEDICIONES.
+  Ver el porqué al final del archivo.
+================================================================
+
+🍌 *DESCARGA #_______* — __/__/____
+
+📍 Origen: ____
+👤 Productor: ____
+🚛 Fletero: ____
+
+⏱️ *Horarios*
+Inicio: __:__
+Fin:    __:__
+Duración: __ min
+
+📦 *Carga — Total: ____ cajas*
+• Común:   ____
+• Grauda:  ____
+• Pequeña: ____
+• Fibra:   ____
+
+🧱 Pallets: __ cajas / base __
+
+🔬 *Mediciones* (números, no fotos)
+🌡️ Temp. pulpa: ____ °C   ← promedio de 3 cajas, de distintas partes del camión
+📏 Calibre: ____ mm
+📐 Largo: ____ cm
+🗓️ Fecha de corte del cacho: __/__/____   ← pedírsela al productor
+🌦️ Temp. del día de corte: ____ °C
+🌧️ Lluvia de esa semana: ____ mm
+
+✅ *Estado general:* ____
+
+⚠️ *Observaciones / alertas*
+• ____
+• ____
+
+🖋️ Controló: ____
+
+================================================================
+  EJEMPLO de descarga llenada
+================================================================
+
+🍌 *DESCARGA CK079* — 02/06/2026
+
+📍 Origen: Brasil
+👤 Productor: Cassio Huack
+🚛 Fletero: FG
+
+⏱️ *Horarios*
+Inicio: 04:40
+Fin:    05:10
+Duración: 30 min
+
+📦 *Carga — Total: 1008 cajas*
+• Común: 1008
+(Grauda / Pequeña / Fibra: —)
+
+🧱 Pallets: 36 cajas / base 6
+
+🔬 *Mediciones*
+🌡️ Temp. pulpa: 14,5 °C
+📏 Calibre: 39 mm
+📐 Largo: 21 cm
+🗓️ Fecha de corte del cacho: 28/05/2026
+🌦️ Temp. del día de corte: 24 °C
+🌧️ Lluvia de esa semana: 12 mm
+
+✅ *Estado general:* Fruta en buen estado
+
+⚠️ *Observaciones / alertas*
+• 8 cajas mal embaladas (0,8%)
+• Fruta quemada por frío
+
+🖋️ Controló: ____
+
+================================================================
+  DESPUÉS DE LA DESCARGA — el dato que falta
+================================================================
+
+Cuando el lote empieza a virar solo, anotar la fecha en la
+planilla `fuentes\calidad_lotes.xlsx`, columna `fecha_rompio`.
+
+ESO ES LO MÁS IMPORTANTE DE TODO ESTO, y es lo único que hoy
+no se registra en ningún lado.
+
+Sin esa fecha, las mediciones de arriba son números sueltos.
+Con ella, cada descarga se convierte en un caso de aprendizaje:
+"con esta temperatura de pulpa y este calibre, la fruta aguantó
+tantos días". Con una zafra de eso se puede predecir cuánto
+aguanta un lote ANTES de decidir si va a cámara o se vende ya.
+
+================================================================
+  POR QUÉ SE AGREGARON LAS MEDICIONES (04/09/2026)
+================================================================
+
+El análisis de aduana de ene-ago 2026 mostró que Brasil perdió
+un tercio de su volumen hacia Uruguay, y que la causa fue
+CALIDAD, no precio (el FOB no se movió: 0,525 USD/kg).
+
+El problema: Almar no puede medir calidad. Las mediciones se
+sacaban en fotos, y de una foto no se saca un promedio, ni una
+tendencia, ni una comparación entre productores.
+
+Los seis campos de arriba ya se medían — sólo que quedaban en
+imágenes. Escribirlos como números no agrega trabajo de medición,
+sólo de anotación, y habilita todo lo demás.
+
+Objetivo a un año: saber en marzo que la fruta de mayo-agosto va
+a venir floja, y mover volumen a otro origen ANTES que la
+competencia, en vez de al mismo tiempo.
+================================================================

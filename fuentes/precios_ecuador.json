@@ -1,0 +1,192 @@
+﻿{
+    "meta":  {
+                 "source":  "Tridge (publico, sin login)",
+                 "url":  "https://www.tridge.com/intelligences/cavendish-banana/EC/price",
+                 "kg_per_box":  19.5,
+                 "pms_year":  2026,
+                 "pms_usd_box":  7.5,
+                 "pms_usd_kg":  0.3846,
+                 "notas":  "Spot FOB Ecuador. Conversion caja 43 lb = 19.5 kg."
+             },
+    "fetched_at":  "2026-09-04T19:00:19",
+    "last_updated_tridge":  "2026-09-01",
+    "export":  [
+                   {
+                       "date":  "2026-05-06",
+                       "usd_kg":  0.88,
+                       "usd_box":  17.16
+                   },
+                   {
+                       "date":  "2026-05-12",
+                       "usd_kg":  0.79,
+                       "usd_box":  15.4
+                   },
+                   {
+                       "date":  "2026-05-15",
+                       "usd_kg":  1.0,
+                       "usd_box":  19.5
+                   },
+                   {
+                       "date":  "2026-05-19",
+                       "usd_kg":  1.02,
+                       "usd_box":  19.89
+                   },
+                   {
+                       "date":  "2026-05-19",
+                       "usd_kg":  0.9,
+                       "usd_box":  17.55
+                   },
+                   {
+                       "date":  "2026-06-02",
+                       "usd_kg":  0.71,
+                       "usd_box":  13.84
+                   },
+                   {
+                       "date":  "2026-06-02",
+                       "usd_kg":  1.02,
+                       "usd_box":  19.89
+                   },
+                   {
+                       "date":  "2026-06-05",
+                       "usd_kg":  1.02,
+                       "usd_box":  19.89
+                   },
+                   {
+                       "date":  "2026-06-24",
+                       "usd_kg":  1,
+                       "usd_box":  19.5
+                   },
+                   {
+                       "date":  "2026-06-24",
+                       "usd_kg":  0.79,
+                       "usd_box":  15.4
+                   },
+                   {
+                       "date":  "2026-07-01",
+                       "usd_kg":  1.02,
+                       "usd_box":  19.89
+                   },
+                   {
+                       "date":  "2026-07-01",
+                       "usd_kg":  0.92,
+                       "usd_box":  17.94
+                   },
+                   {
+                       "date":  "2026-07-02",
+                       "usd_kg":  0.88,
+                       "usd_box":  17.16
+                   },
+                   {
+                       "date":  "2026-07-15",
+                       "usd_kg":  0.71,
+                       "usd_box":  13.84
+                   },
+                   {
+                       "date":  "2026-08-04",
+                       "usd_kg":  0.92,
+                       "usd_box":  17.94
+                   },
+                   {
+                       "date":  "2026-08-04",
+                       "usd_kg":  0.88,
+                       "usd_box":  17.16
+                   },
+                   {
+                       "date":  "2026-08-06",
+                       "usd_kg":  0.92,
+                       "usd_box":  17.94
+                   },
+                   {
+                       "date":  "2026-08-11",
+                       "usd_kg":  0.85,
+                       "usd_box":  16.58
+                   },
+                   {
+                       "date":  "2026-08-13",
+                       "usd_kg":  0.92,
+                       "usd_box":  17.94
+                   }
+               ],
+    "import":  [
+                   {
+                       "date":  "2025-11-24",
+                       "usd_kg":  0.61,
+                       "usd_box":  11.9
+                   },
+                   {
+                       "date":  "2025-11-24",
+                       "usd_kg":  0.86,
+                       "usd_box":  16.77
+                   },
+                   {
+                       "date":  "2025-12-03",
+                       "usd_kg":  0.48,
+                       "usd_box":  9.36
+                   },
+                   {
+                       "date":  "2025-12-11",
+                       "usd_kg":  0.43,
+                       "usd_box":  8.38
+                   },
+                   {
+                       "date":  "2025-12-11",
+                       "usd_kg":  0.48,
+                       "usd_box":  9.36
+                   },
+                   {
+                       "date":  "2026-05-04",
+                       "usd_kg":  0.88,
+                       "usd_box":  17.16
+                   },
+                   {
+                       "date":  "2026-05-04",
+                       "usd_kg":  0.69,
+                       "usd_box":  13.45
+                   },
+                   {
+                       "date":  "2026-05-04",
+                       "usd_kg":  0.57,
+                       "usd_box":  11.11
+                   },
+                   {
+                       "date":  "2026-05-06",
+                       "usd_kg":  0.46,
+                       "usd_box":  8.97
+                   },
+                   {
+                       "date":  "2026-05-14",
+                       "usd_kg":  0.69,
+                       "usd_box":  13.45
+                   },
+                   {
+                       "date":  "2026-05-31",
+                       "usd_kg":  0.72,
+                       "usd_box":  14.04
+                   },
+                   {
+                       "date":  "2026-06-29",
+                       "usd_kg":  0.74,
+                       "usd_box":  14.43
+                   },
+                   {
+                       "date":  "2026-06-29",
+                       "usd_kg":  1.17,
+                       "usd_box":  22.82
+                   },
+                   {
+                       "date":  "2026-07-01",
+                       "usd_kg":  2.1,
+                       "usd_box":  40.95
+                   },
+                   {
+                       "date":  "2026-07-29",
+                       "usd_kg":  0.48,
+                       "usd_box":  9.36
+                   },
+                   {
+                       "date":  "2026-07-31",
+                       "usd_kg":  0.51,
+                       "usd_box":  9.94
+                   }
+               ]
+}

@@ -1,0 +1,80 @@
+================================================================
+  GUÍA CORTE TRANSVERSAL BANANA — Fuentes y notas de respaldo
+  Almar S.R.L. · compilado 12-13/06/2026
+  Base: investigación profunda multi-fuente (23 claims verificados con
+  votación adversarial, 2 refutados) + fotos Wikimedia Commons.
+================================================================
+
+CONFIRMADO POR FUENTE PRIMARIA (alta confianza)
+----------------------------------------------------------------
+- MOKO (Ralstonia solanacearum raza 2): pudrición seca rojiza a
+  marrón/gris de la pulpa + haces vasculares pardo-rojizos + ooze
+  amarillo/crema/blanco-lechoso que mana del corte en 1-2 min.
+  Fusarium NO da pudrición ni ooze en el fruto (así se diferencian).
+  Fuentes: Frontiers Plant Sci 2017; CAHFSA fact sheet; DAFF; Lucid 525.
+- Prueba del vaso (streaming) y ooze: PRESUNTIVAS, no confirmatorias.
+  ID oficial = cultivo TZC / PCR (laboratorio). Moko es cuarentenaria.
+- Crown rot / antracnosis (Colletotrichum musae): corona marrón-negra,
+  moho blanco, avanza al cuello del dedo y a la pulpa; antracnosis =
+  manchas negras hundidas + esporas color salmón. CTAHR PD-54; APS.
+- Crown rot empeora con tránsito largo + calor (más severo 25-35 °C
+  que 14-18 °C; visible ya a 7 días). → Riesgo #1 en camión abierto.
+- Chilling injury: umbral ~13-14 °C (CTT putativo 14,0; rango seguro
+  13,3-14,4). Incluso 1 h a 10 °C marca. Síntoma + temprano:
+  pardeamiento vascular subepidérmico. Látex sale escaso y claro.
+  Frontiers 2022 (PMC9515583); UC Davis; USDA.
+- Test de yodo: dirección confirmada → tinción oscura = + almidón =
+  + verde; se aclara al madurar. MDPI Appl. Sci. 2023.
+- Geometría de llenado: angular = inmaduro; redondeado = lleno/listo.
+  Pulpa/cáscara ~1,35-1,40 a 3/4 de llenado. UC Davis Horticulture.
+- Tamaño Codex (CXS 205): largo >=14 cm; calibre >=2,7 cm (27 mm),
+  calibre = grosor de la SECCIÓN TRANSVERSAL entre caras laterales.
+  Presentación en manos de >=4 dedos. Tolerancias: Extra 5% / Clase I
+  10% / Clase II 10%, nada con pudrición.
+- Muestreo USDA: >=1% del lote, ~50 dedos/paquete, mín. 3 muestras
+  (<300 paquetes). (Calidad/condición EE.UU., no fitosanitario.)
+
+ORIENTATIVO (NO confirmado por fuente primaria — usar como guía)
+----------------------------------------------------------------
+- Escala numérica del yodo (1-7 / 1-8) y estágio-objetivo exacto para
+  flete 5-7 días: NO confirmado. Regla firme = guiarse por el COLOR
+  (más oscuro/parejo = mejor), no por el número.
+- Receta exacta del reactivo de Lugol: orientativa (~1% KI + ~0,25% I2).
+- Brix de pulpa verde (~1,5-3,0): referencial, sin fuente primaria.
+
+REFUTADO (NO incluir como verdad)
+----------------------------------------------------------------
+- "El frío genera cavidades intercelulares visibles en la pulpa" (0-3).
+  Las cavidades/fisuras radiales se asocian a DÉFICIT DE BORO, no frío.
+- "Codex prohíbe todo defecto que toque la pulpa / límites 2-4 cm2" (1-2).
+  No existe ese límite literal en Codex.
+
+PENDIENTE DE VERIFICAR (vos / despachante)
+----------------------------------------------------------------
+- Reglas legales reales de importación de banana en UY (MGAP / Mercosur)
+  y protocolo obligatorio de notificación si se detecta Moko.
+- Umbrales numéricos de Brix, firmeza (penetrómetro) y pulpa/cáscara
+  que exija tu comprador concreto.
+- Sintomatología interna propia (al corte del dedo) de: déficit de boro,
+  maturity bronzing, cigar end rot — descripciones de la guía vienen de
+  fuentes secundarias / conocimiento general.
+
+FOTOS (en subcarpeta fotos/, todas licencia libre)
+----------------------------------------------------------------
+  01_corte_sano.png .............. Wikimedia · CC BY-SA 3.0 (var. con semillas)
+  02_fusarium_pseudotallo.jpg .... Wikimedia · CC0 (pseudotallo, no fruto)
+  04_crown_rot.jpg ............... Wikimedia · CC0
+  05_antracnosis_colletotrichum.jpg  Wikimedia · CC0 (esporas salmón)
+  06_antracnosis.jpg ............. Wikimedia · CC0
+  07_ralstonia_ooze.jpg .......... Wikimedia · dominio público (tallo, ref.)
+
+FUENTES PRINCIPALES
+----------------------------------------------------------------
+  Codex CXS 205-1997 (UNECE render)
+  UC Davis Postharvest / Horticulture — banana
+  CTAHR PD-54 (Univ. Hawaii) — crown rot / antracnosis
+  Frontiers Plant Sci 2017 (bacterial diseases) y 2022 (chilling)
+  CAHFSA — Moko fact sheet ; Lucidcentral 525 ; DAFF Australia
+  USDA AMS — Market Inspection Instructions for Bananas (2004)
+  MDPI Appl. Sci. 2023 — starch/iodine ; agritech.tnau — boro
+================================================================

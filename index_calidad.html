@@ -1,0 +1,267 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calidad y vida verde — Almar</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
+  --border:rgba(11,11,11,0.10); --good:#006300; --bad:#c0392b; --warn:#b06a00;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
+         --border:rgba(255,255,255,0.10); --good:#0ca30c; --bad:#e05c4a; --warn:#d99a2b;
+         --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1020px;margin:0 auto;padding:26px 18px 60px}
+header h1{font-size:23px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 4px}
+.meta{color:var(--faint);font-size:12px;margin:10px 0 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 18px 20px;margin:20px 0}
+.card h2{font-size:17px;margin:0 0 4px}
+.card .sub{margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:18px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px}
+.tile .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .val{font-size:25px;font-weight:650;margin:3px 0 1px;line-height:1.1}
+.tile .u{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.tile .dl{font-size:12px;color:var(--muted)}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+td.nil{color:var(--faint)} td.pos{color:var(--good)} td.neg{color:var(--bad)}
+.prog{height:9px;border-radius:5px;background:var(--border);overflow:hidden;margin:12px 0 8px}
+.prog span{display:block;height:100%;background:var(--s1);border-radius:5px}
+.pasos{counter-reset:p;padding:0;margin:14px 0 0;list-style:none}
+.pasos li{counter-increment:p;position:relative;padding:0 0 15px 38px;font-size:13.6px;line-height:1.5}
+.pasos li::before{content:counter(p);position:absolute;left:0;top:0;width:25px;height:25px;
+  border-radius:50%;background:var(--s1);color:#fff;font-size:13px;font-weight:600;
+  display:flex;align-items:center;justify-content:center}
+.pasos b{font-weight:650}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.note p{margin:0 0 8px} .note p:last-child{margin:0}
+.flag{border-left:3px solid var(--s1);padding-left:11px;border-top:0;margin-top:14px}
+.warn{border-left-color:var(--bad)}
+code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🌱 Calidad y vida verde por lote</h1>
+  <p class="sub" id="subHead"></p>
+  <p class="meta" id="meta"></p>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<section class="card" id="cardArranque">
+  <h2 id="h2Arranque">Cómo se llena esto</h2>
+  <p class="sub" id="subArranque"></p>
+  <div class="prog"><span id="barra" style="width:0%"></span></div>
+  <p class="meta" id="progTxt"></p>
+  <ol class="pasos" id="pasos"></ol>
+  <div class="note flag" id="notaPorque"></div>
+</section>
+
+<section class="card" id="cardResumen" style="display:none">
+  <h2>Vida verde observada</h2>
+  <p class="sub" id="subResumen"></p>
+  <div class="tblwrap"><table id="tblOrigen"></table></div>
+  <div class="note flag" id="notaResumen"></div>
+</section>
+
+<section class="card" id="cardProd" style="display:none">
+  <h2>Por productor</h2>
+  <p class="sub">Sólo productores con 2 o más lotes medidos.</p>
+  <div class="tblwrap"><table id="tblProd"></table></div>
+</section>
+
+<section class="card" id="cardCorrel" style="display:none">
+  <h2>Qué predice la vida verde</h2>
+  <p class="sub" id="subCorrel"></p>
+  <div class="tblwrap"><table id="tblCorrel"></table></div>
+  <div class="note flag warn" id="notaCorrel"></div>
+</section>
+
+<section class="card" id="cardLotes" style="display:none">
+  <h2>Lotes cargados</h2>
+  <p class="sub" id="subLotes"></p>
+  <div class="tblwrap"><table id="tblLotes"></table></div>
+</section>
+
+</div>
+
+<script id="datosCal" type="application/json">/*__CALIDAD_JSON__*/{"generado":"2026-09-04 19:00","minLotes":15,"planilla":"fuentes\\calidad_lotes.xlsx","lotes":[],"n":0,"nConResultado":0,"resumen":null,"porOrigen":[],"porProductor":[],"correl":[]}/*__END_CALIDAD__*/</script>
+
+<script>
+(function () {
+  "use strict";
+  // Marcadores como regex escapados: su texto literal no aparece en el codigo.
+  var D = JSON.parse(document.getElementById('datosCal').textContent
+    .replace(/\/\*__CALIDAD_JSON__\*\//, '').replace(/\/\*__END_CALIDAD__\*\//, ''));
+
+  function el(t,c){var e=document.createElement(t); if(c) e.className=c; return e;}
+  function txt(id,s){var n=document.getElementById(id); if(n) n.textContent=s;}
+  function fmt(v,d){ if(v===null||v===undefined||isNaN(v)) return '—';
+    return Number(v).toLocaleString('es-UY',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+  function tile(c,lab,val,u,dl){
+    var x=el('div','tile');
+    var l=el('div','lab'); l.textContent=lab; x.appendChild(l);
+    var v=el('div','val'); v.textContent=val;
+    if(u){var s=el('span','u'); s.textContent=u; v.appendChild(s);}
+    x.appendChild(v);
+    var d=el('div','dl'); d.textContent=dl; x.appendChild(d);
+    c.appendChild(x);
+  }
+  function tabla(id,cols,filas){
+    var t=document.getElementById(id); if(!t) return; t.innerHTML='';
+    var th=el('thead'),tr=el('tr');
+    cols.forEach(function(c){var h=el('th'); h.textContent=c; tr.appendChild(h);});
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el('tbody');
+    filas.forEach(function(f){
+      var r=el('tr'); if(f.cls) r.className=f.cls;
+      f.cells.forEach(function(c){
+        var td=el('td');
+        if(c&&typeof c==='object'){ td.textContent=c.v; if(c.cls) td.className=c.cls; }
+        else td.textContent=c;
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+  }
+
+  txt('meta','Planilla: ' + D.planilla + ' · generado ' + D.generado);
+  txt('subHead','Cuánto aguanta cada lote antes de empezar a madurar solo, y qué lo explica.');
+
+  var falta = Math.max(0, D.minLotes - D.nConResultado);
+  var pct = Math.min(100, Math.round(D.nConResultado / D.minLotes * 100));
+
+  // ---- KPIs ----
+  (function(){
+    var k=document.getElementById('kpis');
+    tile(k,'Lotes cargados',fmt(D.n),'','en la planilla');
+    tile(k,'Con resultado',fmt(D.nConResultado),'','tienen fecha_rompio');
+    if(D.resumen){
+      tile(k,'Vida verde media',fmt(D.resumen.prom,1),'días',
+        'entre ' + fmt(D.resumen.min,1) + ' y ' + fmt(D.resumen.max,1));
+    } else {
+      tile(k,'Vida verde media','—','','falta el primer lote con fecha_rompio');
+    }
+    tile(k,'Para poder modelar',falta>0?fmt(falta):'listo',falta>0?'lotes más':'',
+      falta>0 ? ('hacen falta ' + D.minLotes + ' con resultado') : 'ya hay masa crítica');
+  })();
+
+  // ---- arranque / progreso ----
+  (function(){
+    document.getElementById('barra').style.width = pct + '%';
+    txt('progTxt', D.nConResultado + ' de ' + D.minLotes + ' lotes con resultado (' + pct + '%)');
+    if(D.nConResultado >= D.minLotes){
+      txt('h2Arranque','Cómo se mantiene esto');
+      txt('subArranque','Ya hay datos suficientes para estimar. Seguí cargando: cuantos más lotes, mejor el modelo.');
+    } else if(D.n === 0){
+      txt('h2Arranque','Todavía no hay ningún lote cargado');
+      txt('subArranque','La planilla está creada y vacía. Así se empieza:');
+    } else {
+      txt('h2Arranque','Falta el dato más importante');
+      txt('subArranque','Hay lotes cargados pero pocos con fecha de rotura. Sin eso no se puede estimar nada.');
+    }
+    var pasos = [
+      ['Al recibir el camión', 'Anotá en la planilla los seis números que ya medís: temperatura de pulpa, calibre, largo, fecha de corte del cacho, temperatura de ese día y lluvia de la semana. La plantilla de WhatsApp ya los pide.'],
+      ['Días después, cuando el lote vira', 'Volvé a la planilla y completá <b>fecha_rompio</b>. Este es el paso que hoy no existe y sin el cual todo lo demás no sirve.'],
+      ['Repetir', 'Con unos ' + D.minLotes + ' lotes completos, esta página empieza a mostrar qué variable predice mejor la duración.']
+    ];
+    var ol=document.getElementById('pasos');
+    pasos.forEach(function(p){
+      var li=el('li');
+      var b=el('b'); b.textContent=p[0]+'. ';
+      li.appendChild(b);
+      var sp=el('span'); sp.innerHTML=p[1];
+      li.appendChild(sp);
+      ol.appendChild(li);
+    });
+    var n=document.getElementById('notaPorque');
+    var p1=el('p');
+    p1.innerHTML='<b>Por qué importa.</b> El análisis de aduana de 2026 mostró que Brasil perdió un tercio de su volumen hacia Uruguay por <b>calidad</b>, no por precio — el FOB no se movió. Pero hoy la calidad no se puede medir: los números se sacan en fotos, y de una foto no sale un promedio ni una tendencia.';
+    n.appendChild(p1);
+    var p2=el('p');
+    p2.innerHTML='Estos seis campos ya se miden. Escribirlos como números no agrega trabajo de medición, sólo de anotación — y convierte cada descarga en un caso de aprendizaje. El objetivo a un año: saber en marzo que la fruta de mayo-agosto va a venir floja, y mover volumen antes que la competencia en vez de al mismo tiempo.';
+    n.appendChild(p2);
+  })();
+
+  // ---- resumen por origen ----
+  if(D.porOrigen && D.porOrigen.length){
+    document.getElementById('cardResumen').style.display='';
+    txt('subResumen','Días entre la recepción y el momento en que el lote empieza a virar.');
+    var filas=D.porOrigen.map(function(o){
+      return {cells:[o.origen,fmt(o.n),fmt(o.prom,1),fmt(o.min,1)+' – '+fmt(o.max,1)]};
+    });
+    tabla('tblOrigen',['Origen','lotes','vida verde media (días)','rango'],filas);
+    var n=document.getElementById('notaResumen');
+    var p=el('p');
+    if(D.nConResultado < D.minLotes){
+      p.textContent='Con ' + D.nConResultado + ' lotes esto es descriptivo, no predictivo. Sirve para ver el orden de magnitud, no para decidir.';
+    } else {
+      var peor=D.porOrigen.slice().sort(function(a,b){return a.prom-b.prom;})[0];
+      p.textContent='El origen con menos vida verde es ' + peor.origen + ' (' + fmt(peor.prom,1) +
+        ' días de media). Ese es el que conviene mandar primero a cámara.';
+    }
+    n.appendChild(p);
+  }
+
+  // ---- por productor ----
+  if(D.porProductor && D.porProductor.length){
+    document.getElementById('cardProd').style.display='';
+    var f2=D.porProductor.slice().sort(function(a,b){return a.prom-b.prom;}).map(function(p){
+      return {cells:[p.productor,fmt(p.n),fmt(p.prom,1)]};
+    });
+    tabla('tblProd',['Productor','lotes','vida verde media (días)'],f2);
+  }
+
+  // ---- correlaciones ----
+  if(D.correl && D.correl.length){
+    document.getElementById('cardCorrel').style.display='';
+    var nom={tempPulpa:'Temperatura de pulpa al recibir',calibre:'Calibre (mm)',largo:'Largo (cm)',
+             tempCorte:'Temperatura del día de corte',lluvia:'Lluvia de la semana previa',
+             transito:'Días entre corte y recepción'};
+    var f3=D.correl.slice().sort(function(a,b){return Math.abs(b.r)-Math.abs(a.r);}).map(function(c){
+      var fuerza = Math.abs(c.r)>=0.7?'fuerte':(Math.abs(c.r)>=0.5?'moderada':(Math.abs(c.r)>=0.3?'débil':'sin relación'));
+      return {cells:[nom[c.variable]||c.variable,fmt(c.n),
+        {v:fmt(c.r,3),cls:Math.abs(c.r)>=0.5?(c.r<0?'neg':'pos'):''},
+        fuerza,c.r<0?'a más, menos días':'a más, más días']};
+    });
+    tabla('tblCorrel',['Variable','n','r','relación','sentido'],f3);
+    txt('subCorrel','Correlación de cada variable medida contra la vida verde observada.');
+    var n2=document.getElementById('notaCorrel');
+    var p3=el('p');
+    p3.textContent='⚠️ Correlación no es causa, y con pocos lotes cualquier r se mueve mucho. Tratalo como una pista de qué mirar, no como un modelo. Recién con varias decenas de lotes y una zafra entera conviene ajustar coeficientes.';
+    n2.appendChild(p3);
+  }
+
+  // ---- lotes ----
+  if(D.lotes && D.lotes.length){
+    document.getElementById('cardLotes').style.display='';
+    txt('subLotes','Los ' + D.lotes.length + ' lotes de la planilla. Las celdas vacías son datos que faltan.');
+    var f4=D.lotes.slice().reverse().map(function(l){
+      function c(v,d){ return (v===null||v===undefined)?{v:'—',cls:'nil'}:fmt(v,d); }
+      return {cells:[l.codigo,l.origen||{v:'—',cls:'nil'},l.productor||{v:'—',cls:'nil'},
+        l.fechaRecepcion||{v:'—',cls:'nil'},c(l.tempPulpa,1),c(l.calibre),c(l.largo),
+        c(l.transito),l.fechaRompio||{v:'—',cls:'nil'},
+        l.vidaVerde===null?{v:'pendiente',cls:'nil'}:{v:fmt(l.vidaVerde,1),cls:'pos'}]};
+    });
+    tabla('tblLotes',['Código','origen','productor','recepción','t.pulpa','calibre','largo','tránsito','rompió','vida verde'],f4);
+  }
+})();
+</script>
+</body>
+</html>

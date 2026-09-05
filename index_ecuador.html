@@ -1,0 +1,309 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ecuador — Almar</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
+  --border:rgba(11,11,11,0.10); --good:#006300; --bad:#c0392b;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
+         --border:rgba(255,255,255,0.10); --good:#0ca30c; --bad:#e05c4a;
+         --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:26px 18px 60px}
+header h1{font-size:23px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 4px}
+.meta{color:var(--faint);font-size:12px;margin:10px 0 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 18px 20px;margin:20px 0}
+.card h2{font-size:17px;margin:0 0 4px}
+.card .sub{margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px;margin:18px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px}
+.tile .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .val{font-size:25px;font-weight:650;margin:3px 0 1px;line-height:1.1}
+.tile .u{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.tile .dl{font-size:12px;color:var(--muted)}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:480px}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+tbody tr.hi{background:rgba(42,120,214,.08);font-weight:600}
+td.pos{color:var(--good)} td.neg{color:var(--bad)} td.nil{color:var(--faint)}
+.plot{width:100%;overflow-x:auto}
+svg{display:block;max-width:100%;height:auto}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.note p{margin:0 0 8px} .note p:last-child{margin:0}
+.flag{border-left:3px solid var(--s1);padding-left:11px;border-top:0;margin-top:14px}
+.warn{border-left-color:var(--bad)}
+.fuentes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:11px;margin-top:6px}
+.f{border:1px solid var(--border);border-radius:9px;padding:12px 13px;font-size:12.7px}
+.f .n{font-weight:600;font-size:13.3px;margin-bottom:3px;display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.dot.ok{background:var(--good)} .dot.old{background:var(--s4)} .dot.no{background:var(--bad)}
+.f .d{color:var(--muted);line-height:1.45}
+code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🇪🇨 Ecuador</h1>
+  <p class="sub" id="subHead"></p>
+  <p class="meta" id="meta"></p>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<section class="card">
+  <h2>De dónde sale cada dato</h2>
+  <p class="sub">La fuente original (Tridge) está bloqueada. Este panel se reconstruyó sobre lo que sí funciona.</p>
+  <div class="fuentes" id="fuentes"></div>
+</section>
+
+<section class="card">
+  <h2 id="h2vol">Volumen importado desde Ecuador</h2>
+  <p class="sub" id="subVol"></p>
+  <div class="plot" id="pVol"></div>
+  <div class="note flag" id="notaVol"></div>
+</section>
+
+<section class="card">
+  <h2>Ecuador contra los otros orígenes</h2>
+  <p class="sub" id="subComp"></p>
+  <div class="tblwrap"><table id="tblComp"></table></div>
+  <div class="note flag" id="notaComp"></div>
+</section>
+
+<section class="card">
+  <h2>Referencia mundial</h2>
+  <p class="sub" id="subMundo"></p>
+  <div class="plot" id="pMundo"></div>
+  <div class="note flag warn" id="notaMundo"></div>
+</section>
+
+</div>
+
+<script id="datosEc" type="application/json">/*__ECUADOR2_JSON__*/{"generado":"2026-09-04 19:00","penta":{"fuente":"Penta Transaction · valor en aduana Uruguay","corte":"2026-08-31","anio":2026,"usdKg":1.007,"tMesV1":1693,"tMesV2":1245,"mensual":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5],"meses":8,"interanual":{"2024":1107,"2025":1008,"2026":1245},"comparativa":[{"origen":"Brasil","usdKg":0.525,"tMes":1698},{"origen":"Paraguay","usdKg":0.52,"tMes":931},{"origen":"Bolivia","usdKg":0.611,"tMes":206}]},"mundial":{"fuente":"IndexMundi / Banco Mundial · banana Centroamerica y Ecuador, FOB puertos EEUU","unidad":"USD/kg","puntos":56,"ultimo":"2026-03","ultimoValor":1.21,"serie":[{"fecha":"2021-08","usdKg":1.23},{"fecha":"2021-09","usdKg":1.18},{"fecha":"2021-10","usdKg":1.15},{"fecha":"2021-11","usdKg":1.14},{"fecha":"2021-12","usdKg":1.16},{"fecha":"2022-01","usdKg":1.16},{"fecha":"2022-02","usdKg":1.24},{"fecha":"2022-03","usdKg":1.39},{"fecha":"2022-04","usdKg":1.46},{"fecha":"2022-05","usdKg":1.46},{"fecha":"2022-06","usdKg":1.44},{"fecha":"2022-07","usdKg":1.53},{"fecha":"2022-08","usdKg":1.67},{"fecha":"2022-09","usdKg":1.62},{"fecha":"2022-10","usdKg":1.57},{"fecha":"2022-11","usdKg":1.65},{"fecha":"2022-12","usdKg":1.68},{"fecha":"2023-01","usdKg":1.68},{"fecha":"2023-02","usdKg":1.66},{"fecha":"2023-03","usdKg":1.6},{"fecha":"2023-04","usdKg":1.65},{"fecha":"2023-05","usdKg":1.61},{"fecha":"2023-06","usdKg":1.59},{"fecha":"2023-07","usdKg":1.55},{"fecha":"2023-08","usdKg":1.56},{"fecha":"2023-09","usdKg":1.56},{"fecha":"2023-10","usdKg":1.57},{"fecha":"2023-11","usdKg":1.55},{"fecha":"2023-12","usdKg":1.57},{"fecha":"2024-01","usdKg":1.61},{"fecha":"2024-02","usdKg":1.57},{"fecha":"2024-03","usdKg":1.64},{"fecha":"2024-04","usdKg":1.63},{"fecha":"2024-05","usdKg":1.42},{"fecha":"2024-06","usdKg":1.09},{"fecha":"2024-07","usdKg":1.03},{"fecha":"2024-08","usdKg":1.01},{"fecha":"2024-09","usdKg":1.03},{"fecha":"2024-10","usdKg":1.03},{"fecha":"2024-11","usdKg":0.91},{"fecha":"2024-12","usdKg":0.83},{"fecha":"2025-01","usdKg":1.11},{"fecha":"2025-02","usdKg":1.25},{"fecha":"2025-03","usdKg":1.18},{"fecha":"2025-04","usdKg":1.1},{"fecha":"2025-05","usdKg":1.09},{"fecha":"2025-06","usdKg":0.92},{"fecha":"2025-07","usdKg":1.01},{"fecha":"2025-08","usdKg":1.02},{"fecha":"2025-09","usdKg":1.02},{"fecha":"2025-10","usdKg":1.13},{"fecha":"2025-11","usdKg":1.16},{"fecha":"2025-12","usdKg":1.16},{"fecha":"2026-01","usdKg":1.2},{"fecha":"2026-02","usdKg":1.21},{"fecha":"2026-03","usdKg":1.21}]},"tridge":{"fuente":"Tridge (bloqueado desde ~24/07/2026)","ultimo":"2026-07-15","usdKg":0.71,"dias":52,"puntos":14}}/*__END_ECUADOR2__*/</script>
+
+<script>
+(function () {
+  "use strict";
+  // Marcadores como regex escapados: su texto literal no aparece en el codigo.
+  var D = JSON.parse(document.getElementById('datosEc').textContent
+    .replace(/\/\*__ECUADOR2_JSON__\*\//, '').replace(/\/\*__END_ECUADOR2__\*\//, ''));
+
+  var MES=['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
+  function el(t,c){var e=document.createElement(t); if(c) e.className=c; return e;}
+  function svgEl(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+    for(var k in a) e.setAttribute(k,a[k]); return e;}
+  function txt(id,s){var n=document.getElementById(id); if(n) n.textContent=s;}
+  function fmt(v,d){ if(v===null||v===undefined||isNaN(v)) return '—';
+    return Number(v).toLocaleString('es-UY',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+  function tile(c,lab,val,u,dl){
+    var x=el('div','tile');
+    var l=el('div','lab'); l.textContent=lab; x.appendChild(l);
+    var v=el('div','val'); v.textContent=val;
+    if(u){var s=el('span','u'); s.textContent=u; v.appendChild(s);}
+    x.appendChild(v);
+    var d=el('div','dl'); d.textContent=dl; x.appendChild(d);
+    c.appendChild(x);
+  }
+  function tabla(id,cols,filas){
+    var t=document.getElementById(id); if(!t) return; t.innerHTML='';
+    var th=el('thead'),tr=el('tr');
+    cols.forEach(function(c){var h=el('th'); h.textContent=c; tr.appendChild(h);});
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el('tbody');
+    filas.forEach(function(f){
+      var r=el('tr'); if(f.cls) r.className=f.cls;
+      f.cells.forEach(function(c){
+        var td=el('td');
+        if(c&&typeof c==='object'){ td.textContent=c.v; if(c.cls) td.className=c.cls; }
+        else td.textContent=c;
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+  }
+
+  var P = D.penta, M = D.mundial, T = D.tridge;
+  txt('meta','Generado ' + D.generado);
+
+  if(!P){
+    txt('subHead','Sin datos de aduana todavía. Poné un extracto detalle_UYimport_*.xlsx con origen Ecuador en la carpeta penta\\ y corré el script.');
+    return;
+  }
+  txt('subHead','Precio y volumen de la banana ecuatoriana que entra a Uruguay, desde registros de aduana.');
+
+  // ---- KPIs ----
+  (function(){
+    var k=document.getElementById('kpis');
+    tile(k,'Precio en aduana','USD '+fmt(P.usdKg,3),'/kg','lo que Uruguay paga · Penta');
+    tile(k,'Volumen actual',fmt(P.tMesV2),'t/mes','antes: '+fmt(P.tMesV1)+' t/mes');
+    if(P.interanual){
+      var ys=Object.keys(P.interanual).sort();
+      var act=P.interanual[ys[ys.length-1]], pre=P.interanual[ys[ys.length-2]];
+      if(pre){
+        var d=(act/pre-1)*100;
+        tile(k,'Contra el año pasado',(d>0?'+':'')+fmt(d,0)+'%','',ys[ys.length-2]+': '+fmt(pre)+' → '+fmt(act)+' t/mes');
+      }
+    }
+    if(M) tile(k,'Referencia mundial','USD '+fmt(M.ultimoValor,2),'/kg','Banco Mundial · '+M.ultimo);
+  })();
+
+  // ---- fuentes ----
+  (function(){
+    var c=document.getElementById('fuentes');
+    function f(estado,nom,desc){
+      var x=el('div','f');
+      var n=el('div','n');
+      var d=el('span','dot '+estado); n.appendChild(d);
+      n.appendChild(document.createTextNode(nom)); x.appendChild(n);
+      var p=el('div','d'); p.textContent=desc; x.appendChild(p);
+      c.appendChild(x);
+    }
+    f('ok','Penta — aduana (primaria)',
+      'El USD/kg que Uruguay realmente paga. Datos hasta ' + P.corte +
+      '. Se actualiza cuando bajás un extracto nuevo a la carpeta penta\\.');
+    if(M){
+      var lag = Math.round((new Date() - new Date(M.ultimo + '-01')) / (1000*60*60*24*30));
+      f(lag>3?'old':'ok','IndexMundi — referencia',
+        'Serie del Banco Mundial (banana Centroamérica y Ecuador, FOB puertos EEUU). ' +
+        'Último dato ' + M.ultimo + ', unos ' + lag + ' meses de atraso. Sirve para contexto, no para decidir la semana.');
+    } else {
+      f('no','IndexMundi — referencia','No se pudo bajar en esta corrida.');
+    }
+    if(T){
+      f('no','Tridge — bloqueada',
+        'Era la fuente original de FOB spot. Bloqueada por Cloudflare desde hace ' + T.dias +
+        ' días; no lo arreglan los headers. Último dato que dejó: ' + T.ultimo + ' a USD ' + fmt(T.usdKg,2) + '/kg.');
+    }
+  })();
+
+  // ---- volumen mensual ----
+  (function(){
+    if(!P.mensual || !P.mensual.length){ return; }
+    txt('h2vol','Volumen importado desde Ecuador — ' + P.anio);
+    txt('subVol','Toneladas netas por mes, de registros de aduana. Datos hasta ' + P.corte + '.');
+    var W=1000,H=260,M2={t:16,r:16,b:32,l:52};
+    var iw=W-M2.l-M2.r, ih=H-M2.t-M2.b;
+    var vmax=Math.max.apply(null,P.mensual); vmax=Math.ceil(vmax/250)*250||100;
+    var n=P.mensual.length;
+    var bw=iw/n*0.62;
+    var svg=svgEl('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'Volumen mensual desde Ecuador'});
+    for(var g=0;g<=4;g++){
+      var vy=vmax*g/4, yy=M2.t+ih-(vy/vmax)*ih;
+      svg.appendChild(svgEl('line',{x1:M2.l,x2:W-M2.r,y1:yy,y2:yy,stroke:'var(--border)','stroke-width':1}));
+      var tl=svgEl('text',{x:M2.l-8,y:yy+4,'text-anchor':'end','font-size':11,fill:'var(--muted)'});
+      tl.textContent=fmt(vy); svg.appendChild(tl);
+    }
+    P.mensual.forEach(function(v,i){
+      var cx=M2.l+(i+0.5)*(iw/n);
+      var top=M2.t+ih-(v/vmax)*ih;
+      svg.appendChild(svgEl('rect',{x:cx-bw/2,y:top,width:bw,height:Math.max(1,M2.t+ih-top),
+        fill:'var(--s1)',rx:3}));
+      var t1=svgEl('text',{x:cx,y:H-11,'text-anchor':'middle','font-size':11,fill:'var(--muted)'});
+      t1.textContent=MES[i]; svg.appendChild(t1);
+    });
+    document.getElementById('pVol').appendChild(svg);
+
+    var nv=document.getElementById('notaVol');
+    if(P.interanual){
+      var ys=Object.keys(P.interanual).sort();
+      var linea=ys.map(function(y){return y+': '+fmt(P.interanual[y])+' t/mes';}).join(' · ');
+      var p=el('p'); p.textContent='Mismo período, año contra año — '+linea+'.';
+      nv.appendChild(p);
+    }
+  })();
+
+  // ---- comparativa por origen ----
+  (function(){
+    if(!P.comparativa || !P.comparativa.length){ return; }
+    var todos=[{origen:'Ecuador',usdKg:P.usdKg,tMes:P.tMesV2}].concat(P.comparativa);
+    var totT=todos.reduce(function(a,o){return a+o.tMes;},0);
+    var totU=todos.reduce(function(a,o){return a+o.tMes*1000*o.usdKg;},0);
+    var filas=todos.slice().sort(function(a,b){return b.tMes*b.usdKg-a.tMes*a.usdKg;}).map(function(o){
+      var usd=o.tMes*1000*o.usdKg;
+      return {cls:/Ecuador/.test(o.origen)?'hi':'',
+        cells:[o.origen,fmt(o.usdKg,3),fmt(o.tMes),fmt(o.tMes/totT*100,1)+'%',
+               'USD '+fmt(usd),fmt(usd/totU*100,1)+'%']};
+    });
+    tabla('tblComp',['Origen','USD/kg','t/mes','% volumen','valor/mes','% valor'],filas);
+    txt('subComp','Ecuador es el origen más caro por kilo, así que pesa más en valor que en volumen.');
+    var ec=todos[0];
+    var np=document.getElementById('notaComp');
+    var p=el('p');
+    var br=P.comparativa.filter(function(o){return /Brasil/.test(o.origen);})[0];
+    if(br){
+      p.textContent='Ecuador cuesta '+fmt(ec.usdKg/br.usdKg,1)+'× lo que cuesta Brasil por kilo (USD '+
+        fmt(ec.usdKg,3)+' vs '+fmt(br.usdKg,3)+'), pero llega por barco y no por camión: no son costos comparables sin sumar flete y tiempo.';
+      np.appendChild(p);
+    }
+  })();
+
+  // ---- referencia mundial ----
+  (function(){
+    var nm=document.getElementById('notaMundo');
+    if(!M || !M.serie || !M.serie.length){
+      txt('subMundo','No hay serie mundial disponible en esta corrida.');
+      return;
+    }
+    var lag = Math.round((new Date() - new Date(M.ultimo + '-01')) / (1000*60*60*24*30));
+    txt('subMundo',M.fuente+'. '+M.puntos+' meses, último dato '+M.ultimo+'.');
+    var s=M.serie.slice(-36);
+    var W=1000,H=240,M2={t:16,r:16,b:32,l:52};
+    var iw=W-M2.l-M2.r, ih=H-M2.t-M2.b;
+    var vs=s.map(function(p){return p.usdKg;});
+    var vmin=Math.floor(Math.min.apply(null,vs)*10)/10-0.1;
+    var vmax=Math.ceil(Math.max.apply(null,vs)*10)/10+0.1;
+    var x=function(i){return M2.l+(i/(s.length-1))*iw;};
+    var y=function(v){return M2.t+ih-((v-vmin)/(vmax-vmin))*ih;};
+    var svg=svgEl('svg',{viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'Precio mundial de banana'});
+    for(var g=0;g<=4;g++){
+      var vy=vmin+(vmax-vmin)*g/4;
+      svg.appendChild(svgEl('line',{x1:M2.l,x2:W-M2.r,y1:y(vy),y2:y(vy),stroke:'var(--border)','stroke-width':1}));
+      var tl=svgEl('text',{x:M2.l-8,y:y(vy)+4,'text-anchor':'end','font-size':11,fill:'var(--muted)'});
+      tl.textContent=fmt(vy,2); svg.appendChild(tl);
+    }
+    var d='';
+    s.forEach(function(p,i){ d+=(i?' L':'M')+x(i)+' '+y(p.usdKg); });
+    svg.appendChild(svgEl('path',{d:d,fill:'none',stroke:'var(--s2)','stroke-width':2.4,'stroke-linejoin':'round'}));
+    // linea del precio en aduana, para comparar
+    if(P.usdKg>=vmin&&P.usdKg<=vmax){
+      svg.appendChild(svgEl('line',{x1:M2.l,x2:W-M2.r,y1:y(P.usdKg),y2:y(P.usdKg),
+        stroke:'var(--s1)','stroke-width':2,'stroke-dasharray':'6 4'}));
+      var lb=svgEl('text',{x:W-M2.r-4,y:y(P.usdKg)-6,'text-anchor':'end','font-size':11,fill:'var(--s1)'});
+      lb.textContent='aduana UY '+fmt(P.usdKg,3); svg.appendChild(lb);
+    }
+    s.forEach(function(p,i){
+      if(i%6!==0 && i!==s.length-1) return;
+      var t1=svgEl('text',{x:x(i),y:H-11,'text-anchor':'middle','font-size':10.5,fill:'var(--muted)'});
+      t1.textContent=p.fecha; svg.appendChild(t1);
+    });
+    document.getElementById('pMundo').appendChild(svg);
+
+    var p1=el('p');
+    p1.textContent='⚠️ Esta serie tiene unos '+lag+' meses de atraso, así que sirve para ver la tendencia larga, no para decidir una compra. '+
+      'La línea azul punteada es lo que Uruguay paga hoy en aduana (USD '+fmt(P.usdKg,3)+'/kg).';
+    nm.appendChild(p1);
+    var p2=el('p');
+    var dif=(P.usdKg/M.ultimoValor-1)*100;
+    p2.textContent='Contra el último dato mundial ('+fmt(M.ultimoValor,2)+'), el precio en aduana está '+
+      (dif>=0?'+':'')+fmt(dif,0)+'%. Si esa brecha se abriera mucho, valdría revisar el dato.';
+    nm.appendChild(p2);
+  })();
+})();
+</script>
+</body>
+</html>

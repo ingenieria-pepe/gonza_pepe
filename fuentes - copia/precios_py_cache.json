@@ -1,0 +1,60 @@
+{
+  "fuente": "SIMA / preciosdelagro.com",
+  "producto": "Banana Carape",
+  "mercado": "Mercado Central Abasto Asuncion (DAMA)",
+  "unidad": "PYG/caja 23-25 kg",
+  "kg_caja_aprox": 24,
+  "precio_caja_pyg": 70000.0,
+  "fecha_actualizado": "2026-07-03",
+  "actualizado": "2026-07-05 09:24",
+  "serie": [
+    {
+      "fecha": "2026-06-03",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-05",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-08",
+      "precio_caja_pyg": 80000.0
+    },
+    {
+      "fecha": "2026-06-10",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-15",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-17",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-19",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-24",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-26",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-06-29",
+      "precio_caja_pyg": 70000.0
+    },
+    {
+      "fecha": "2026-07-01",
+      "precio_caja_pyg": 80000.0
+    },
+    {
+      "fecha": "2026-07-03",
+      "precio_caja_pyg": 70000.0
+    }
+  ]
+}

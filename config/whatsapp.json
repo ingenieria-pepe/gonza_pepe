@@ -1,0 +1,23 @@
+﻿{
+  "enabled": true,
+  "phones": ["59899244062", "554799028111", "59896663167"],
+  "token": "pEi4nsBi2M0UXDS0cYlbIjwRcKDMCcTc",
+  "min_silence_hours": 6,
+  "alerts": {
+    "criticas_compra": true,
+    "movimientos_precio": true,
+    "clima_severo": true,
+    "resumen_semanal": true,
+    "precio_py": true,
+    "fallas_pipeline": true
+  },
+  "INSTRUCCIONES": [
+    "Gateway: Whapi.cloud (https://gate.whapi.cloud)",
+    "Docs: https://whapi.readme.io/reference/getting-started",
+    "1. Llená 'phone' con tu numero internacional SIN +, solo digitos (ej. Uruguay 59899244062, Brasil 5547999998888)",
+    "2. El token ya esta cargado — si lo rotan, generar uno nuevo en el panel de Whapi y reemplazar 'token'",
+    "3. Para probar: & 'C:/Users/Usuario/Desktop/poronga/actualizar_precios.ps1' (o test manual con el snippet PowerShell del README)",
+    "4. Si NO querés WA, poné enabled=false y queda dormido (no hay que tocar nada mas)",
+    "5. El numero remitente esta atado al channel del token — no hay QR ni reconexion necesaria"
+  ]
+}

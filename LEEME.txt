@@ -1,0 +1,29 @@
+PORONGA — Dashboard de compras de banana · Almar S.R.L.
+Paquete generado el 04/09/2026 16:04
+
+POR DONDE EMPEZAR
+  Abrir  inicio.html  — es la portada, desde ahi se llega a los 11 paneles.
+
+QUE HAY ADENTRO
+  inicio.html ................. portada con el estado de cada panel
+  index.html .................. plan de compras Brasil
+  index_brasil.html ........... Brasil con forecast y correlaciones clima-precio
+  index_paraguay_bolivia.html . Paraguay y Bolivia
+  index_ecuador.html .......... Ecuador (Penta + referencia mundial)
+  index_mercado.html .......... mercado uruguayo multi-origen, datos de aduana
+  index_proyeccion.html ....... proyeccion de precio y volumen a fin de ano
+  index_comparativo_anual.html  ano contra ano
+  index_calidad.html .......... calidad y vida verde por lote
+  guia_corte\ ................. guia de corte transversal, calculadora y atlas
+  actualizar_precios.ps1 ...... el script que regenera todo
+  penta\ ...................... extractos de aduana y el analisis escrito
+
+FALTA EL TOKEN DE WHATSAPP
+  config\whatsapp.json viene con una plantilla, SIN el token ni los numeros.
+  Es a proposito: el token es una credencial viva y no debe viajar en un zip
+  que se manda por mensajeria. Pedirlo por un canal aparte.
+  Sin eso todo el resto funciona igual; solo no se mandan las alertas.
+
+PARA CORRER EL SCRIPT
+  Necesita Windows con Excel instalado (usa Excel COM) e internet.
+  Los paths son relativos a la carpeta del script, asi que anda en cualquier ruta.

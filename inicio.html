@@ -1,0 +1,177 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Almar — Panel de control</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
+  --border:rgba(11,11,11,0.10); --good:#006300; --bad:#c0392b; --warn:#b06a00;
+  --s1:#2a78d6;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
+         --border:rgba(255,255,255,0.10); --good:#0ca30c; --bad:#e05c4a; --warn:#d99a2b;
+         --s1:#3987e5; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:32px 18px 60px}
+header h1{font-size:26px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:14px;margin:0}
+.precio{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;margin:22px 0 8px;display:flex;flex-wrap:wrap;gap:22px;align-items:baseline}
+.precio .big{font-size:30px;font-weight:650;line-height:1}
+.precio .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px}
+.precio .dl{font-size:12.5px;color:var(--muted)}
+h2.grp{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;
+  margin:30px 0 10px;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+a.panel{display:block;background:var(--card);border:1px solid var(--border);border-radius:11px;
+  padding:15px 16px;text-decoration:none;color:inherit;transition:border-color .15s,transform .1s}
+a.panel:hover{border-color:var(--s1);transform:translateY(-1px)}
+.panel .top{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.panel .ico{font-size:19px;line-height:1}
+.panel .tit{font-weight:600;font-size:15px}
+.panel .desc{font-size:12.8px;color:var(--muted);margin-bottom:9px;line-height:1.45}
+.panel .pie{font-size:11.5px;color:var(--faint);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+.dot.ok{background:var(--good)} .dot.old{background:var(--bad)} .dot.est{background:var(--faint)}
+.badge{font-size:10.5px;padding:1px 7px;border-radius:20px;background:rgba(120,120,120,.15);color:var(--muted)}
+.badge.old{background:rgba(192,57,43,.15);color:var(--bad)}
+.nota{font-size:12.5px;color:var(--muted);border-left:3px solid var(--s1);padding-left:11px;margin:26px 0 0}
+.nota.warn{border-left-color:var(--bad)}
+.nota p{margin:0 0 8px} .nota p:last-child{margin:0}
+code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>🍌 Almar — Panel de control</h1>
+  <p class="sub" id="sub"></p>
+</header>
+
+<div class="precio" id="precio"></div>
+
+<div id="grupos"></div>
+
+<div class="nota" id="notaAuto"></div>
+<div class="nota warn" id="notaVieja" style="display:none"></div>
+
+</div>
+
+<script id="datosPortada" type="application/json">/*__PORTADA_JSON__*/{"generado":"2026-09-04 19:00","cepea":{"ultima_semana":"2026-09-04","ultimo_precio":0.91},"paneles":[{"archivo":"index.html","titulo":"Plan de compras Brasil","desc":"Termometro Cepea, clima, spread vs productores, plan mensual y fechas criticas.","icono":"🍌","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_brasil.html","titulo":"Brasil — detalle","desc":"Forecast Cepea, correlacion clima-precio y auditoria del ano.","icono":"🇧🇷","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_paraguay_bolivia.html","titulo":"Paraguay y Bolivia","desc":"Precio mayorista Carape y plan multi-origen.","icono":"🇵🇾","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_ecuador.html","titulo":"Ecuador FOB","desc":"Precio FOB de exportacion de Ecuador.","icono":"🇪🇨","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_mercado.html","titulo":"Mercado UY multi-origen","desc":"Quien importa que, de donde y cuanto. Datos de aduana.","icono":"🌎","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_proyeccion.html","titulo":"Proyeccion a fin de ano","desc":"Precio y volumen proyectados hasta diciembre.","icono":"🔭","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_comparativo_anual.html","titulo":"Comparativo anual","desc":"Ano contra ano: curvas, salto julio-agosto e invierno.","icono":"📊","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"index_calidad.html","titulo":"Calidad y vida verde","desc":"Cuanto aguanta cada lote y que lo explica. Se llena a mano en fuentes\\calidad_lotes.xlsx.","icono":"🌱","actualizado":"2026-09-04 19:00","dias":0,"auto":true,"estado":"al dia"},{"archivo":"guia_corte/guia_corte_transversal_banana.html","titulo":"Guia de corte transversal","desc":"Control de calidad del dedo al recibir. Imprimible.","icono":"🔪","actualizado":"2026-06-13 11:33","dias":83.3,"auto":false,"estado":"estatica"},{"archivo":"guia_corte/calculadora_punto_optimo.html","titulo":"Punto optimo de recepcion","desc":"Calculadora: llenado, azucar y si aguanta el flete.","icono":"🧮","actualizado":"2026-06-14 21:18","dias":81.9,"auto":false,"estado":"estatica"},{"archivo":"guia_corte/atlas_cortes.html","titulo":"Atlas de cortes","desc":"Fotos de referencia de cortes sanos y con problemas.","icono":"🖼️","actualizado":"2026-06-14 21:49","dias":81.9,"auto":false,"estado":"estatica"}]}/*__END_PORTADA__*/</script>
+
+<script>
+(function () {
+  "use strict";
+  // Marcadores como regex escapados: su texto literal no aparece en el codigo.
+  var D = JSON.parse(document.getElementById('datosPortada').textContent
+    .replace(/\/\*__PORTADA_JSON__\*\//, '').replace(/\/\*__END_PORTADA__\*\//, ''));
+
+  function el(t,c){var e=document.createElement(t); if(c) e.className=c; return e;}
+  function fmt(v,d){ if(v===null||v===undefined||isNaN(v)) return '—';
+    return Number(v).toLocaleString('es-UY',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+
+  document.getElementById('sub').textContent =
+    'Todos los paneles en un lugar. Se regenera en cada corrida del script · ' + D.generado;
+
+  // ---- precio de referencia ----
+  (function(){
+    var c = document.getElementById('precio');
+    if(!D.cepea || !D.cepea.ultimo_precio){ c.style.display='none'; return; }
+    var b = el('div');
+    var l = el('span','lab'); l.textContent = 'Último Cepea — Nanica primeira, Norte SC';
+    b.appendChild(l);
+    var v = el('div','big'); v.textContent = 'R$ ' + fmt(D.cepea.ultimo_precio,2) + '/kg';
+    b.appendChild(v);
+    var d = el('div','dl'); d.textContent = 'semana del ' + D.cepea.ultima_semana;
+    b.appendChild(d);
+    c.appendChild(b);
+    var b2 = el('div');
+    var l2 = el('span','lab'); l2.textContent = 'Equivalente por caja (22 kg + R$ 16 servicios)';
+    b2.appendChild(l2);
+    var v2 = el('div','big'); v2.textContent = 'R$ ' + fmt(D.cepea.ultimo_precio*22+16,0);
+    b2.appendChild(v2);
+    var d2 = el('div','dl'); d2.textContent = 'USD ' + fmt((D.cepea.ultimo_precio*22+16)/5.20,2) + ' a 5,20';
+    b2.appendChild(d2);
+    c.appendChild(b2);
+  })();
+
+  // ---- paneles agrupados ----
+  var grupos = [
+    { nom:'Precio y compras', archivos:['index.html','index_brasil.html','index_paraguay_bolivia.html','index_ecuador.html'] },
+    { nom:'Mercado y análisis', archivos:['index_mercado.html','index_proyeccion.html','index_comparativo_anual.html'] },
+    { nom:'Calidad en recepción', archivos:null }  // el resto
+  ];
+  var usados = {};
+  var cont = document.getElementById('grupos');
+
+  function tarjeta(p){
+    var a = el('a','panel'); a.href = p.archivo;
+    var top = el('div','top');
+    var i = el('span','ico'); i.textContent = p.icono; top.appendChild(i);
+    var t = el('span','tit'); t.textContent = p.titulo; top.appendChild(t);
+    a.appendChild(top);
+    var d = el('div','desc'); d.textContent = p.desc; a.appendChild(d);
+    var pie = el('div','pie');
+    var dot = el('span','dot ' + (p.estado==='al dia'?'ok':(p.estado==='atrasada'?'old':'est')));
+    pie.appendChild(dot);
+    var txt = el('span');
+    if(!p.auto){ txt.textContent = 'estática'; }
+    else if(p.dias < 1){ txt.textContent = 'actualizada hoy'; }
+    else { txt.textContent = 'hace ' + fmt(p.dias,0) + (p.dias<2?' día':' días'); }
+    pie.appendChild(txt);
+    if(p.estado==='atrasada'){
+      var b = el('span','badge old'); b.textContent = 'sin actualizar'; pie.appendChild(b);
+    } else if(p.auto){
+      var b2 = el('span','badge'); b2.textContent = 'se regenera sola'; pie.appendChild(b2);
+    }
+    a.appendChild(pie);
+    return a;
+  }
+
+  grupos.forEach(function(g){
+    var lista;
+    if(g.archivos){
+      lista = g.archivos.map(function(f){
+        return D.paneles.filter(function(p){return p.archivo===f;})[0];
+      }).filter(Boolean);
+    } else {
+      lista = D.paneles.filter(function(p){ return !usados[p.archivo]; });
+    }
+    if(!lista.length) return;
+    lista.forEach(function(p){ usados[p.archivo]=true; });
+    var h = el('h2','grp'); h.textContent = g.nom; cont.appendChild(h);
+    var gr = el('div','grid');
+    lista.forEach(function(p){ gr.appendChild(tarjeta(p)); });
+    cont.appendChild(gr);
+  });
+
+  // ---- notas ----
+  var autos = D.paneles.filter(function(p){return p.auto;});
+  var na = document.getElementById('notaAuto');
+  var p1 = el('p');
+  p1.appendChild(document.createTextNode('Los paneles marcados «se regenera sola» se rehacen cada vez que corre '));
+  var c1 = el('code'); c1.textContent = 'actualizar_precios.ps1'; p1.appendChild(c1);
+  p1.appendChild(document.createTextNode(' — viernes 19:00 y miércoles 12:00. Son ' + autos.length + ' de ' + D.paneles.length + '. Si ves algo raro, apretá Ctrl+F5 para saltear el caché del navegador.'));
+  na.appendChild(p1);
+
+  var viejas = D.paneles.filter(function(p){return p.estado==='atrasada';});
+  if(viejas.length){
+    var nv = document.getElementById('notaVieja');
+    nv.style.display='';
+    var p2 = el('p');
+    p2.appendChild(document.createTextNode('⚠️ Sin actualizar: ' +
+      viejas.map(function(p){return p.titulo + ' (hace ' + fmt(p.dias,0) + ' días)';}).join(', ') +
+      '. Debería regenerarse sola y no lo está haciendo — revisá la salida del script.'));
+    nv.appendChild(p2);
+  }
+})();
+</script>
+</body>
+</html>

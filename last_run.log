@@ -1,0 +1,90 @@
+﻿[1/6] Descargando Cepea (2023-2026)...
+    OK (15058 bytes)
+[2/6] Leyendo Excel Cepea y construyendo dataset...
+    Semanas obtenidas: 193
+[3/6] Procesando cargas Almar 2026...
+    Operaciones parseadas: 409
+    Semanas con datos: 30 | Productores: 19 | Cargas YTD: 386
+[clima] Bajando clima de zonas productoras...
+    BR Luiz Alves... 
+OK 15.3°C 🌦️
+    BR Guaramirim... 
+OK 16.1°C 🌦️
+    PY Tembiapora... 
+OK 21.2°C 🌤️
+    BO Yapacani (default)... 
+OK 27.5°C ☀️
+    Regiones de clima cargadas: 4
+[pro] Bajando archivo historico de clima BR y calculando correlaciones...
+    Anclaje: mercado al 54 % de su norma estacional · phi 0,818 [AR(1) n=190 r2=0.6664]
+    archive Luiz Alves... 
+(cache 
+OK (193 sem · mejor tmax: lag 4 r=-0.338 · reg r²=0.1144 rmse=0.4824)
+    archive Guaramirim... 
+(cache 
+OK (193 sem · mejor tmax: lag 4 r=-0.338 · reg r²=0.1144 rmse=0.4824)
+[py] Bajando precio banana Carape PY (Mercado Asuncion)... 
+OK PYG 80000/caja (fecha 2026-09-04, 11 puntos)
+[4/6] JSON sidecar guardado en C:\Users\User\Desktop\poronga_servidor\fuentes\precios_cepea.json
+[5/6] Inyectando datos en archivos HTML...
+    OK index.html
+    OK index_brasil.html
+    OK index_paraguay_bolivia.html
+[5c] Mercado UY multi-origen (Penta)...
+    sidecar: fuentes\mercado_uy.json (637 reg, 4 origenes, corte 2026-08-31)
+    OK index_mercado.html
+[5b] Generando comparativo anual...
+    OK index_comparativo_anual.html (4 anios, 191 semanas)
+[5d] Proyeccion hasta fin de anio...
+    sidecar: fuentes\proyeccion.json (precio 4 meses, volumen 4 meses)
+    OK index_proyeccion.html
+[5f] Ecuador (Penta + referencia mundial)...
+    mundial: 56 meses, ultimo 2026-03 = 1.21 USD/kg (atraso ~6 meses)
+    sidecar: fuentes\ecuador.json
+    OK index_ecuador.html
+[5g] Calidad y vida verde...
+    planilla vacia todavia — el panel va a explicar como llenarla
+    0 lotes cargados, 0 con fecha_rompio (hacen falta 15 para modelar)
+    OK index_calidad.html
+[5e] Portada...
+    OK inicio.html (11 paneles)
+[ec] Bajando precio FOB banana Ecuador (Tridge)... 
+OK (+5 exp, +5 imp, last 2026-08-13: USD 17,94/caja)
+[6/6] Evaluando alertas...
+    Sin alertas. Zona estable: ALTA, variacion semanal -8,1%
+[WA] Evaluando alertas WhatsApp...
+    Score: -1 (🟡 NORMAL) | Cepea[1w:-8,1%/3w:-34,5%→ef:-34,5% sig=2] | Zona:ALTA(sig=-2) | 
+Spread:0,0(sig=0) | Clima[tmin2w:14,8°C sig=-1]
+    WA -> forecast:
+      OK    59899244062    PsryDvEWDH5VwGE-wDQN8kXuHg
+      OK    554799028111   Pso7xGJG.i5fuLI-wACBLJlXjw
+      OK    59896663167    PsqNfSeLzy6E2uo-wCcN8h6Mfw
+      => 3/3 entregados
+    WA -> clima:
+      OK    59899244062    PsqFk5NMEPxN4A0-wHYN8kXuHg
+      OK    554799028111   PsrnnUnWGUltIUo-wLOBLJlXjw
+      OK    59896663167    PsryATw..8WFCDw-wM8N8h6Mfw
+      => 3/3 entregados
+    WA -> ecuador:
+      OK    59899244062    PsrGh4vq.SSv9mk-wIkN8kXuHg
+      OK    554799028111   PsoNn1ij5w2aFHA-wBiBLJlXjw
+      OK    59896663167    PsqDJommHFYmgJQ-wJ0N8h6Mfw
+      => 3/3 entregados
+    WA -> resumen:
+      OK    59899244062    PsrRPyna_BzNzU4-wLEN8kXuHg
+      OK    554799028111   PsrWPSolzTDQ1BE-wGmBLJlXjw
+      OK    59896663167    PsrXsCokLAXQFl0-wDkN8h6Mfw
+      => 3/3 entregados
+
+============================================
+OK actualizado.
+Ultima semana: 2026-09-04
+Ultimo precio: R$ 0.91/kg
+Zona actual:   ALTA
+Variacion sem: -8,1%
+Alertas nuevas: 0
+Semanas totales: 193
+============================================
+
+Abri index.html en el navegador para ver los cambios.
+Log de alertas: C:\Users\User\Desktop\poronga_servidor\alertas.log

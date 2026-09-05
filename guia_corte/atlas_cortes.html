@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas de cortes — Banana verde · Almar</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  body{font-family:"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#eef2ee;color:#1c2b1c;line-height:1.45;}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px;}
+  header{background:linear-gradient(135deg,#2e7d32,#66bb6a);color:#fff;padding:22px 18px;border-radius:0 0 10px 10px;}
+  header h1{margin:0;font-size:22px;}
+  header .sub{opacity:.95;font-size:13px;margin-top:4px;}
+  .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin:14px 0;}
+  .card h2{margin:0 0 12px;font-size:16px;color:#2e7d32;border-bottom:2px solid #d7e6d7;padding-bottom:6px;}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .col{flex:1;min-width:260px;}
+  .field{margin-bottom:11px;}
+  .field label{display:block;font-weight:600;font-size:13px;margin-bottom:3px;}
+  .field .hint{font-size:10.5px;color:#6b7d6b;margin-bottom:3px;}
+  .field select,.field input{width:100%;padding:8px;border:1px solid #bcccbc;border-radius:6px;font-size:14px;background:#fff;}
+  .meta3{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .meta3 input{flex:1;min-width:110px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr;}}
+  .dropzone{border:2px dashed #9bbf9b;border-radius:10px;padding:14px;text-align:center;background:#f7faf7;cursor:pointer;}
+  .dropzone:hover{background:#eef6ee;}
+  #preview{max-width:100%;max-height:230px;border-radius:8px;margin-top:10px;display:none;}
+  .verdict{border-radius:8px;padding:12px;color:#fff;text-align:center;margin:10px 0;}
+  .verdict .big{font-size:18px;font-weight:800;}
+  .verdict .why{font-size:12px;opacity:.95;margin-top:3px;}
+  .v-ok{background:#2e7d32;}.v-warn{background:#ef6c00;}.v-bad{background:#c62828;}.v-none{background:#78909c;}
+  button{font-family:inherit;}
+  .btn{padding:9px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;color:#fff;}
+  .btn-save{background:#2e7d32;} .btn-blue{background:#1565c0;} .btn-gray{background:#718096;} .btn-mini{background:none;color:#c62828;border:none;cursor:pointer;font-size:15px;}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .filterbtn{padding:5px 11px;border:1px solid #bcccbc;background:#fff;border-radius:14px;cursor:pointer;font-size:12px;color:#375037;}
+  .filterbtn.active{background:#2e7d32;color:#fff;border-color:#2e7d32;}
+  .count{font-size:12.5px;color:#6b7d6b;margin-left:auto;}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+  .gcard{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1);display:flex;flex-direction:column;}
+  .gcard .ph{width:100%;height:170px;object-fit:cover;background:#ddd;cursor:zoom-in;}
+  .gcard .body{padding:10px;flex:1;display:flex;flex-direction:column;gap:6px;}
+  .vbadge{display:inline-block;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700;color:#fff;}
+  .b-ok{background:#2e7d32;}.b-warn{background:#ef6c00;}.b-bad{background:#c62828;}.b-none{background:#78909c;}
+  .gmeta{font-size:12px;color:#375037;font-weight:600;}
+  .chips{display:flex;flex-wrap:wrap;gap:4px;}
+  .chip{font-size:10.5px;background:#eef6ee;color:#2e5e2e;border-radius:6px;padding:2px 6px;}
+  .gnota{font-size:11.5px;color:#555;font-style:italic;}
+  .empty{text-align:center;color:#6b7d6b;padding:30px;font-size:14px;}
+  /* lightbox */
+  #lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:50;align-items:center;justify-content:center;flex-direction:column;padding:20px;}
+  #lb img{max-width:95%;max-height:80%;border-radius:8px;}
+  #lb .cap{color:#fff;margin-top:12px;font-size:13px;text-align:center;}
+  #lb .x{position:absolute;top:14px;right:20px;color:#fff;font-size:30px;cursor:pointer;}
+  .foot{font-size:11px;color:#6b7d6b;text-align:center;margin:18px 0;}
+  .warnbar{background:#fff8e1;border-left:4px solid #f9a825;padding:8px 12px;border-radius:0 6px 6px 0;font-size:12px;margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍌 Atlas de cortes — Banana verde</h1>
+  <div class="sub">Tu galería calibrada: foto del corte + las 6 mediciones + veredicto. Mientras más cargás, más preciso es tu ojo. · Almar S.R.L.</div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>➕ Nuevo corte</h2>
+    <div class="row">
+      <div class="col">
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+          📷 <b>Tocá para sacar/elegir la foto del corte</b><br>
+          <span style="font-size:11px;color:#6b7d6b;">(en el celu abre la cámara · se comprime sola)</span>
+          <input type="file" id="fileInput" accept="image/*" capture="environment" style="display:none" onchange="onFile(event)">
+        </div>
+        <img id="preview" alt="preview">
+        <div class="meta3" style="margin-top:10px;">
+          <input type="text" id="lote" placeholder="Lote / Productor">
+          <input type="date" id="fecha">
+        </div>
+        <input type="text" id="nota" placeholder="Nota (opcional)" style="width:100%;padding:8px;border:1px solid #bcccbc;border-radius:6px;font-size:14px;">
+      </div>
+
+      <div class="col">
+        <div class="grid2">
+          <div class="field">
+            <label>Forma</label><div class="hint">redondeada = llena</div>
+            <select id="forma" onchange="liveVerdict()">
+              <option value="">—</option><option value="red">Redondeada</option><option value="int">Intermedia</option><option value="ang">Angular</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Calibre (cm)</label><div class="hint">Codex ≥2,7</div>
+            <input type="number" step="0.1" id="calibre" placeholder="2,8" oninput="liveVerdict()">
+          </div>
+          <div class="field">
+            <label>Pulpa/cáscara</label><div class="hint">ideal 1,3–1,4</div>
+            <input type="number" step="0.01" id="ratio" placeholder="1,38" oninput="liveVerdict()">
+          </div>
+          <div class="field">
+            <label>Yodo (1–8)</label><div class="hint">oscuro = 1–3</div>
+            <select id="yodo" onchange="liveVerdict()">
+              <option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Brix (°)</label><div class="hint">verde &lt;3</div>
+            <input type="number" step="0.1" id="brix" placeholder="2,5" oninput="liveVerdict()">
+          </div>
+          <div class="field">
+            <label>Firmeza</label><div class="hint">verde = dura</div>
+            <select id="firmeza" onchange="liveVerdict()">
+              <option value="">—</option><option value="dura">Dura</option><option value="media">Media</option><option value="blanda">Blanda</option>
+            </select>
+          </div>
+        </div>
+        <div class="verdict v-none" id="liveV"><div class="big" id="liveBig">Veredicto —</div><div class="why" id="liveWhy">Completá para calcular.</div></div>
+        <button class="btn btn-save" onclick="guardar()">💾 Guardar en el atlas</button>
+      </div>
+    </div>
+    <div class="warnbar" id="storageWarn" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <h2>📚 Mi atlas</h2>
+    <div class="toolbar">
+      <span class="filterbtn active" data-f="all" onclick="setFilter(this)">Todos</span>
+      <span class="filterbtn" data-f="optimo" onclick="setFilter(this)">✅ Óptimo</span>
+      <span class="filterbtn" data-f="marginal" onclick="setFilter(this)">⚠️ Marginal</span>
+      <span class="filterbtn" data-f="inmadura" onclick="setFilter(this)">❌ Inmadura</span>
+      <span class="filterbtn" data-f="madurando" onclick="setFilter(this)">❌ Madurando</span>
+      <span class="count" id="count">0 cortes</span>
+    </div>
+    <div style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-blue" onclick="exportAtlas()">📥 Exportar backup (JSON)</button>
+      <button class="btn btn-gray" onclick="document.getElementById('importInput').click()">📤 Importar</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importAtlas(event)">
+      <span class="count" id="storageInfo"></span>
+    </div>
+    <div class="gallery" id="gallery"></div>
+    <div class="empty" id="emptyMsg">Todavía no cargaste cortes. Sacá la primera foto arriba ☝️</div>
+  </div>
+
+  <div class="foot">
+    Se guarda en este navegador (localStorage). <b>Exportá el backup seguido</b> — si limpiás caché, se borra.<br>
+    Tip: empezá fotografiando un corte que sepas que es ÓPTIMO y uno YA MADURANDO — esos dos te calibran el ojo. · Almar S.R.L.
+  </div>
+</div>
+
+<div id="lb" onclick="this.style.display='none'">
+  <span class="x">×</span>
+  <img id="lbimg" alt="">
+  <div class="cap" id="lbcap"></div>
+</div>
+
+<script>
+const KEY='atlas_cortes_v1';
+let currentPhoto=null;
+let filter='all';
+let seq=0;
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
+function persist(arr){
+  try{ localStorage.setItem(KEY, JSON.stringify(arr)); return true; }
+  catch(e){
+    document.getElementById('storageWarn').style.display='block';
+    document.getElementById('storageWarn').innerHTML='⚠️ El navegador se quedó sin espacio. Exportá el backup y borrá cortes viejos para seguir cargando.';
+    return false;
+  }
+}
+
+/* ---- foto: comprimir antes de guardar ---- */
+function onFile(e){
+  const f=e.target.files[0]; if(!f) return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const img=new Image();
+    img.onload=function(){
+      const max=820; let w=img.width,h=img.height;
+      if(w>h && w>max){ h=Math.round(h*max/w); w=max; }
+      else if(h>=w && h>max){ w=Math.round(w*max/h); h=max; }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      currentPhoto=c.toDataURL('image/jpeg',0.62);
+      const p=document.getElementById('preview');
+      p.src=currentPhoto; p.style.display='block';
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+/* ---- veredicto (mismos umbrales que la calculadora) ---- */
+function evForma(v){ if(v==='red')return{s:'ok',t:'llen'};if(v==='int')return{s:'warn',t:'llen'};if(v==='ang')return{s:'bad',t:'inmadura'};return null;}
+function evCalibre(v){ if(v==='')return null;v=parseFloat(v);if(isNaN(v))return null; if(v>=2.7)return{s:'ok',t:'llen'};if(v>=2.5)return{s:'warn',t:'llen'};return{s:'bad',t:'inmadura'};}
+function evRatio(v){ if(v==='')return null;v=parseFloat(v);if(isNaN(v))return null; if(v<1.2)return{s:'bad',t:'inmadura'};if(v<1.3)return{s:'warn',t:'llen'};if(v<=1.45)return{s:'ok',t:'llen'};if(v<=1.5)return{s:'warn',t:'azu'};return{s:'bad',t:'pasada'};}
+function evYodo(v){ if(v==='')return null;v=parseInt(v); if(v<=3)return{s:'ok',t:'azu'};if(v===4)return{s:'warn',t:'azu'};return{s:'bad',t:'madurando'};}
+function evBrix(v){ if(v==='')return null;v=parseFloat(v);if(isNaN(v))return null; if(v<3)return{s:'ok',t:'azu'};if(v<=4)return{s:'warn',t:'azu'};return{s:'bad',t:'madurando'};}
+function evFirmeza(v){ if(v==='dura')return{s:'ok',t:'azu'};if(v==='media')return{s:'warn',t:'azu'};if(v==='blanda')return{s:'bad',t:'madurando'};return null;}
+
+function computeVerdict(o){
+  const done=[evForma(o.forma),evCalibre(o.calibre),evRatio(o.ratio),evYodo(o.yodo),evBrix(o.brix),evFirmeza(o.firmeza)].filter(Boolean);
+  if(done.length<6) return {label:'Sin completar',cls:'none',tag:'incompleto',why:'Faltan mediciones ('+done.length+'/6).'};
+  const inm=done.some(r=>r.t==='inmadura');
+  const mad=done.some(r=>r.t==='madurando'||r.t==='pasada');
+  const warns=done.filter(r=>r.s==='warn').length;
+  if(inm&&mad) return {label:'Contradictoria',cls:'bad',tag:'contradictoria',why:'Señales de inmadura Y pasada — re-muestreá.'};
+  if(inm) return {label:'❌ INMADURA',cls:'bad',tag:'inmadura',why:'Poco llena → madura mal en destino.'};
+  if(mad) return {label:'❌ YA MADURANDO',cls:'bad',tag:'madurando',why:'Con camión sin frío llega pasada.'};
+  if(warns>=2) return {label:'⚠ MARGINAL',cls:'warn',tag:'marginal',why:warns+' mediciones al límite.'};
+  if(warns===1) return {label:'✅ ÓPTIMO (obs)',cls:'ok',tag:'optimo',why:'Verde-duro y lleno, 1 al límite.'};
+  return {label:'✅ PUNTO ÓPTIMO',cls:'ok',tag:'optimo',why:'Verde-duro, lleno y con reserva. 🍌'};
+}
+
+function readForm(){
+  return {
+    forma:document.getElementById('forma').value,
+    calibre:document.getElementById('calibre').value,
+    ratio:document.getElementById('ratio').value,
+    yodo:document.getElementById('yodo').value,
+    brix:document.getElementById('brix').value,
+    firmeza:document.getElementById('firmeza').value
+  };
+}
+function liveVerdict(){
+  const v=computeVerdict(readForm());
+  const box=document.getElementById('liveV');
+  box.className='verdict v-'+v.cls;
+  document.getElementById('liveBig').textContent=v.label;
+  document.getElementById('liveWhy').textContent=v.why;
+}
+
+function guardar(){
+  if(!currentPhoto){ alert('Sacá o elegí una foto del corte primero.'); return; }
+  const o=readForm();
+  const v=computeVerdict(o);
+  seq++;
+  const entry={
+    id: String(new Date().getTime())+'-'+seq,
+    foto: currentPhoto,
+    lote: document.getElementById('lote').value.trim(),
+    fecha: document.getElementById('fecha').value,
+    nota: document.getElementById('nota').value.trim(),
+    forma:o.forma, calibre:o.calibre, ratio:o.ratio, yodo:o.yodo, brix:o.brix, firmeza:o.firmeza,
+    verdict:v
+  };
+  const arr=load(); arr.unshift(entry);
+  if(!persist(arr)) return;
+  // reset
+  currentPhoto=null;
+  document.getElementById('preview').style.display='none';
+  ['lote','fecha','nota','calibre','ratio','brix'].forEach(id=>document.getElementById(id).value='');
+  ['forma','yodo','firmeza'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fileInput').value='';
+  liveVerdict(); render();
+}
+
+function del(id){
+  if(!confirm('¿Borrar este corte del atlas?')) return;
+  persist(load().filter(e=>e.id!==id)); render();
+}
+
+function setFilter(el){
+  document.querySelectorAll('.filterbtn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); filter=el.dataset.f; render();
+}
+
+const FORMA_LBL={red:'redondeada',int:'intermedia',ang:'angular'};
+function chip(t){ return '<span class="chip">'+t+'</span>'; }
+
+function render(){
+  const arr=load();
+  const shown = filter==='all' ? arr : arr.filter(e=>e.verdict && e.verdict.tag===filter);
+  const g=document.getElementById('gallery');
+  document.getElementById('count').textContent=arr.length+' corte'+(arr.length===1?'':'s');
+  document.getElementById('emptyMsg').style.display = arr.length===0 ? 'block':'none';
+  // storage info
+  const bytes=(localStorage.getItem(KEY)||'').length;
+  document.getElementById('storageInfo').textContent = arr.length? ('~'+(bytes/1024/1024).toFixed(2)+' MB usados'):'';
+  g.innerHTML = shown.map(e=>{
+    const v=e.verdict||{label:'—',cls:'none'};
+    const chips=[];
+    if(e.forma) chips.push('Forma: '+(FORMA_LBL[e.forma]||e.forma));
+    if(e.calibre) chips.push('Cal '+e.calibre+'cm');
+    if(e.ratio) chips.push('P/C '+e.ratio);
+    if(e.yodo) chips.push('Yodo '+e.yodo);
+    if(e.brix) chips.push('Brix '+e.brix);
+    if(e.firmeza) chips.push('Firm: '+e.firmeza);
+    const cap=(e.lote?e.lote+' · ':'')+(e.fecha||'')+' · '+v.label;
+    return '<div class="gcard">'+
+      '<img class="ph" src="'+e.foto+'" onclick="openLB(\''+e.id+'\')">'+
+      '<div class="body">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+          '<span class="vbadge b-'+v.cls+'">'+v.label+'</span>'+
+          '<button class="btn-mini" title="borrar" onclick="del(\''+e.id+'\')">🗑️</button>'+
+        '</div>'+
+        '<div class="gmeta">'+(e.lote||'(sin lote)')+(e.fecha?' · '+e.fecha:'')+'</div>'+
+        '<div class="chips">'+chips.map(chip).join('')+'</div>'+
+        (e.nota?'<div class="gnota">'+e.nota+'</div>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function openLB(id){
+  const e=load().find(x=>x.id===id); if(!e) return;
+  document.getElementById('lbimg').src=e.foto;
+  const v=e.verdict||{label:''};
+  document.getElementById('lbcap').textContent=(e.lote?e.lote+' · ':'')+(e.fecha||'')+' · '+v.label;
+  document.getElementById('lb').style.display='flex';
+}
+
+function exportAtlas(){
+  const arr=load();
+  if(!arr.length){ alert('No hay cortes para exportar.'); return; }
+  const blob=new Blob([JSON.stringify(arr)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='atlas_cortes_'+new Date().toISOString().substring(0,10)+'.json';
+  a.click();
+}
+function importAtlas(e){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=function(ev){
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data)) throw new Error('formato');
+      if(!confirm('Importar '+data.length+' cortes? (REEMPLAZA los actuales)')) return;
+      persist(data); render(); alert('OK: '+data.length+' cortes importados.');
+    }catch(err){ alert('Error: JSON inválido.'); }
+  };
+  r.readAsText(f); e.target.value='';
+}
+
+liveVerdict(); render();
+</script>
+</body>
+</html>

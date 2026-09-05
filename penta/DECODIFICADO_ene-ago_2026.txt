@@ -1,0 +1,97 @@
+================================================================
+  PENTA TRANSACTION — Uruguay, Ranking por Importador
+  NCM 0803.90 (banana) · Período 1/2026 - 8/2026
+  Decodificado de los 3 PDFs el 03/09/2026
+================================================================
+
+NOTA TÉCNICA: los PDFs guardan el texto en UTF-16BE con las fuentes
+subset desplazadas +28 sobre el código de glifo. Leídos crudos, los
+números salen como letras. Script del decodificador:
+  C:\Users\Usuario\AppData\Local\Temp\penta_final.ps1
+Glifos que NO siguen el +28: 0x62='$', 0x74='%', 0x0267='á',
+0x0273='í', 0x0278='ó', 0x026D='é'.
+
+----------------------------------------------------------------
+TOTALES POR ORIGEN — ENERO A AGOSTO 2026
+----------------------------------------------------------------
+  Origen      Kgs Netos      Kgs Brutos      U$S VNA     USD/kg
+  Brasil     16.856.677      19.948.558    8.921.008      0,529
+  Paraguay    5.450.642       6.350.458    2.845.197      0,522
+  Bolivia     2.539.266       2.729.576    1.557.204      0,613
+
+  ⚠️ FALTA ECUADOR — no hay PDF de ese origen en la carpeta.
+     En ene-abr Ecuador era el 33,8% del mercado, así que sin
+     él no se pueden calcular participaciones del total.
+
+----------------------------------------------------------------
+EL GIRO DE MAYO EN ADELANTE  (t/mes promedio)
+----------------------------------------------------------------
+Cruce del detalle ene-abr (xlsx, corte 11/05) contra este total
+ene-ago. La resta da el bloque mayo-agosto:
+
+  Origen     ene-abr   may-ago   variación
+  Brasil       2.516     1.699      -32 %
+  Paraguay       432       931     +116 %
+  Bolivia        429       206      -52 %
+
+  → PARAGUAY MÁS QUE DUPLICÓ su ritmo mensual desde mayo,
+    mientras Brasil cayó un tercio. Es exactamente el
+    desplazamiento que planteó Gonzalo, pero ocurriendo en la
+    segunda mitad del año — fuera de la ventana ene-abr que se
+    analizó el 02/09 y que había dado el resultado contrario.
+  → Coincide en el tiempo con el derrumbe del precio Cepea de
+    agosto (1,41 → 0,99 R$/kg).
+
+----------------------------------------------------------------
+RANKING DE IMPORTADORES (Kgs Brutos, ene-ago 2026)
+----------------------------------------------------------------
+BRASIL — total 19.948.558 kg brutos
+   1. ALMAR S.R.L.                      10.853.132   54,33%
+   2. GARMIN S.R.L.                      4.167.072   20,61%
+   3. CIRO GENTILE S.A.                  3.989.449   20,29%
+   4. EXPERTEX SA                          351.936    1,79%
+   5. JEMI SAS                             251.513    1,26%
+   6. ALBEZ IBARRA RUBEN ALEJANDRO         209.664    1,03%
+   7. RINALIR SOCIEDAD ANONIMA             101.370    0,55%
+   8. MARAMA IMPORT AND EXPORT LTDA         24.420    0,12%
+
+PARAGUAY — total 6.350.458 kg brutos
+   1. ALMAR S.R.L.                       2.850.447   45,57%
+   2. CIRO GENTILE S.A.                   2.343.642   35,74%
+   3. EXPERTEX SA                           497.952    8,40%
+   4. ALBEZ IBARRA RUBEN ALEJANDRO          284.704    4,46%
+   5. MARAMA IMPORT AND EXPORT LTDA         185.536    2,87%
+   6. GARMIN S.R.L.                         109.760    1,79%
+   7. JEMI SAS                               52.416    0,77%
+   8. RINALIR SOCIEDAD ANONIMA               26.000    0,40%
+
+BOLIVIA — total 2.729.576 kg brutos
+   1. CIRO GENTILE S.A.                   1.308.788   53,50%
+   2. ALMAR S.R.L.                        1.266.788   41,29%
+   3. JEMI SAS                              154.000    5,21%
+
+----------------------------------------------------------------
+POSICIÓN DE ALMAR
+----------------------------------------------------------------
+  Brasil    #1  54,33%   10.853 t brutos
+  Paraguay  #1  45,57%    2.850 t
+  Bolivia   #2  41,29%    1.267 t   (atrás de Ciro Gentile)
+  TOTAL 3 orígenes:      14.970 t brutos
+
+  Competencia directa (suma de los 3 orígenes, t brutos):
+    CIRO GENTILE   7.642     GARMIN   4.277
+    EXPERTEX         850     ALBEZ      494
+    JEMI             458     MARAMA     210
+    RINALIR          127
+
+  Almar es el importador de banana más grande de Uruguay en
+  estos 3 orígenes, con casi el doble que el segundo.
+
+----------------------------------------------------------------
+PENDIENTE
+----------------------------------------------------------------
+  - Ecuador ene-ago 2026 (falta el PDF / xlsx)
+  - Argentina, cualquier período
+  - Detalle mensual ene-ago 2026 en xlsx, para ver mes a mes el
+    giro de mayo en lugar de deducirlo por resta.
+================================================================

@@ -1,0 +1,592 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Almar · Comparativo anual banana — Cepea Norte SC</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --plane:          #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --axis:           #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --good:           #006300;
+    --critical:       #d03b3b;
+    --s1:         #2a78d6;
+    --s2:         #eb6834;
+    --s3:         #1baf7a;
+    --s4:         #eda100;
+    --deemph:         #b8b7b0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --plane:          #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --axis:           #383835;
+      --border:         rgba(255,255,255,0.10);
+      --good:           #0ca30c;
+      --critical:       #d03b3b;
+      --s1:         #3987e5;
+      --s2:         #d95926;
+      --s3:         #199e70;
+      --s4:         #c98500;
+      --deemph:         #56554f;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --plane:          #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --axis:           #383835;
+    --border:         rgba(255,255,255,0.10);
+    --good:           #0ca30c;
+    --critical:       #d03b3b;
+    --s1:         #3987e5;
+    --s2:         #d95926;
+    --s3:         #199e70;
+    --s4:         #c98500;
+    --deemph:         #56554f;
+  }
+
+  .viz-root {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--plane);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 28px 20px 64px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  header.pg { margin-bottom: 26px; }
+  header.pg h1 { font-size: 25px; font-weight: 650; margin: 0 0 6px; letter-spacing: -0.01em; }
+  header.pg p { margin: 0; color: var(--text-secondary); font-size: 14px; }
+  header.pg .meta { color: var(--text-muted); font-size: 12.5px; margin-top: 8px; }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 20px 16px;
+    margin-bottom: 20px;
+  }
+  .card > h2 { font-size: 16px; font-weight: 620; margin: 0 0 3px; }
+  .card > .sub { font-size: 13px; color: var(--text-secondary); margin: 0 0 16px; }
+
+  /* ---- KPI row ---- */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 15px 17px; }
+  .tile .lab { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 7px; }
+  .tile .val { font-size: 30px; font-weight: 640; letter-spacing: -0.02em; line-height: 1.1; }
+  .tile .val .u { font-size: 15px; font-weight: 500; color: var(--text-secondary); margin-left: 3px; }
+  .tile .dl { font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; }
+  .tile .dl.bad { color: var(--critical); }
+  .tile .dl.ok { color: var(--good); }
+
+  /* ---- legend ---- */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 0 0 12px; padding: 0; list-style: none; }
+  .legend li { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); }
+  .legend .key-line { width: 16px; height: 2px; border-radius: 1px; flex: none; }
+  .legend .key-rect { width: 11px; height: 11px; border-radius: 2px; flex: none; }
+
+  .plot { position: relative; width: 100%; }
+  .plot svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .gridline, .axisline { stroke: var(--grid); stroke-width: 1; shape-rendering: crispEdges; }
+  .axisline { stroke: var(--axis); }
+  .tick { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .dlabel { fill: var(--text-primary); font-size: 11.5px; font-weight: 600; }
+  .dlabel.sec { fill: var(--text-secondary); font-weight: 500; }
+  .serie-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .crosshair { stroke: var(--axis); stroke-width: 1; shape-rendering: crispEdges; opacity: 0; }
+  .hitrect { fill: transparent; }
+
+  .tip {
+    position: absolute; pointer-events: none; opacity: 0;
+    background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 9px; padding: 9px 11px; min-width: 132px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+    font-size: 12.5px; transition: opacity .1s; z-index: 5;
+  }
+  .tip .th { font-size: 11.5px; color: var(--text-muted); margin-bottom: 6px; }
+  .tip .row { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+  .tip .row .k { width: 13px; height: 2px; border-radius: 1px; flex: none; }
+  .tip .row .v { font-weight: 650; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+  .tip .row .n { color: var(--text-secondary); font-size: 12px; }
+
+  /* ---- table ---- */
+  .tblwrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 460px; }
+  th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+  th:first-child, td:first-child { text-align: left; font-variant-numeric: normal; }
+  thead th { color: var(--text-secondary); font-weight: 600; font-size: 12px; }
+  tbody tr:last-child td { border-bottom: none; }
+  td.na { color: var(--text-muted); }
+  .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: baseline; }
+  tr.hi td { background: color-mix(in srgb, var(--s1) 8%, transparent); }
+
+  .note { font-size: 13px; color: var(--text-secondary); }
+  .note strong { color: var(--text-primary); }
+  .note ul { margin: 9px 0 0; padding-left: 19px; }
+  .note li { margin-bottom: 5px; }
+  .flag { border-left: 3px solid var(--critical); padding-left: 13px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="viz-root">
+<div class="wrap">
+
+  <header class="pg">
+    <h1>Banana Nanica primeira — comparativo anual</h1>
+    <p>Precio al productor, Norte de Santa Catarina. <span id="sub1"></span></p>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section class="card">
+    <h2 id="h2curvas">Las curvas, superpuestas por fecha</h2>
+    <p class="sub">Cada línea es un año completo. El eje X es el calendario, así que los años se comparan semana contra semana.</p>
+    <ul class="legend" id="lg1"></ul>
+    <div class="plot" id="p1"><div class="tip" id="t1"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>El salto de julio a agosto</h2>
+    <p class="sub">Es el arranque de la zafra alta. <span id="sub2"></span></p>
+    <div class="plot" id="p2"><div class="tip" id="t2"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Agosto, semana a semana</h2>
+    <p class="sub"><span id="sub3"></span></p>
+    <ul class="legend" id="lg3"></ul>
+    <div class="plot" id="p3"><div class="tip" id="t3"></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Promedio mensual por año</h2>
+    <p class="sub">La tabla completa — todos los valores de los gráficos de arriba, sin depender del color ni del hover.</p>
+    <div class="tblwrap"><table id="tbl"></table></div>
+  </section>
+
+  <section class="card">
+    <h2>El invierno no explica lo de este año</h2>
+    <p class="sub">Temperaturas jun-jul-ago en <span id="ciudad"></span>, la zona productora de referencia.</p>
+    <div class="tblwrap"><table id="tblinv"></table></div>
+    <div class="note flag" id="notainv"></div>
+  </section>
+
+</div>
+</div>
+
+<script id="datos" type="application/json">/*__COMPARATIVO_JSON__*/{"generado":"2026-09-04 19:00","fuente":"Hortifruti/Cepea - hfbrasil.org.br","producto":"Nanica primeira - produtor","region":"Norte de Santa Catarina","ultima_semana":"2026-09-04","ultimo_precio":0.91,"porAnio":{"2023":[{"doy":6,"fecha":"2023-01-06","precio":0.61},{"doy":13,"fecha":"2023-01-13","precio":0.6},{"doy":20,"fecha":"2023-01-20","precio":0.64},{"doy":27,"fecha":"2023-01-27","precio":0.72},{"doy":34,"fecha":"2023-02-03","precio":0.75},{"doy":41,"fecha":"2023-02-10","precio":0.84},{"doy":48,"fecha":"2023-02-17","precio":0.89},{"doy":55,"fecha":"2023-02-24","precio":0.91},{"doy":62,"fecha":"2023-03-03","precio":0.97},{"doy":69,"fecha":"2023-03-10","precio":1.08},{"doy":76,"fecha":"2023-03-17","precio":1.27},{"doy":83,"fecha":"2023-03-24","precio":1.46},{"doy":90,"fecha":"2023-03-31","precio":1.5},{"doy":96,"fecha":"2023-04-06","precio":1.46},{"doy":104,"fecha":"2023-04-14","precio":1.43},{"doy":110,"fecha":"2023-04-20","precio":1.41},{"doy":118,"fecha":"2023-04-28","precio":1.42},{"doy":125,"fecha":"2023-05-05","precio":1.33},{"doy":132,"fecha":"2023-05-12","precio":1.36},{"doy":139,"fecha":"2023-05-19","precio":1.32},{"doy":146,"fecha":"2023-05-26","precio":1.12},{"doy":153,"fecha":"2023-06-02","precio":0.99},{"doy":158,"fecha":"2023-06-07","precio":0.91},{"doy":167,"fecha":"2023-06-16","precio":0.89},{"doy":173,"fecha":"2023-06-22","precio":0.87},{"doy":181,"fecha":"2023-06-30","precio":0.96},{"doy":188,"fecha":"2023-07-07","precio":0.94},{"doy":195,"fecha":"2023-07-14","precio":1.01},{"doy":202,"fecha":"2023-07-21","precio":1.1},{"doy":209,"fecha":"2023-07-28","precio":1.28},{"doy":216,"fecha":"2023-08-04","precio":1.4},{"doy":223,"fecha":"2023-08-11","precio":1.73},{"doy":230,"fecha":"2023-08-18","precio":2},{"doy":237,"fecha":"2023-08-25","precio":1.79},{"doy":243,"fecha":"2023-08-31","precio":1.56},{"doy":249,"fecha":"2023-09-06","precio":1.44},{"doy":258,"fecha":"2023-09-15","precio":1.27},{"doy":265,"fecha":"2023-09-22","precio":1.3},{"doy":272,"fecha":"2023-09-29","precio":1.2},{"doy":279,"fecha":"2023-10-06","precio":1.32},{"doy":286,"fecha":"2023-10-13","precio":1.32},{"doy":293,"fecha":"2023-10-20","precio":1.32},{"doy":300,"fecha":"2023-10-27","precio":1.59},{"doy":305,"fecha":"2023-11-01","precio":1.77},{"doy":314,"fecha":"2023-11-10","precio":1.99},{"doy":321,"fecha":"2023-11-17","precio":1.97},{"doy":328,"fecha":"2023-11-24","precio":1.76},{"doy":334,"fecha":"2023-11-30","precio":1.58},{"doy":342,"fecha":"2023-12-08","precio":1.39},{"doy":349,"fecha":"2023-12-15","precio":1.33},{"doy":356,"fecha":"2023-12-22","precio":1.14},{"doy":363,"fecha":"2023-12-29","precio":1.16}],"2024":[{"doy":5,"fecha":"2024-01-05","precio":1.07},{"doy":12,"fecha":"2024-01-12","precio":0.96},{"doy":19,"fecha":"2024-01-19","precio":0.96},{"doy":26,"fecha":"2024-01-26","precio":0.94},{"doy":33,"fecha":"2024-02-02","precio":1.17},{"doy":39,"fecha":"2024-02-08","precio":1.79},{"doy":47,"fecha":"2024-02-16","precio":2.35},{"doy":54,"fecha":"2024-02-23","precio":2.49},{"doy":60,"fecha":"2024-02-29","precio":2.15},{"doy":68,"fecha":"2024-03-08","precio":2.08},{"doy":75,"fecha":"2024-03-15","precio":2.05},{"doy":82,"fecha":"2024-03-22","precio":1.77},{"doy":88,"fecha":"2024-03-28","precio":1.49},{"doy":96,"fecha":"2024-04-05","precio":1.25},{"doy":103,"fecha":"2024-04-12","precio":0.95},{"doy":110,"fecha":"2024-04-19","precio":0.81},{"doy":117,"fecha":"2024-04-26","precio":0.7},{"doy":124,"fecha":"2024-05-03","precio":0.72},{"doy":131,"fecha":"2024-05-10","precio":0.65},{"doy":138,"fecha":"2024-05-17","precio":0.6},{"doy":145,"fecha":"2024-05-24","precio":0.65},{"doy":152,"fecha":"2024-05-31","precio":0.51},{"doy":159,"fecha":"2024-06-07","precio":0.78},{"doy":165,"fecha":"2024-06-13","precio":1.02},{"doy":173,"fecha":"2024-06-21","precio":1.27},{"doy":180,"fecha":"2024-06-28","precio":1.28},{"doy":187,"fecha":"2024-07-05","precio":1.24},{"doy":194,"fecha":"2024-07-12","precio":1.24},{"doy":201,"fecha":"2024-07-19","precio":1.29},{"doy":208,"fecha":"2024-07-26","precio":1.36},{"doy":215,"fecha":"2024-08-02","precio":1.66},{"doy":222,"fecha":"2024-08-09","precio":2.18},{"doy":229,"fecha":"2024-08-16","precio":2.33},{"doy":236,"fecha":"2024-08-23","precio":2.26},{"doy":243,"fecha":"2024-08-30","precio":2.1},{"doy":250,"fecha":"2024-09-06","precio":2.08},{"doy":257,"fecha":"2024-09-13","precio":2.05},{"doy":264,"fecha":"2024-09-20","precio":2.28},{"doy":271,"fecha":"2024-09-27","precio":2.38},{"doy":278,"fecha":"2024-10-04","precio":2.43},{"doy":284,"fecha":"2024-10-10","precio":2.34},{"doy":292,"fecha":"2024-10-18","precio":2.4},{"doy":299,"fecha":"2024-10-25","precio":2.18},{"doy":313,"fecha":"2024-11-08","precio":1.42},{"doy":319,"fecha":"2024-11-14","precio":1.2},{"doy":327,"fecha":"2024-11-22","precio":1.09},{"doy":334,"fecha":"2024-11-29","precio":1.09},{"doy":341,"fecha":"2024-12-06","precio":1.22},{"doy":348,"fecha":"2024-12-13","precio":1.4},{"doy":354,"fecha":"2024-12-19","precio":1.49},{"doy":362,"fecha":"2024-12-27","precio":1.41}],"2025":[{"doy":3,"fecha":"2025-01-03","precio":1.41},{"doy":10,"fecha":"2025-01-10","precio":1.4},{"doy":17,"fecha":"2025-01-17","precio":1.35},{"doy":24,"fecha":"2025-01-24","precio":1.25},{"doy":31,"fecha":"2025-01-31","precio":0.96},{"doy":38,"fecha":"2025-02-07","precio":0.78},{"doy":45,"fecha":"2025-02-14","precio":0.77},{"doy":52,"fecha":"2025-02-21","precio":0.8},{"doy":58,"fecha":"2025-02-27","precio":0.84},{"doy":66,"fecha":"2025-03-07","precio":0.86},{"doy":73,"fecha":"2025-03-14","precio":1.01},{"doy":80,"fecha":"2025-03-21","precio":1.08},{"doy":87,"fecha":"2025-03-28","precio":1.16},{"doy":93,"fecha":"2025-04-03","precio":1.32},{"doy":101,"fecha":"2025-04-11","precio":1.27},{"doy":107,"fecha":"2025-04-17","precio":1.06},{"doy":115,"fecha":"2025-04-25","precio":0.98},{"doy":122,"fecha":"2025-05-02","precio":0.93},{"doy":129,"fecha":"2025-05-09","precio":0.92},{"doy":136,"fecha":"2025-05-16","precio":0.79},{"doy":143,"fecha":"2025-05-23","precio":0.69},{"doy":150,"fecha":"2025-05-30","precio":0.6},{"doy":157,"fecha":"2025-06-06","precio":0.53},{"doy":164,"fecha":"2025-06-13","precio":0.56},{"doy":171,"fecha":"2025-06-20","precio":0.56},{"doy":178,"fecha":"2025-06-27","precio":0.56},{"doy":185,"fecha":"2025-07-04","precio":0.65},{"doy":192,"fecha":"2025-07-11","precio":0.86},{"doy":199,"fecha":"2025-07-18","precio":1.04},{"doy":206,"fecha":"2025-07-25","precio":1.16},{"doy":212,"fecha":"2025-07-31","precio":1.24},{"doy":220,"fecha":"2025-08-08","precio":1.61},{"doy":226,"fecha":"2025-08-14","precio":1.8},{"doy":233,"fecha":"2025-08-21","precio":1.87},{"doy":240,"fecha":"2025-08-28","precio":1.78},{"doy":248,"fecha":"2025-09-05","precio":1.75},{"doy":255,"fecha":"2025-09-12","precio":1.94},{"doy":261,"fecha":"2025-09-18","precio":2.18},{"doy":268,"fecha":"2025-09-25","precio":2.39},{"doy":275,"fecha":"2025-10-02","precio":2.49},{"doy":283,"fecha":"2025-10-10","precio":2.53},{"doy":290,"fecha":"2025-10-17","precio":2.39},{"doy":297,"fecha":"2025-10-24","precio":2.33},{"doy":304,"fecha":"2025-10-31","precio":2.18},{"doy":311,"fecha":"2025-11-07","precio":2.17},{"doy":318,"fecha":"2025-11-14","precio":1.82},{"doy":325,"fecha":"2025-11-21","precio":2.01},{"doy":332,"fecha":"2025-11-28","precio":1.96},{"doy":339,"fecha":"2025-12-05","precio":2.09},{"doy":346,"fecha":"2025-12-12","precio":1.97},{"doy":353,"fecha":"2025-12-19","precio":1.9},{"doy":360,"fecha":"2025-12-26","precio":1.9}],"2026":[{"doy":2,"fecha":"2026-01-02","precio":1.9},{"doy":9,"fecha":"2026-01-09","precio":1.26},{"doy":16,"fecha":"2026-01-16","precio":1.17},{"doy":23,"fecha":"2026-01-23","precio":0.84},{"doy":30,"fecha":"2026-01-30","precio":0.68},{"doy":37,"fecha":"2026-02-06","precio":0.75},{"doy":44,"fecha":"2026-02-13","precio":0.89},{"doy":51,"fecha":"2026-02-20","precio":1.06},{"doy":58,"fecha":"2026-02-27","precio":1.14},{"doy":65,"fecha":"2026-03-06","precio":1.29},{"doy":72,"fecha":"2026-03-13","precio":1.65},{"doy":79,"fecha":"2026-03-20","precio":1.92},{"doy":86,"fecha":"2026-03-27","precio":1.89},{"doy":92,"fecha":"2026-04-02","precio":1.41},{"doy":100,"fecha":"2026-04-10","precio":1.12},{"doy":107,"fecha":"2026-04-17","precio":0.98},{"doy":114,"fecha":"2026-04-24","precio":0.72},{"doy":120,"fecha":"2026-04-30","precio":0.69},{"doy":128,"fecha":"2026-05-08","precio":0.64},{"doy":135,"fecha":"2026-05-15","precio":0.6},{"doy":142,"fecha":"2026-05-22","precio":0.69},{"doy":149,"fecha":"2026-05-29","precio":0.65},{"doy":156,"fecha":"2026-06-05","precio":0.72},{"doy":163,"fecha":"2026-06-12","precio":0.86},{"doy":170,"fecha":"2026-06-19","precio":1.39},{"doy":177,"fecha":"2026-06-26","precio":1.135},{"doy":184,"fecha":"2026-07-03","precio":1.12},{"doy":191,"fecha":"2026-07-10","precio":1.11},{"doy":198,"fecha":"2026-07-17","precio":1.14},{"doy":205,"fecha":"2026-07-24","precio":1.24},{"doy":212,"fecha":"2026-07-31","precio":1.41},{"doy":219,"fecha":"2026-08-07","precio":1.41},{"doy":226,"fecha":"2026-08-14","precio":1.39},{"doy":233,"fecha":"2026-08-21","precio":1.11},{"doy":240,"fecha":"2026-08-28","precio":0.99},{"doy":247,"fecha":"2026-09-04","precio":0.91}]},"mensual":[{"mes":1,"2023":0.64,"2024":0.98,"2025":1.27,"2026":1.17},{"mes":2,"2023":0.85,"2024":1.99,"2025":0.8,"2026":0.96},{"mes":3,"2023":1.26,"2024":1.85,"2025":1.03,"2026":1.69},{"mes":4,"2023":1.43,"2024":0.93,"2025":1.16,"2026":0.98},{"mes":5,"2023":1.28,"2024":0.63,"2025":0.79,"2026":0.64},{"mes":6,"2023":0.92,"2024":1.09,"2025":0.55,"2026":1.03},{"mes":7,"2023":1.08,"2024":1.28,"2025":0.99,"2026":1.2},{"mes":8,"2023":1.7,"2024":2.11,"2025":1.76,"2026":1.23},{"mes":9,"2023":1.3,"2024":2.2,"2025":2.06,"2026":0.91},{"mes":10,"2023":1.39,"2024":2.34,"2025":2.38,"2026":null},{"mes":11,"2023":1.81,"2024":1.2,"2025":1.99,"2026":null},{"mes":12,"2023":1.25,"2024":1.38,"2025":1.96,"2026":null}],"salto":[{"anio":2023,"jul":1.08,"ago":1.7,"pct":57.4},{"anio":2024,"jul":1.28,"ago":2.11,"pct":64.8},{"anio":2025,"jul":0.99,"ago":1.76,"pct":77.8},{"anio":2026,"jul":1.2,"ago":1.23,"pct":2.5}],"agosto":{"2023":[1.4,1.73,2,1.79,1.56],"2024":[1.66,2.18,2.33,2.26,2.1],"2025":[1.61,1.8,1.87,1.78],"2026":[1.41,1.39,1.11,0.99]},"eneAgo":[{"anio":2023,"prom":1.16,"min":0.6,"max":2,"n":35},{"anio":2024,"prom":1.37,"min":0.51,"max":2.49,"n":35},{"anio":2025,"prom":1.04,"min":0.53,"max":1.87,"n":35},{"anio":2026,"prom":1.11,"min":0.6,"max":1.92,"n":35}],"anual":[{"anio":2023,"prom":1.26,"min":0.6,"max":2,"amp":3.33},{"anio":2024,"prom":1.5,"min":0.51,"max":2.49,"amp":4.88},{"anio":2025,"prom":1.39,"min":0.53,"max":2.53,"amp":4.77}],"invierno":[{"anio":2023,"tmin":14.8,"tmax":22.4,"frias":0,"n":14},{"anio":2024,"tmin":14.1,"tmax":22,"frias":2,"n":13},{"anio":2025,"tmin":13.4,"tmax":20.6,"frias":2,"n":13},{"anio":2026,"tmin":14.4,"tmax":21.3,"frias":2,"n":13}],"ciudad_clima":"Luiz Alves"}/*__END_COMPARATIVO__*/</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById('datos').textContent
+            .replace(/\/\*__COMPARATIVO_JSON__\*\//,'').replace(/\/\*__END_COMPARATIVO__\*\//,''));
+
+  // Anios derivados de los datos: la pagina ya no depende de que el anio en curso
+  // sea 2026. ANIOS asc; ORDEN desc (mas nuevo primero); ANIO = el mas reciente.
+  // La paleta es POSICIONAL: el mas nuevo siempre toma --s1, el siguiente --s2, etc.
+  var ANIOS = Object.keys(D.porAnio).map(Number).sort(function (a, b) { return a - b; });
+  var ANIO  = ANIOS[ANIOS.length - 1];
+  var ORDEN = ANIOS.slice().reverse();
+  var ANIOS_AGO = ORDEN.slice(0, 3);
+  var PALETA = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
+  var COLOR = {};
+  ORDEN.forEach(function (y, i) { COLOR[y] = PALETA[i % PALETA.length]; });
+  function txt(id, s) { var n = document.getElementById(id); if (n) n.textContent = s; }
+  var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var DOY_MES = [1,32,60,91,121,152,182,213,244,274,305,335];  // año no bisiesto
+
+  function fmt(v, d) { return v == null ? '—' : v.toFixed(d === undefined ? 2 : d).replace('.', ','); }
+  function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function svgEl(tag, attrs) {
+    var e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  document.getElementById('meta').textContent =
+    D.fuente + ' · ' + D.producto + ' · ' + D.region +
+    ' · última semana ' + D.ultima_semana + ' · generado ' + D.generado;
+  document.getElementById('ciudad').textContent = D.ciudad_clima;
+
+  // ================= KPI row =================
+  (function () {
+    var cont = document.getElementById('kpis');
+    var s26 = D.salto.filter(function (x) { return x.anio === ANIO; })[0];
+    var prev = D.salto.filter(function (x) { return x.anio < ANIO; });
+    var promPrev = prev.reduce(function (a, b) { return a + b.pct; }, 0) / prev.length;
+    var ea = {}; D.eneAgo.forEach(function (x) { ea[x.anio] = x; });
+
+    txt('sub2', 'Los ' + prev.length + ' años previos agosto subió +' + fmt(promPrev, 0) +
+      '% sobre julio. ' + ANIO + ': ' + (s26.pct >= 0 ? '+' : '') + fmt(s26.pct, 1) + '%.');
+
+    var filaOct = D.mensual.filter(function (r) { return r.mes === 10; })[0] || {};
+    var octPrev = ORDEN.slice(1)
+      .filter(function (y) { return filaOct[y] != null; })
+      .slice(0, 2)
+      .sort(function (a, b) { return a - b; })
+      .map(function (y) { return { y: y, v: filaOct[y] }; });
+    var octProm = octPrev.length
+      ? octPrev.reduce(function (a, o) { return a + o.v; }, 0) / octPrev.length
+      : null;
+    var tiles = [
+      { lab: 'Último precio Cepea', val: fmt(D.ultimo_precio), u: 'R$/kg',
+        dl: 'semana del ' + D.ultima_semana, cls: '' },
+      { lab: 'Salto julio $1 agosto ' + ANIO, val: (s26.pct >= 0 ? '+' : '') + fmt(s26.pct, 1) + '%', u: '',
+        dl: 'los ' + prev.length + ' años previos: +' + fmt(promPrev, 0) + '% promedio', cls: 'bad' },
+      { lab: 'Promedio ene-ago ' + ANIO, val: fmt(ea[ANIO].prom), u: 'R$/kg',
+        dl: ORDEN.slice(1).filter(function (y) { return ea[y]; }).slice(0, 2).map(function (y) { return y + ': ' + fmt(ea[y].prom); }).join('  ·  '), cls: '' },
+      { lab: 'Pico de octubre, años previos', val: (octProm == null ? '—' : fmt(octProm, 1)), u: 'R$/kg aprox',
+        dl: octPrev.map(function (o) { return 'oct-' + o.y + ' ' + fmt(o.v); }).join(' · '), cls: '' }
+    ];
+    tiles.forEach(function (t) {
+      var c = el('div', 'tile');
+      var l = el('div', 'lab'); l.textContent = t.lab; c.appendChild(l);
+      var v = el('div', 'val'); v.textContent = t.val;
+      if (t.u) { var u = el('span', 'u'); u.textContent = t.u; v.appendChild(u); }
+      c.appendChild(v);
+      var d = el('div', 'dl' + (t.cls ? ' ' + t.cls : '')); d.textContent = t.dl; c.appendChild(d);
+      cont.appendChild(c);
+    });
+  })();
+
+  // ================= legends =================
+  function legend(host, anios, tipo) {
+    var ul = document.getElementById(host);
+    anios.forEach(function (y) {
+      var li = el('li');
+      var k = el('span', tipo === 'line' ? 'key-line' : 'key-rect');
+      k.style.background = COLOR[y];
+      li.appendChild(k);
+      li.appendChild(document.createTextNode(String(y)));
+      ul.appendChild(li);
+    });
+  }
+  legend('lg1', ORDEN, 'line');
+  legend('lg3', ANIOS_AGO, 'rect');
+
+  txt('sub1', ANIOS.length + ' años superpuestos para evaluar dónde está ' + ANIO + '.');
+  txt('h2curvas', 'Las ' + ANIOS.length + ' curvas, superpuestas por fecha');
+  txt('sub3', 'Variación dentro del mes — ' + ANIOS_AGO.slice().reverse().map(function (y) {
+    var a = D.agosto[y] || [];
+    if (a.length < 2) { return y + ': s/d'; }
+    var d = (a[a.length - 1] / a[0] - 1) * 100;
+    return y + ': ' + (d >= 0 ? '+' : '') + fmt(d, 0) + '%';
+  }).join('  ·  ') + '.');
+
+  // ================= CHART 1: 4 curvas por día del año =================
+  (function () {
+    var host = document.getElementById('p1'), tip = document.getElementById('t1');
+    var W = 1000, H = 380, M = { t: 16, r: 54, b: 34, l: 42 };
+    var iw = W - M.l - M.r, ih = H - M.t - M.b;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Precio semanal de la banana Nanica primeira, cuatro años superpuestos por fecha del calendario' });
+
+    var todos = [];
+    ORDEN.forEach(function (y) { (D.porAnio[y] || []).forEach(function (p) { todos.push(p.precio); }); });
+    var ymax = Math.ceil(Math.max.apply(null, todos) * 4) / 4 + 0.25;
+    var x = function (doy) { return M.l + ((doy - 1) / 364) * iw; };
+    var yv = function (v) { return M.t + ih - (v / ymax) * ih; };
+
+    for (var g = 0; g <= ymax + 0.001; g += 0.5) {
+      svg.appendChild(svgEl('line', { class: 'gridline', x1: M.l, x2: M.l + iw, y1: yv(g), y2: yv(g) }));
+      var tk = svgEl('text', { class: 'tick', x: M.l - 9, y: yv(g) + 4, 'text-anchor': 'end' });
+      tk.textContent = fmt(g, 1); svg.appendChild(tk);
+    }
+    svg.appendChild(svgEl('line', { class: 'axisline', x1: M.l, x2: M.l + iw, y1: yv(0), y2: yv(0) }));
+    DOY_MES.forEach(function (doy, i) {
+      var tk = svgEl('text', { class: 'tick', x: x(doy) + 2, y: M.t + ih + 20, 'text-anchor': 'start' });
+      tk.textContent = MESES[i]; svg.appendChild(tk);
+    });
+
+    var ch = svgEl('line', { class: 'crosshair', y1: M.t, y2: M.t + ih });
+    svg.appendChild(ch);
+
+    var marcadores = {};
+    ORDEN.forEach(function (y) {
+      var pts = D.porAnio[y] || []; if (!pts.length) return;
+      var dstr = pts.map(function (p, i) { return (i ? 'L' : 'M') + x(p.doy).toFixed(1) + ' ' + yv(p.precio).toFixed(1); }).join(' ');
+      svg.appendChild(svgEl('path', { class: 'serie-line', d: dstr, stroke: COLOR[y] }));
+
+      var last = pts[pts.length - 1];
+      svg.appendChild(svgEl('circle', { cx: x(last.doy), cy: yv(last.precio), r: 5.5,
+        fill: COLOR[y], stroke: 'var(--surface-1)', 'stroke-width': 2 }));
+      // etiqueta directa al final de cada línea (obligatoria con 4 series)
+      var lb = svgEl('text', { class: 'dlabel', x: x(last.doy) + 10, y: yv(last.precio) + 4 });
+      lb.textContent = y; svg.appendChild(lb);
+
+      var mk = svgEl('circle', { r: 5, fill: COLOR[y], stroke: 'var(--surface-1)', 'stroke-width': 2, opacity: 0 });
+      svg.appendChild(mk); marcadores[y] = mk;
+    });
+
+    var hit = svgEl('rect', { class: 'hitrect', x: M.l, y: M.t, width: iw, height: ih });
+    svg.appendChild(hit);
+    host.appendChild(svg);
+
+    function mover(ev) {
+      var r = svg.getBoundingClientRect();
+      var px = (ev.clientX - r.left) / r.width * W;
+      var doy = Math.round(((px - M.l) / iw) * 364 + 1);
+      if (doy < 1) doy = 1; if (doy > 365) doy = 365;
+      ch.setAttribute('x1', x(doy)); ch.setAttribute('x2', x(doy)); ch.style.opacity = 1;
+
+      var filas = [], refDate = null;
+      ORDEN.forEach(function (y) {
+        var pts = D.porAnio[y] || [], best = null, bd = 9e9;
+        pts.forEach(function (p) { var d = Math.abs(p.doy - doy); if (d < bd) { bd = d; best = p; } });
+        var mk = marcadores[y];
+        if (best && bd <= 6) {
+          mk.setAttribute('cx', x(best.doy)); mk.setAttribute('cy', yv(best.precio)); mk.setAttribute('opacity', 1);
+          filas.push({ y: y, p: best });
+          if (!refDate) refDate = best.fecha;
+        } else if (mk) { mk.setAttribute('opacity', 0); }
+      });
+
+      if (!filas.length) { tip.style.opacity = 0; return; }
+      tip.textContent = '';
+      var th = el('div', 'th');
+      var dd = DOY_MES.filter(function (v) { return v <= doy; }).length;
+      th.textContent = MESES[Math.max(0, dd - 1)] + ' · día ' + doy + ' del año';
+      tip.appendChild(th);
+      filas.sort(function (a, b) { return b.p.precio - a.p.precio; }).forEach(function (f) {
+        var row = el('div', 'row');
+        var k = el('span', 'k'); k.style.background = COLOR[f.y]; row.appendChild(k);
+        var v = el('span', 'v'); v.textContent = fmt(f.p.precio); row.appendChild(v);
+        var n = el('span', 'n'); n.textContent = f.p.fecha; row.appendChild(n);
+        tip.appendChild(row);
+      });
+      tip.style.opacity = 1;
+      var lx = (x(doy) / W) * r.width + 16;
+      if (lx > r.width - 165) lx -= 185;
+      tip.style.left = lx + 'px';
+      tip.style.top = '14px';
+    }
+    function salir() {
+      ch.style.opacity = 0; tip.style.opacity = 0;
+      ORDEN.forEach(function (y) { if (marcadores[y]) marcadores[y].setAttribute('opacity', 0); });
+    }
+    svg.addEventListener('pointermove', mover);
+    svg.addEventListener('pointerleave', salir);
+  })();
+
+  // ================= CHART 2: salto jul -> ago (énfasis) =================
+  (function () {
+    var host = document.getElementById('p2'), tip = document.getElementById('t2');
+    var W = 1000, H = 300, M = { t: 30, r: 20, b: 46, l: 46 };
+    var iw = W - M.l - M.r, ih = H - M.t - M.b;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Variación porcentual del precio promedio de julio a agosto, por año' });
+
+    var vals = D.salto.map(function (s) { return s.pct; });
+    var vmax = Math.ceil(Math.max.apply(null, vals) / 20) * 20;
+    var yv = function (v) { return M.t + ih - (v / vmax) * ih; };
+
+    for (var g = 0; g <= vmax; g += 20) {
+      svg.appendChild(svgEl('line', { class: 'gridline', x1: M.l, x2: M.l + iw, y1: yv(g), y2: yv(g) }));
+      var tk = svgEl('text', { class: 'tick', x: M.l - 9, y: yv(g) + 4, 'text-anchor': 'end' });
+      tk.textContent = '+' + g + '%'; svg.appendChild(tk);
+    }
+    svg.appendChild(svgEl('line', { class: 'axisline', x1: M.l, x2: M.l + iw, y1: yv(0), y2: yv(0) }));
+
+    var n = D.salto.length, banda = iw / n, BW = Math.min(24, banda - 2);
+    D.salto.forEach(function (s, i) {
+      var cx = M.l + banda * i + banda / 2;
+      var top = yv(s.pct), h = Math.max(2, yv(0) - top);
+      var esFoco = s.anio === ANIO;
+      var col = esFoco ? COLOR[ANIO] : 'var(--deemph)';
+      var rect = svgEl('path', {
+        d: 'M' + (cx - BW / 2) + ' ' + yv(0) +
+           ' L' + (cx - BW / 2) + ' ' + (top + 4) +
+           ' Q' + (cx - BW / 2) + ' ' + top + ' ' + (cx - BW / 2 + 4) + ' ' + top +
+           ' L' + (cx + BW / 2 - 4) + ' ' + top +
+           ' Q' + (cx + BW / 2) + ' ' + top + ' ' + (cx + BW / 2) + ' ' + (top + 4) +
+           ' L' + (cx + BW / 2) + ' ' + yv(0) + ' Z',
+        fill: col
+      });
+      svg.appendChild(rect);
+
+      var vl = svgEl('text', { class: 'dlabel' + (esFoco ? '' : ' sec'), x: cx, y: top - 9, 'text-anchor': 'middle' });
+      vl.textContent = (s.pct >= 0 ? '+' : '') + fmt(s.pct, 1) + '%'; svg.appendChild(vl);
+
+      var xl = svgEl('text', { class: 'tick', x: cx, y: M.t + ih + 20, 'text-anchor': 'middle' });
+      xl.textContent = s.anio; svg.appendChild(xl);
+      var sl = svgEl('text', { class: 'tick', x: cx, y: M.t + ih + 36, 'text-anchor': 'middle' });
+      sl.textContent = fmt(s.jul) + ' → ' + fmt(s.ago); svg.appendChild(sl);
+
+      var hitb = svgEl('rect', { class: 'hitrect', x: cx - banda / 2, y: M.t, width: banda, height: ih });
+      hitb.style.cursor = 'default';
+      hitb.addEventListener('pointerenter', function () {
+        rect.setAttribute('opacity', 0.8);
+        tip.textContent = '';
+        var th = el('div', 'th'); th.textContent = 'Julio → agosto ' + s.anio; tip.appendChild(th);
+        [['julio', s.jul], ['agosto', s.ago]].forEach(function (par) {
+          var row = el('div', 'row');
+          var k = el('span', 'k'); k.style.background = col; row.appendChild(k);
+          var v = el('span', 'v'); v.textContent = fmt(par[1]) + ' R$/kg'; row.appendChild(v);
+          var nn = el('span', 'n'); nn.textContent = par[0]; row.appendChild(nn);
+          tip.appendChild(row);
+        });
+        var rr = el('div', 'row');
+        var vv = el('span', 'v'); vv.textContent = (s.pct >= 0 ? '+' : '') + fmt(s.pct, 1) + '%'; rr.appendChild(vv);
+        var nn2 = el('span', 'n'); nn2.textContent = 'variación'; rr.appendChild(nn2);
+        tip.appendChild(rr);
+        tip.style.opacity = 1;
+        tip.style.left = Math.min(cx / W * host.clientWidth + 14, host.clientWidth - 175) + 'px';
+        tip.style.top = '10px';
+      });
+      hitb.addEventListener('pointerleave', function () { rect.setAttribute('opacity', 1); tip.style.opacity = 0; });
+      svg.appendChild(hitb);
+    });
+    host.appendChild(svg);
+  })();
+
+  // ================= CHART 3: agosto semana a semana =================
+  (function () {
+    var host = document.getElementById('p3'), tip = document.getElementById('t3');
+    var anios = ANIOS_AGO;
+    var maxSem = Math.max.apply(null, anios.map(function (y) { return (D.agosto[y] || []).length; }));
+    var W = 1000, H = 300, M = { t: 26, r: 20, b: 40, l: 46 };
+    var iw = W - M.l - M.r, ih = H - M.t - M.b;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Precio semana a semana durante agosto, comparando ' + ANIOS_AGO.slice().reverse().join(', ') });
+
+    var todos = []; anios.forEach(function (y) { (D.agosto[y] || []).forEach(function (v) { todos.push(v); }); });
+    var vmax = Math.ceil(Math.max.apply(null, todos) * 2) / 2 + 0.5;
+    var yv = function (v) { return M.t + ih - (v / vmax) * ih; };
+
+    for (var g = 0; g <= vmax + 0.001; g += 0.5) {
+      svg.appendChild(svgEl('line', { class: 'gridline', x1: M.l, x2: M.l + iw, y1: yv(g), y2: yv(g) }));
+      var tk = svgEl('text', { class: 'tick', x: M.l - 9, y: yv(g) + 4, 'text-anchor': 'end' });
+      tk.textContent = fmt(g, 1); svg.appendChild(tk);
+    }
+    svg.appendChild(svgEl('line', { class: 'axisline', x1: M.l, x2: M.l + iw, y1: yv(0), y2: yv(0) }));
+
+    var banda = iw / maxSem, GAP = 2;
+    var BW = Math.min(24, (banda - 16) / anios.length - GAP);
+    for (var s = 0; s < maxSem; s++) {
+      var base = M.l + banda * s + (banda - (BW + GAP) * anios.length + GAP) / 2;
+      anios.forEach(function (y, j) {
+        var arr = D.agosto[y] || []; if (s >= arr.length) return;
+        var v = arr[s], left = base + j * (BW + GAP), top = yv(v);
+        var p = svgEl('path', {
+          d: 'M' + left + ' ' + yv(0) + ' L' + left + ' ' + (top + 4) +
+             ' Q' + left + ' ' + top + ' ' + (left + 4) + ' ' + top +
+             ' L' + (left + BW - 4) + ' ' + top +
+             ' Q' + (left + BW) + ' ' + top + ' ' + (left + BW) + ' ' + (top + 4) +
+             ' L' + (left + BW) + ' ' + yv(0) + ' Z',
+          fill: COLOR[y]
+        });
+        svg.appendChild(p);
+        var hb = svgEl('rect', { class: 'hitrect', x: left - 1, y: M.t, width: BW + 2, height: ih });
+        (function (yy, vv, pp, ss) {
+          hb.addEventListener('pointerenter', function () {
+            pp.setAttribute('opacity', 0.78);
+            tip.textContent = '';
+            var th = el('div', 'th'); th.textContent = 'Agosto ' + yy + ' · semana ' + (ss + 1); tip.appendChild(th);
+            var row = el('div', 'row');
+            var k = el('span', 'k'); k.style.background = COLOR[yy]; row.appendChild(k);
+            var vs = el('span', 'v'); vs.textContent = fmt(vv) + ' R$/kg'; row.appendChild(vs);
+            tip.appendChild(row);
+            tip.style.opacity = 1;
+            tip.style.left = Math.min(left / W * host.clientWidth, host.clientWidth - 165) + 'px';
+            tip.style.top = '8px';
+          });
+          hb.addEventListener('pointerleave', function () { pp.setAttribute('opacity', 1); tip.style.opacity = 0; });
+        })(y, v, p, s);
+        svg.appendChild(hb);
+      });
+      var xl = svgEl('text', { class: 'tick', x: M.l + banda * s + banda / 2, y: M.t + ih + 20, 'text-anchor': 'middle' });
+      xl.textContent = 'sem ' + (s + 1); svg.appendChild(xl);
+    }
+    host.appendChild(svg);
+  })();
+
+  // ================= TABLA mensual =================
+  (function () {
+    var t = document.getElementById('tbl');
+    var thead = el('thead'), trh = el('tr');
+    ['Mes'].concat(ANIOS.map(String)).forEach(function (h, i) {
+      var th = el('th');
+      if (i > 0) { var sw = el('span', 'swatch'); sw.style.background = COLOR[h]; th.appendChild(sw); }
+      th.appendChild(document.createTextNode(h + (i > 0 ? ' R$/kg' : '')));
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh); t.appendChild(thead);
+    var tb = el('tbody');
+    D.mensual.forEach(function (r) {
+      var tr = el('tr');
+      if (r.mes >= 8) tr.className = 'hi';
+      var td0 = el('td'); td0.textContent = MESES[r.mes - 1]; tr.appendChild(td0);
+      ANIOS.forEach(function (y) {
+        var td = el('td');
+        var v = r[y];
+        if (v == null) { td.className = 'na'; td.textContent = '—'; }
+        else td.textContent = fmt(v);
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+  })();
+
+  // ================= TABLA invierno =================
+  (function () {
+    var t = document.getElementById('tblinv');
+    var thead = el('thead'), trh = el('tr');
+    ['Año', 'tmín prom °C', 'tmáx prom °C', 'Semanas < 12 °C'].forEach(function (h) {
+      var th = el('th'); th.textContent = h; trh.appendChild(th);
+    });
+    thead.appendChild(trh); t.appendChild(thead);
+    var tb = el('tbody');
+    D.invierno.forEach(function (r) {
+      var tr = el('tr'); if (r.anio === ANIO) tr.className = 'hi';
+      var c0 = el('td'); c0.textContent = r.anio; tr.appendChild(c0);
+      [fmt(r.tmin, 1), fmt(r.tmax, 1), r.frias + ' de ' + r.n].forEach(function (v) {
+        var td = el('td'); td.textContent = v; tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+
+    var anioMaxInv = Math.max.apply(null, D.invierno.map(function (x) { return x.anio; })); var inv26 = D.invierno.filter(function (x) { return x.anio === anioMaxInv; })[0];
+    var n = document.getElementById('notainv');
+    var p1 = el('p');
+    var otrosInv = D.invierno.filter(function (x) { return x.anio !== inv26.anio; });
+      var maxOtros = otrosInv.length ? Math.max.apply(null, otrosInv.map(function (x) { return x.frias; })) : -1;
+      var relFrio = inv26.frias > maxOtros ? 'más semanas por debajo de 12 °C que cualquier otro año de la serie'
+                  : (inv26.frias === maxOtros ? 'tantas semanas por debajo de 12 °C como el año más frío de la serie'
+                  : 'menos semanas por debajo de 12 °C que el año más frío de la serie');
+      p1.appendChild(document.createTextNode('El invierno tuvo ' + relFrio + ' ('));
+    var st = el('strong'); st.textContent = inv26.frias + ' de ' + inv26.n; p1.appendChild(st);
+    p1.appendChild(document.createTextNode('). El frío que normalmente corta la oferta sí ocurrió — el precio no respondió.'));
+    n.appendChild(p1);
+    var p2 = el('p');
+    p2.style.marginBottom = '0';
+    p2.textContent = 'Aclaración: la correlación clima-precio del propio modelo es débil (r = −0,34, r² = 0,12), así que el clima nunca explicó más del 12 % de la variación. El punto igual se sostiene: no se puede atribuir el agosto de ' + ANIO + ' a un invierno flojo, porque no lo fue.';
+    n.appendChild(p2);
+  })();
+})();
+</script>
+</body>
+</html>

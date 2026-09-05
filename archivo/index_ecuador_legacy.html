@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Almar S.R.L. — Plan de Compras Ecuador 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Shim defensivo: tolerar canvas/elementos faltantes en dashboards split
+(function(){
+  const origGetEl = document.getElementById.bind(document);
+  const MOCK_EL = {
+    getContext: () => null,
+    insertAdjacentHTML: () => {},
+    addEventListener: () => {},
+    appendChild: () => {},
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    getAttribute: () => null,
+    setAttribute: () => {},
+    classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+    style: {},
+    innerHTML: '',
+    textContent: '',
+    value: '',
+    children: [],
+    _isMock: true
+  };
+  document.getElementById = function(id) {
+    return origGetEl(id) || MOCK_EL;
+  };
+  if (window.Chart) {
+    const Orig = window.Chart;
+    const Safe = function(ctx, ...args) {
+      if (!ctx) return null;
+      try { return new Orig(ctx, ...args); } catch(e) { console.warn('Chart skipped:', e.message); return null; }
+    };
+    Object.keys(Orig).forEach(k => { try { Safe[k] = Orig[k]; } catch(e){} });
+    Safe.prototype = Orig.prototype;
+    window.Chart = Safe;
+  }
+})();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f7fa;
+    color: #1f2933;
+    line-height: 1.5;
+  }
+  .container { max-width: 1180px; margin: 0 auto; padding: 24px; }
+
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 8px 0; font-size: 32px; letter-spacing: -0.02em; }
+  header .subtitle { opacity: 0.85; font-size: 15px; }
+
+  .status-banner {
+    background: #2f855a;
+    color: white;
+    padding: 18px 24px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .status-banner small { display: block; margin-top: 4px; font-size: 13px; font-weight: 400; opacity: 0.9; }
+
+  h2 {
+    margin: 32px 0 16px 0;
+    font-size: 22px;
+    color: #1e3a5f;
+    border-bottom: 2px solid #cbd5e0;
+    padding-bottom: 8px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 4px solid #2c5282;
+  }
+  .kpi .label { font-size: 13px; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .kpi .value { font-size: 26px; font-weight: 700; color: #1e3a5f; }
+  .kpi .sub { font-size: 13px; color: #4a5568; margin-top: 4px; }
+  .kpi.green { border-left-color: #2f855a; }
+  .kpi.green .value { color: #2f855a; }
+  .kpi.red { border-left-color: #c53030; }
+
+  .chart-card {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+  }
+  .chart-card h3 { margin: 0 0 16px 0; font-size: 16px; color: #4a5568; }
+  .chart-container { position: relative; height: 360px; }
+
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .phase {
+    border-radius: 8px;
+    padding: 18px;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .phase.fase1 { background: linear-gradient(135deg, #38a169, #2f855a); }
+  .phase.fase2 { background: linear-gradient(135deg, #ecc94b, #d69e2e); color: #1f2933; }
+  .phase.fase3 { background: linear-gradient(135deg, #ed8936, #c05621); }
+  .phase.fase4 { background: linear-gradient(135deg, #e53e3e, #9b2c2c); }
+  .phase h3 { margin: 0 0 8px 0; font-size: 17px; }
+  .phase .period { font-size: 13px; opacity: 0.95; margin-bottom: 10px; font-weight: 600; }
+  .phase .action { font-size: 14px; line-height: 1.4; }
+  .phase .price { margin-top: 10px; font-size: 13px; opacity: 0.9; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.25); }
+  .phase.fase2 .price { border-top-color: rgba(0,0,0,0.15); }
+  .phase.current { outline: 4px solid #2f855a; outline-offset: 3px; }
+
+  table {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-collapse: collapse;
+  }
+  th {
+    background: #2c5282;
+    color: white;
+    padding: 12px 10px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 11px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+  }
+  tr.fase1-row { background: #f0fdf4; }
+  tr.fase23-row { background: #fffbeb; }
+  tr.fase4-row { background: #fef2f2; }
+  tr.total-row { background: #edf2f7; font-weight: 700; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  .badge.fase1 { background: #2f855a; }
+  .badge.fase23 { background: #d69e2e; color: #1f2933; }
+  .badge.fase4 { background: #c53030; }
+  .badge.normal { background: #718096; }
+
+  .dates-list {
+    background: white;
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+  }
+  .date-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .date-item:last-child { border-bottom: none; }
+  .date-item.urgent { background: #f0fdf4; border-left: 4px solid #2f855a; }
+  .date-item.today { background: #fefcbf; border-left: 4px solid #d69e2e; }
+  .date-badge {
+    flex-shrink: 0;
+    width: 110px;
+    text-align: center;
+    background: #edf2f7;
+    border-radius: 6px;
+    padding: 8px;
+    margin-right: 16px;
+  }
+  .date-badge .day { font-size: 22px; font-weight: 700; line-height: 1; color: #1e3a5f; }
+  .date-badge .month { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #4a5568; margin-top: 3px; }
+  .date-content .countdown { font-size: 12px; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+  .date-content .event { font-size: 15px; color: #1f2933; margin-top: 2px; }
+
+  footer {
+    margin-top: 40px;
+    padding: 20px;
+    text-align: center;
+    color: #718096;
+    font-size: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 24px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 6px; }
+  }
+
+  nav.sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid #cbd5e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    padding: 8px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  nav.sticky-nav a {
+    display: inline-block;
+    padding: 8px 14px;
+    margin-right: 4px;
+    color: #2c5282;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  nav.sticky-nav a:hover {
+    background: #ebf4ff;
+  }
+  h2 { scroll-margin-top: 70px; }
+</style>
+</head>
+<body>
+
+<header style="background: linear-gradient(135deg, #2f855a 0%, #38a169 100%);">
+  <h1>🍌🇪🇨 ALMAR S.R.L. — Plan Compras Ecuador 2026</h1>
+  <div class="subtitle">NCM 0803.90 · bananas frescas · origen Ecuador · generado 12/05/2026</div>
+</header>
+
+<div class="status-banner" style="background:#2f855a;">
+  🇪🇨 Mercado uruguayo EC — cuota 48,0% · +4,1 pp vs 2025
+  <small>Crecimiento sostenido · ver detalles en cada bloque</small>
+</div>
+
+<nav class="sticky-nav">
+  <a href="#resumen">📋 Resumen</a>
+  <span style="color:#a0aec0;padding:0 4px;">|</span>
+  <span style="color:#2f855a;font-weight:700;font-size:12px;padding:0 4px;">🇪🇨 ECUADOR:</span>
+  <a href="#mercadouy-ec">🇺🇾 Mercado EC</a>
+  <a href="#inteligencia-ec">🕵️ Competidores EC</a>
+  <a href="#plan-ec">📊 Plan EC</a>
+  <a href="#historico-ec">📜 Histórico EC</a>
+</nav>
+
+<div class="container">
+
+  <h2 id="resumen">Resumen ejecutivo</h2>
+  <div class="kpi-grid">
+    <div class="kpi green">
+      <div class="label">Target 2026</div>
+      <div class="value">783 carretas</div>
+      <div class="sub">−2,6% vs 804 en 2025</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Volumen estimado</div>
+      <div class="value">789.264 cajas</div>
+      <div class="sub">≈ 20.673 ton brutas</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Costo total (BRL)</div>
+      <div class="value">R$ 36,5 M</div>
+      <div class="sub">Solo compra al productor</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Costo total (USD)</div>
+      <div class="value">US$ 7,02 M</div>
+      <div class="sub">A TC 5,20 BRL/USD</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Cuota mercado UY 2026</div>
+      <div class="value">53,4%</div>
+      <div class="sub">+3,2pp vs 2025</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Conversión</div>
+      <div class="value">1.008 / 26 kg</div>
+      <div class="sub">cajas por carreta · kg/caja bruto</div>
+    </div>
+  </div>
+
+  <h2 id="mercadouy-ec">🇪🇨 Posición en el mercado uruguayo EC</h2>
+  <p style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">
+    Penta-Transaction · NCM 080390 · origen Ecuador · 873 DUAs totales (2024+2025+2026)
+  </p>
+
+  <div class="kpi-grid" style="margin-bottom:24px;">
+    <div class="kpi green">
+      <div class="label">Cuota Almar EC 2024</div>
+      <div class="value">39,4%</div>
+      <div class="sub">USD 5,96 M · líder en EC</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Cuota Almar EC 2025</div>
+      <div class="value">43,9%</div>
+      <div class="sub" style="color:#2f855a;font-weight:600;">+4,5 pp · sigue creciendo</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Cuota Almar EC 2026 (5m)</div>
+      <div class="value">48,0%</div>
+      <div class="sub" style="color:#2f855a;font-weight:700;">+4,1 pp · crecimiento sostenido</div>
+    </div>
+    <div class="kpi" style="border-left-color:#3182ce;">
+      <div class="label">Mercado EC 2026 anualiz.</div>
+      <div class="value" style="color:#3182ce;">USD 17,3 M</div>
+      <div class="sub">Va a superar a Brasil (13,6 M anualiz.) en 2026</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-bottom:12px;">Ranking 2024-2025-2026</h3>
+  <table style="margin-bottom:24px;">
+    <thead>
+      <tr>
+        <th>Importador</th>
+        <th class="num">USD 2024</th>
+        <th class="num">% 2024</th>
+        <th class="num">USD 2025</th>
+        <th class="num">% 2025</th>
+        <th class="num">USD 2026 (5m)</th>
+        <th class="num">% 2026</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#f0fdf4;font-weight:600;"><td>🥇 ALMAR S.R.L.</td><td class="num">5.959.882</td><td class="num">39,41%</td><td class="num">7.240.208</td><td class="num">43,89%</td><td class="num">3.458.045</td><td class="num">48,00%</td><td>🟢 Crecimiento sostenido</td></tr>
+      <tr style="background:#fffbeb;"><td>PROEXUR S R L</td><td class="num">4.138.952</td><td class="num">27,37%</td><td class="num">4.103.348</td><td class="num">24,87%</td><td class="num">1.548.863</td><td class="num">21,50%</td><td>🔴 Cayendo (rival principal)</td></tr>
+      <tr style="background:#fffbeb;"><td>CIRO GENTILE S.A.</td><td class="num">3.868.224</td><td class="num">25,58%</td><td class="num">3.693.868</td><td class="num">22,39%</td><td class="num">1.180.903</td><td class="num">16,39%</td><td>🔴 Cayendo fuerte</td></tr>
+      <tr><td>HENDERSON Y CIA S.A.</td><td class="num">822.830</td><td class="num">5,44%</td><td class="num">744.466</td><td class="num">4,51%</td><td class="num">378.948</td><td class="num">5,26%</td><td>Estable</td></tr>
+      <tr style="background:#f0fdf4;"><td>LINA FRESH URUGUAY SAS (=Garmin) ⭐</td><td class="num">—</td><td class="num">—</td><td class="num">656.118</td><td class="num">3,98%</td><td class="num">637.367</td><td class="num">8,85%</td><td>🚀 NUEVO 2025, creciendo +5 pp</td></tr>
+      <tr><td>MARAMA IMPORT</td><td class="num">205.011</td><td class="num">1,36%</td><td class="num">58.320</td><td class="num">0,35%</td><td class="num">—</td><td class="num">—</td><td>Casi salió</td></tr>
+      <tr><td>NALIA S A</td><td class="num">83.516</td><td class="num">0,55%</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td><td>⚫ Salió</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-top:32px;margin-bottom:12px;">Lecturas</h3>
+  <div class="chart-card" style="font-size:14px;line-height:1.7;">
+    <ul style="margin: 0; padding-left: 20px;">
+      <li><strong>Ecuador es donde más consistentemente crecés:</strong> +4,5 pp en 2025, +4,1 pp en 2026. A diferencia de Brasil donde perdiste 16 pp y luego recuperaste 3.</li>
+      <li><strong>El mercado EC ya superó a Brasil en 2026:</strong> USD 7,2M (5 meses) vs Brasil USD 5,7M. Anualizado, EC = USD 17,3M vs BR = USD 13,6M.</li>
+      <li><strong>PROEXUR es tu rival principal en EC</strong> — no juega en Brasil. Su cuota viene cayendo 6 pp en 2 años. Si sigue, podrías sumar otros 4-5 pp de cuota orgánicamente.</li>
+      <li><strong>Ciro Gentile pierde fuerza también en Ecuador</strong> (mismo patrón que en Brasil y Bolivia). Patrón global, no sectorial.</li>
+      <li><strong>⭐ LINA FRESH URUGUAY es nuevo y crece rápido</strong> (de 0 a 8,85% en 18 meses). Pequeño todavía pero la curva de crecimiento es preocupante. Vigilar.</li>
+      <li><strong>USD/kg estable en ~1,00 para todos:</strong> en Ecuador no se compite por precio, se compite por relación comercial y disponibilidad.</li>
+      <li><strong>⚠️ Garmin SÍ opera en Ecuador con otra razón social: LINA FRESH URUGUAY SAS.</strong> Entró en 2025 (4%) y ya está en 8,85% en 2026 — crecimiento agresivo. Es tu mismo rival de Brasil pero con disfraz fiscal distinto.</li>
+    </ul>
+  </div>
+
+  <h2 id="inteligencia-ec">🇪🇨 Inteligencia competitiva EC — PROEXUR y Ciro Gentile</h2>
+  <p style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">
+    Comparativa fina de tus 2 rivales principales en Ecuador.
+  </p>
+
+  <table style="margin-bottom:24px;">
+    <thead>
+      <tr>
+        <th>Métrica</th>
+        <th class="num">Almar 2025</th>
+        <th class="num">PROEXUR 2025</th>
+        <th class="num">Ciro Gentile 2025</th>
+        <th class="num">Lina Fresh 2025</th>
+        <th>Lectura</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#f0fdf4;font-weight:600;">
+        <td>USD VNA</td><td class="num">7.240.208</td><td class="num">4.103.348</td><td class="num">3.693.868</td><td class="num">656.118</td>
+        <td>Almar = 1,8× PROEXUR</td>
+      </tr>
+      <tr>
+        <td># DUAs</td><td class="num">126</td><td class="num">71</td><td class="num">84</td><td class="num">26</td>
+        <td>Almar = 50% más operaciones que PROEXUR</td>
+      </tr>
+      <tr>
+        <td>Kg promedio/DUA</td><td class="num">61.944</td><td class="num">62.644</td><td class="num">46.556</td><td class="num">27.973</td>
+        <td>Almar y PROEXUR cargas similares; Ciro y Lina más chicas</td>
+      </tr>
+      <tr>
+        <td>USD/kg promedio</td><td class="num">1,013</td><td class="num">1,000</td><td class="num">1,041</td><td class="num">1,000</td>
+        <td>Todos al mismo precio commodity</td>
+      </tr>
+      <tr>
+        <td>Crecimiento USD 2024→25</td><td class="num" style="color:#2f855a;font-weight:700;">+21%</td><td class="num">−1%</td><td class="num">−5%</td><td class="num" style="color:#2f855a;">nuevo</td>
+        <td>Almar el único creciendo entre los grandes</td>
+      </tr>
+      <tr>
+        <td>Δ cuota 2024→25 (pp)</td><td class="num" style="color:#2f855a;font-weight:700;">+4,48</td><td class="num" style="color:#c53030;">−2,50</td><td class="num" style="color:#c53030;">−3,19</td><td class="num" style="color:#2f855a;">+3,98 (nuevo)</td>
+        <td>Almar y Lina ganan, Proexur y Ciro pierden</td>
+      </tr>
+      <tr>
+        <td>Δ cuota 2025→26 (pp)</td><td class="num" style="color:#2f855a;font-weight:700;">+4,11</td><td class="num" style="color:#c53030;">−3,37</td><td class="num" style="color:#c53030;font-weight:700;">−6,00</td><td class="num" style="color:#2f855a;font-weight:700;">+4,87</td>
+        <td>Movimiento se acelera — Almar y Lina ganando</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="chart-card">
+    <h3>DUAs mensuales 2025 — Almar vs competencia EC</h3>
+    <div class="chart-container" style="height:360px;">
+      <canvas id="chartDUAsEC"></canvas>
+    </div>
+  </div>
+
+  <h2 id="plan-ec">🇪🇨 Plan Compras EC 2026 (simplificado)</h2>
+  <p style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">
+    Proyección Jun-Dic basada en patrón histórico Penta. Para Ecuador no rastreamos productores individuales — análisis basado en totales agregados.
+  </p>
+
+  <div class="kpi-grid" style="margin-bottom:24px;">
+    <div class="kpi green">
+      <div class="label">USD VNA 2025 real</div>
+      <div class="value">7,24 M</div>
+      <div class="sub">Almar EC año completo</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">USD 2026 Ene-May real</div>
+      <div class="value">3,46 M</div>
+      <div class="sub" style="color:#2f855a;font-weight:600;">+15% vs mismo período 2025</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Proyección 2026 total</div>
+      <div class="value">~9,04 M</div>
+      <div class="sub" style="color:#2f855a;font-weight:700;">+24,8% vs 2025</div>
+    </div>
+    <div class="kpi" style="border-left-color:#3182ce;">
+      <div class="label">Kg/DUA 2026</div>
+      <div class="value" style="color:#3182ce;">84.664</div>
+      <div class="sub">+37% vs 2025 — más eficiente</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-bottom:12px;">Proyección mensual</h3>
+  <table style="margin-bottom:24px;">
+    <thead>
+      <tr>
+        <th>Mes</th>
+        <th class="num">USD 2024</th>
+        <th class="num">USD 2025</th>
+        <th class="num">USD 2026</th>
+        <th class="num">% YoY</th>
+        <th class="num">DUAs 2026</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#f0fdf4;"><td>Enero</td><td class="num">465.000</td><td class="num">517.000</td><td class="num">707.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">9</td><td>Real</td></tr>
+      <tr style="background:#f0fdf4;"><td>Febrero</td><td class="num">507.000</td><td class="num">517.000</td><td class="num">629.000</td><td class="num" style="color:#2f855a;">+22%</td><td class="num">8</td><td>Real</td></tr>
+      <tr style="background:#f0fdf4;"><td>Marzo</td><td class="num">592.000</td><td class="num">690.000</td><td class="num">707.000</td><td class="num">+2%</td><td class="num">9</td><td>Real</td></tr>
+      <tr style="background:#f0fdf4;"><td>Abril</td><td class="num">549.000</td><td class="num">805.000</td><td class="num">786.000</td><td class="num">−2%</td><td class="num">10</td><td>Real</td></tr>
+      <tr style="background:#f0fdf4;"><td>Mayo</td><td class="num">549.000</td><td class="num">632.000</td><td class="num">629.000</td><td class="num">0%</td><td class="num">8</td><td>Real</td></tr>
+      <tr><td>Junio</td><td class="num">465.000</td><td class="num">632.000</td><td class="num">864.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">11</td><td><em>Proyección</em></td></tr>
+      <tr><td>Julio</td><td class="num">465.000</td><td class="num">575.000</td><td class="num">786.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">10</td><td><em>Proyección</em></td></tr>
+      <tr><td>Agosto</td><td class="num">465.000</td><td class="num">517.000</td><td class="num">707.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">9</td><td><em>Proyección</em></td></tr>
+      <tr><td>Setiembre</td><td class="num">465.000</td><td class="num">517.000</td><td class="num">707.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">9</td><td><em>Proyección</em></td></tr>
+      <tr><td>Octubre</td><td class="num">465.000</td><td class="num">632.000</td><td class="num">864.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">11</td><td><em>Proyección</em></td></tr>
+      <tr><td>Noviembre</td><td class="num">507.000</td><td class="num">690.000</td><td class="num">943.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">12</td><td><em>Proyección</em></td></tr>
+      <tr><td>Diciembre</td><td class="num">465.000</td><td class="num">517.000</td><td class="num">707.000</td><td class="num" style="color:#2f855a;">+37%</td><td class="num">9</td><td><em>Proyección</em></td></tr>
+      <tr class="total-row"><td>TOTAL AÑO</td><td class="num">5.959.882</td><td class="num">7.240.208</td><td class="num">9.040.000</td><td class="num" style="color:#2f855a;font-weight:700;">+24,8%</td><td class="num">115</td><td>Real+Proy</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-top:32px;margin-bottom:12px;">Observaciones e hipótesis</h3>
+  <div class="chart-card" style="font-size:14px;line-height:1.7;">
+    <ul style="margin: 0; padding-left: 20px;">
+      <li><strong>Ene-May 2026 real:</strong> USD 3,46 M (vs USD 3,16 M mismo período 2025 = +15%). Estás superando 2025 mes a mes.</li>
+      <li><strong>Kg/DUA saltó +37%</strong>: pasaste de 62k kg/DUA (2025) a 85k kg/DUA (2026). Más eficiente — mismas operaciones, más volumen cada una.</li>
+      <li><strong>Si el ritmo Ene-May continúa:</strong> 2026 cierra en ~USD 9 M (+24,8% vs 2025). Sería el mayor crecimiento anual del histórico.</li>
+      <li><strong>Sin estacionalidad fuerte en EC:</strong> a diferencia de Brasil, las DUAs en Ecuador están distribuidas casi parejas todo el año.</li>
+      <li><strong>Atención a Lina Fresh (=Garmin):</strong> creció +5 pp en EC en 5 meses. Si sigue, podría afectar tu cuota proyectada.</li>
+    </ul>
+  </div>
+
+  <h2 id="historico-ec">🇪🇨 Histórico Almar EC — evolución 2024-2025-2026</h2>
+
+  <div class="kpi-grid" style="margin-bottom:24px;">
+    <div class="kpi green">
+      <div class="label">USD VNA 2024 → 2025</div>
+      <div class="value">+21 %</div>
+      <div class="sub">5,96 M → 7,24 M USD</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">Cuota 2024 → 2026</div>
+      <div class="value">+8,6 pp</div>
+      <div class="sub" style="color:#2f855a;font-weight:600;">39,4% → 48,0% — crecimiento sostenido</div>
+    </div>
+    <div class="kpi">
+      <div class="label">USD/kg promedio</div>
+      <div class="value">1,01</div>
+      <div class="sub">Estable · banana EC = +69 % vs BR (0,60)</div>
+    </div>
+    <div class="kpi" style="border-left-color:#3182ce;">
+      <div class="label">Kg/DUA 2026</div>
+      <div class="value" style="color:#3182ce;">84.664</div>
+      <div class="sub">+37 % vs 2025 — cargas más grandes</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-bottom:12px;">Histórico Almar año por año (Ecuador)</h3>
+  <table style="margin-bottom:24px;">
+    <thead>
+      <tr>
+        <th>Año</th>
+        <th class="num">USD VNA</th>
+        <th class="num">Kg Brutos</th>
+        <th class="num"># DUAs</th>
+        <th class="num">USD/kg</th>
+        <th class="num">Kg/DUA</th>
+        <th class="num">Cuota</th>
+        <th class="num">Δ cuota (pp)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>2024</strong></td><td class="num">5.959.882</td><td class="num">6.509.265</td><td class="num">141</td><td class="num">1,003</td><td class="num">46.165</td><td class="num">39,41%</td><td class="num">(base)</td></tr>
+      <tr style="background:#f0fdf4;"><td><strong>2025</strong></td><td class="num">7.240.208</td><td class="num">7.804.944</td><td class="num">126</td><td class="num">1,013</td><td class="num">61.944</td><td class="num">43,89%</td><td class="num" style="color:#2f855a;font-weight:700;">+4,48</td></tr>
+      <tr style="background:#f0fdf4;"><td><strong>2026 (5m)</strong></td><td class="num">3.458.045</td><td class="num">3.725.214</td><td class="num">44</td><td class="num">1,003</td><td class="num">84.664</td><td class="num">48,00%</td><td class="num" style="color:#2f855a;font-weight:700;">+4,11</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-top:32px;margin-bottom:12px;">Comparativa Brasil vs Ecuador (Almar)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Métrica</th>
+        <th class="num">Brasil</th>
+        <th class="num">Ecuador</th>
+        <th>Lectura</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Cuota 2024</td><td class="num">54,6%</td><td class="num">39,4%</td><td>Brasil dominabas más en 2024</td></tr>
+      <tr><td>Cuota 2025</td><td class="num">50,2%</td><td class="num">43,9%</td><td>Brasil cayó, EC subió</td></tr>
+      <tr><td>Cuota 2026 (5m)</td><td class="num">53,4%</td><td class="num" style="font-weight:700;color:#2f855a;">48,0%</td><td>EC convergiendo a niveles BR</td></tr>
+      <tr><td>USD/kg promedio</td><td class="num">0,60</td><td class="num" style="font-weight:700;">1,00</td><td>Ecuador es +66 % más caro por kg</td></tr>
+      <tr><td>USD VNA 2025</td><td class="num">10.753.792</td><td class="num">7.240.208</td><td>BR aún más facturación, pero EC se acerca</td></tr>
+      <tr><td>USD VNA 2026 (5m)</td><td class="num">3.016.752</td><td class="num" style="font-weight:700;color:#2f855a;">3.458.045</td><td><strong>EC pasó a Brasil en 2026</strong> 🎯</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Notas y supuestos</h2>
+  <div class="chart-card" style="font-size:14px;line-height:1.7;">
+    <strong>Base de cálculo:</strong>
+    <ul style="margin: 8px 0 0 16px; padding: 0;">
+      <li>1 carreta = 1.008 cajas × 26 kg bruto = 26.208 kg/carreta (validado con Penta: 21.019.345 kg ÷ 804 carretas = 26.148 kg)</li>
+      <li>Precios mensuales 2026 estimados = precios reales 2025 (mismo patrón estacional asumido)</li>
+      <li>Tipo de cambio referencial: 5,20 BRL/USD</li>
+      <li>Costo = compra al productor brasileño. Falta sumar flete, frigorífico, despacho aduanero (~+30% según diferencia con USD VNA de Penta)</li>
+    </ul>
+    <strong style="display:block;margin-top:14px;">Por validar contra realidad 2026:</strong>
+    <ul style="margin: 8px 0 0 16px; padding: 0;">
+      <li>El plan asume que el patrón estacional 2025 se repite. Si en agosto 2026 la inflexión llega más temprano o más tarde, ajustar.</li>
+      <li>El TC y la inflación BRL pueden modificar costos absolutos sin cambiar la estructura del plan.</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  Almar S.R.L. · Plan generado el 12/05/2026 · Fuentes: planilla interna + Penta-Transaction
+</footer>
+
+<script>
+const plan = [
+  { mes:'Enero',     fase:'NORMAL', target:35,  v2025:35.0, precio:39.49, costoBrl:1391212,  accion:'Inicio año - operación normal, cerrar inventario fin 2025' },
+  { mes:'Febrero',   fase:'NORMAL', target:60,  v2025:63.0, precio:37.29, costoBrl:2255203,  accion:'Operación normal - precio aún bajo' },
+  { mes:'Marzo',     fase:'NORMAL', target:75,  v2025:78.5, precio:43.82, costoBrl:3312468,  accion:'Operación normal - precio aún bajo' },
+  { mes:'Abril',     fase:'NORMAL', target:65,  v2025:67.0, precio:40.36, costoBrl:2644388,  accion:'Operación normal - empieza zona BAJA fin de mes' },
+  { mes:'Mayo',      fase:'FASE 1', target:100, v2025:93.7, precio:31.31, costoBrl:3156048,  accion:'COMPRA AGRESIVA - precio mínimo del año, cerrar contratos largos' },
+  { mes:'Junio',     fase:'FASE 1', target:75,  v2025:67.0, precio:27.10, costoBrl:2049030,  accion:'COMPRA AGRESIVA - mantener volumen alto' },
+  { mes:'Julio',     fase:'FASE 1', target:78,  v2025:75.0, precio:40.53, costoBrl:3186218,  accion:'ÚLTIMA VENTANA - cerrar negocios antes de la suba del Sem 33' },
+  { mes:'Agosto',    fase:'FASE 2-3', target:55, v2025:60.0, precio:54.09, costoBrl:2998948,  accion:'INFLEXIÓN sem 33 - ajustar precios de venta YA, reducir compras' },
+  { mes:'Setiembre', fase:'FASE 4', target:80,  v2025:92.0, precio:65.78, costoBrl:5304523,  accion:'OPERAR POR MARGEN - precio caro, stock fin año' },
+  { mes:'Octubre',   fase:'FASE 4', target:55,  v2025:61.0, precio:67.74, costoBrl:3753194,  accion:'Pico precio - vender al alza, minimizar compras especulativas' },
+  { mes:'Noviembre', fase:'FASE 4', target:55,  v2025:62.0, precio:63.39, costoBrl:3512197,  accion:'Precio alto sostenido - operación controlada' },
+  { mes:'Diciembre', fase:'FASE 4', target:50,  v2025:50.0, precio:58.11, costoBrl:2928542,  accion:'Escasez confirmada - cubrir solo demanda fija' },
+];
+const TC = 5.20;
+
+const tbody = document.getElementById('tablaPlan');
+let totC = 0, totBrl = 0;
+plan.forEach(p => {
+  totC += p.target; totBrl += p.costoBrl;
+  const variacion = ((p.target - p.v2025) / p.v2025 * 100);
+  const variText = (variacion >= 0 ? '+' : '') + variacion.toFixed(0) + '%';
+  let cls = '', badge = 'normal';
+  if (p.fase === 'FASE 1') { cls = 'fase1-row'; badge = 'fase1'; }
+  else if (p.fase === 'FASE 2-3') { cls = 'fase23-row'; badge = 'fase23'; }
+  else if (p.fase === 'FASE 4') { cls = 'fase4-row'; badge = 'fase4'; }
+  const tr = `<tr class="${cls}">
+    <td><strong>${p.mes}</strong></td>
+    <td><span class="badge ${badge}">${p.fase}</span></td>
+    <td class="num">${p.target}</td>
+    <td class="num">${variText}</td>
+    <td class="num">${p.precio.toFixed(2)}</td>
+    <td class="num">${p.costoBrl.toLocaleString('es-UY')}</td>
+    <td class="num">${Math.round(p.costoBrl / TC).toLocaleString('es-UY')}</td>
+    <td style="font-size:13px;">${p.accion}</td>
+  </tr>`;
+  tbody.insertAdjacentHTML('beforeend', tr);
+});
+tbody.insertAdjacentHTML('beforeend', `<tr class="total-row">
+  <td>TOTAL 2026</td>
+  <td>—</td>
+  <td class="num">${totC}</td>
+  <td class="num">${((totC-804)/804*100).toFixed(1)}%</td>
+  <td>—</td>
+  <td class="num">${totBrl.toLocaleString('es-UY')}</td>
+  <td class="num">${Math.round(totBrl/TC).toLocaleString('es-UY')}</td>
+  <td>—</td>
+</tr>`);
+
+// Fechas críticas
+const hoy = new Date('2026-05-12');
+const fechas = [
+  { f:'2026-05-12', e:'HOY · estás en FASE 1 - momento de comprar a precio bajo', today:true },
+  { f:'2026-07-11', e:'Fin FASE 1 BAJA · cerrar compras grandes' },
+  { f:'2026-08-08', e:'Fin ÚLTIMA VENTANA · cierre de contratos pre-suba' },
+  { f:'2026-08-15', e:'PUNTO DE INFLEXIÓN · ajustar precios de venta YA' },
+  { f:'2026-09-15', e:'Comprar stock fin de año (antes de escasez Nov-Dic)' },
+  { f:'2026-12-01', e:'ESCASEZ confirmada · operar solo por margen' },
+];
+const fechasList = document.getElementById('fechasList');
+const mesesAbr = ['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
+fechas.forEach(d => {
+  const fecha = new Date(d.f);
+  const dias = Math.round((fecha - hoy) / 86400000);
+  let countdown;
+  if (d.today) countdown = 'HOY';
+  else if (dias < 0) countdown = 'Pasado';
+  else if (dias === 1) countdown = 'Mañana';
+  else countdown = 'En ' + dias + ' días';
+  const cls = d.today ? 'today' : (dias > 0 && dias <= 60 ? 'urgent' : '');
+  fechasList.insertAdjacentHTML('beforeend', `<div class="date-item ${cls}">
+    <div class="date-badge">
+      <div class="day">${fecha.getDate()}</div>
+      <div class="month">${mesesAbr[fecha.getMonth()]} ${fecha.getFullYear()}</div>
+    </div>
+    <div class="date-content">
+      <div class="countdown">${countdown}</div>
+      <div class="event">${d.e}</div>
+    </div>
+  </div>`);
+});
+
+// Chart
+const ctx = document.getElementById('chartTarget').getContext('2d');
+const colorMap = { 'NORMAL':'#a0aec0', 'FASE 1':'#48bb78', 'FASE 2-3':'#ecc94b', 'FASE 4':'#fc8181' };
+const colors = plan.map(p => colorMap[p.fase]);
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: plan.map(p => p.mes),
+    datasets: [{
+      label: 'Carretas',
+      data: plan.map(p => p.target),
+      backgroundColor: colors,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (c) => 'Target: ' + c.parsed.y + ' carretas',
+          afterLabel: (c) => {
+            const p = plan[c.dataIndex];
+            return 'Fase: ' + p.fase + '\nPrecio est: ' + p.precio.toFixed(2) + ' BRL/caja';
+          }
+        }
+      }
+    },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Carretas' } }
+    }
+  }
+});
+
+// ============ COMPARATIVA HISTORICA ============
+
+// Carretas mensuales 2024 / 2025 / Plan 2026
+const carretas2024 = [5, 13, 15, 33, 35, 49, 44, 49, 48, 67, 82, 36];
+const carretas2025 = [35, 63, 78.5, 67, 93.7, 67, 75, 60, 92, 61, 62, 50];
+const plan2026 = plan.map(p => p.target);
+const mesesLabels = plan.map(p => p.mes);
+
+const ctxYoY = document.getElementById('chartCarretasYoY').getContext('2d');
+new Chart(ctxYoY, {
+  type: 'line',
+  data: {
+    labels: mesesLabels,
+    datasets: [
+      { label: '2024', data: carretas2024, borderColor: '#a0aec0', backgroundColor: 'rgba(160,174,192,0.15)', borderWidth: 2, tension: 0.3, pointRadius: 4 },
+      { label: '2025', data: carretas2025, borderColor: '#3182ce', backgroundColor: 'rgba(49,130,206,0.15)', borderWidth: 3, tension: 0.3, pointRadius: 5 },
+      { label: '2026 (plan)', data: plan2026, borderColor: '#38a169', backgroundColor: 'rgba(56,161,105,0.18)', borderWidth: 3, borderDash: [6,4], tension: 0.3, pointRadius: 5, fill: true }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Carretas/mes' } }
+    }
+  }
+});
+
+// Ventas por pais (corregido 12/05/2026 con datos completos)
+const ventasData = [
+  { pais: 'Brasil',   y2024: 573734, y2025: 770913, y2026: 257753 },
+  { pais: 'Ecuador',  y2024: 309202, y2025: 339952, y2026: 169797 },
+  { pais: 'Paraguay', y2024: 258354, y2025: 77735,  y2026: 30085 },
+  { pais: 'Colombia', y2024: 35616,  y2025: 40068,  y2026: 0 },
+  { pais: 'Bolivia',  y2024: 16988,  y2025: 70470,  y2026: 49956 },
+];
+
+const ctxV = document.getElementById('chartVentasPais').getContext('2d');
+new Chart(ctxV, {
+  type: 'bar',
+  data: {
+    labels: ventasData.map(v => v.pais),
+    datasets: [
+      { label: '2024',         data: ventasData.map(v => v.y2024), backgroundColor: '#a0aec0', borderRadius: 4 },
+      { label: '2025',         data: ventasData.map(v => v.y2025), backgroundColor: '#3182ce', borderRadius: 4 },
+      { label: '2026 (5m)',    data: ventasData.map(v => v.y2026), backgroundColor: '#38a169', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+      tooltip: {
+        callbacks: {
+          label: (c) => c.dataset.label + ': ' + c.parsed.y.toLocaleString('es-UY') + ' cajas'
+        }
+      }
+    },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'Cajas vendidas' } }
+    }
+  }
+});
+
+// Tabla paises
+const tot2024 = ventasData.reduce((s,v) => s+v.y2024, 0);
+const tot2025 = ventasData.reduce((s,v) => s+v.y2025, 0);
+const tot2026 = ventasData.reduce((s,v) => s+v.y2026, 0);
+const tbodyP = document.getElementById('tablaPaises');
+ventasData.forEach(v => {
+  const p24 = v.y2024 / tot2024 * 100;
+  const p25 = v.y2025 / tot2025 * 100;
+  const p26 = tot2026 > 0 ? v.y2026 / tot2026 * 100 : 0;
+  let tend = '', col = '#4a5568';
+  if (v.pais === 'Bolivia') { tend = '🟢 Crecimiento explosivo (+315% en 2025)'; col = '#2f855a'; }
+  else if (v.pais === 'Paraguay') { tend = '🔴 Caída fuerte (-70% en 2025)'; col = '#c53030'; }
+  else if (v.pais === 'Colombia') { tend = '⚫ Salió en 2026 (0 cajas)'; col = '#718096'; }
+  else if (v.pais === 'Ecuador') { tend = '🟢 +10% 2025, cayendo 2026'; col = '#2c5282'; }
+  else if (v.pais === 'Brasil') { tend = '🔵 Ancla, +34% en 2025'; col = '#2c5282'; }
+  tbodyP.insertAdjacentHTML('beforeend', `<tr>
+    <td><strong>${v.pais}</strong></td>
+    <td class="num">${v.y2024.toLocaleString('es-UY')}</td>
+    <td class="num">${v.y2025.toLocaleString('es-UY')}</td>
+    <td class="num">${v.y2026.toLocaleString('es-UY')}</td>
+    <td class="num">${p24.toFixed(1)}%</td>
+    <td class="num">${p25.toFixed(1)}%</td>
+    <td class="num">${p26.toFixed(1)}%</td>
+    <td style="color:${col};font-weight:600;font-size:13px;">${tend}</td>
+  </tr>`);
+});
+tbodyP.insertAdjacentHTML('beforeend', `<tr class="total-row">
+  <td>TOTAL</td>
+  <td class="num">${tot2024.toLocaleString('es-UY')}</td>
+  <td class="num">${tot2025.toLocaleString('es-UY')}</td>
+  <td class="num">${tot2026.toLocaleString('es-UY')}</td>
+  <td class="num">100,0%</td>
+  <td class="num">100,0%</td>
+  <td class="num">100,0%</td>
+  <td>—</td>
+</tr>`);
+
+// ============ RANKING MERCADO UY ============
+const mercado = [
+  { n: 'ALMAR S.R.L.',                   v25: 10753791, p25: 0.5015, v26: 3016752, p26: 0.5336, color: '#2f855a' },
+  { n: 'CIRO GENTILE S.A.',               v25:  5925693, p25: 0.2763, v26: 1258395, p26: 0.2226, color: '#c53030' },
+  { n: 'GARMIN S.R.L.',                   v25:  3333449, p25: 0.1555, v26: 1073124, p26: 0.1898, color: '#d69e2e' },
+  { n: 'ALBEZ IBARRA RUBEN ALEJANDRO',    v25:   468119, p25: 0.0218, v26:   92252, p26: 0.0163, color: '#a0aec0' },
+  { n: 'EXPERTEX SA',                     v25:   438402, p25: 0.0204, v26:  114425, p26: 0.0202, color: '#cbd5e0' },
+  { n: 'RINALIR SOCIEDAD ANONIMA',        v25:   182962, p25: 0.0085, v26:   37440, p26: 0.0066, color: '#b8c2cf' },
+  { n: 'MARAMA IMPORT AND EXPORT LTDA',   v25:   179256, p25: 0.0084, v26:   11041, p26: 0.0020, color: '#a4b0bd' },
+  { n: 'FRUTTARA SAS',                    v25:   114000, p25: 0.0053, v26: null,    p26: null,    color: '#9aa6b2' },
+  { n: 'LA 5TA SAS',                      v25:    23063, p25: 0.0011, v26: null,    p26: null,    color: '#90a0ad' },
+  { n: 'JEMI SAS',                        v25:    21879, p25: 0.0010, v26:   50107, p26: 0.0089, color: '#869aa9' },
+  { n: 'BANPY SAS',                       v25:     1639, p25: 0.0001, v26: null,    p26: null,    color: '#7c93a4' },
+  { n: 'CRUFI S A',                       v25:      728, p25: 0.0000, v26: null,    p26: null,    color: '#728ca0' },
+];
+
+// Donut 2025
+const ctx25 = document.getElementById('chartMkt2025').getContext('2d');
+new Chart(ctx25, {
+  type: 'doughnut',
+  data: {
+    labels: mercado.map(m => m.n.length > 22 ? m.n.substring(0,22)+'…' : m.n),
+    datasets: [{
+      data: mercado.map(m => m.p25 * 100),
+      backgroundColor: mercado.map(m => m.color),
+      borderWidth: 1, borderColor: '#ffffff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } },
+      tooltip: {
+        callbacks: {
+          label: (c) => mercado[c.dataIndex].n + ': ' + c.parsed.toFixed(2) + '%'
+        }
+      }
+    }
+  }
+});
+
+// Donut 2026 (excluding null)
+const mkt26 = mercado.filter(m => m.p26 !== null);
+const ctx26 = document.getElementById('chartMkt2026').getContext('2d');
+new Chart(ctx26, {
+  type: 'doughnut',
+  data: {
+    labels: mkt26.map(m => m.n.length > 22 ? m.n.substring(0,22)+'…' : m.n),
+    datasets: [{
+      data: mkt26.map(m => m.p26 * 100),
+      backgroundColor: mkt26.map(m => m.color),
+      borderWidth: 1, borderColor: '#ffffff'
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } },
+      tooltip: {
+        callbacks: {
+          label: (c) => mkt26[c.dataIndex].n + ': ' + c.parsed.toFixed(2) + '%'
+        }
+      }
+    }
+  }
+});
+
+// ============ CHART: Almar DUAs mensuales 2024 vs 2025 ============
+const almarMonthly = {
+  '2024': [8, 10, 10, 11, 11, 14, 14, 12, 14, 15, 19, 8],
+  '2025': [11, 12, 17, 16, 13, 18, 12, 10, 22, 19, 18, 17]
+};
+const ctxAlmar = document.getElementById('chartAlmarMonthly')?.getContext('2d');
+if (ctxAlmar) {
+  new Chart(ctxAlmar, {
+    type: 'line',
+    data: {
+      labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'],
+      datasets: [
+        { label: '2024 (146 DUAs · 66,5% cuota)', data: almarMonthly['2024'], borderColor: '#a0aec0', backgroundColor: 'rgba(160,174,192,0.15)', borderWidth: 2, tension: 0.3, pointRadius: 4 },
+        { label: '2025 (185 DUAs · 50,2% cuota)', data: almarMonthly['2025'], borderColor: '#2f855a', backgroundColor: 'rgba(47,133,90,0.18)', borderWidth: 3, tension: 0.3, pointRadius: 5, fill: true }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: true, title: { display: true, text: 'DUAs (operaciones)' } } }
+    }
+  });
+}
+
+// ============ CHART: Evolución productores top ============
+const prodEvo = [
+  { name: 'Cassio',    data: [15,  87,  203], color: '#c53030' },
+  { name: 'Valdemar',  data: [84,  132, 102], color: '#3182ce' },
+  { name: 'Fisher',    data: [17,  169, 96],  color: '#d69e2e' },
+  { name: 'Jony',      data: [67,  124, 78],  color: '#805ad5' },
+  { name: 'Gilson',    data: [43,  76,  77],  color: '#2f855a' }
+];
+const ctxProd = document.getElementById('chartProductoresEvo')?.getContext('2d');
+if (ctxProd) {
+  new Chart(ctxProd, {
+    type: 'line',
+    data: {
+      labels: ['2024', '2025', '2026 (anualiz.)'],
+      datasets: prodEvo.map(p => ({
+        label: p.name,
+        data: p.data,
+        borderColor: p.color,
+        backgroundColor: p.color + '20',
+        borderWidth: 2.5,
+        tension: 0.25,
+        pointRadius: 6,
+        pointHoverRadius: 9
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: (c) => c.dataset.label + ': ' + c.parsed.y + ' carretas'
+          }
+        }
+      },
+      scales: { y: { beginAtZero: true, title: { display: true, text: 'Carretas/año' } } }
+    }
+  });
+}
+
+// ============ CHART: Mercado UY por origen evolución ============
+const mercadoOrigen = {
+  '🇧🇷 Brasil':   [16398945, 21442987, 13568494],
+  '🇵🇾 Paraguay': [8266327,  2252688,  2482049],
+  '🇧🇴 Bolivia':  [728129,   1355238,  2680790]
+};
+const ctxMO = document.getElementById('chartMercadoOrigen')?.getContext('2d');
+if (ctxMO) {
+  new Chart(ctxMO, {
+    type: 'bar',
+    data: {
+      labels: ['2024', '2025', '2026 (anualiz.)'],
+      datasets: [
+        { label: '🇧🇷 Brasil',   data: mercadoOrigen['🇧🇷 Brasil'],   backgroundColor: '#3182ce', borderRadius: 4 },
+        { label: '🇵🇾 Paraguay', data: mercadoOrigen['🇵🇾 Paraguay'], backgroundColor: '#c53030', borderRadius: 4 },
+        { label: '🇧🇴 Bolivia',  data: mercadoOrigen['🇧🇴 Bolivia'],  backgroundColor: '#d69e2e', borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            label: (c) => c.dataset.label + ': USD ' + c.parsed.y.toLocaleString('es-UY')
+          }
+        }
+      },
+      scales: { y: { beginAtZero: true, title: { display: true, text: 'USD VNA' } } }
+    }
+  });
+}
+
+// DUAs mensuales 2025 EC
+const duasMonthlyEC = {
+  'Almar':       [9, 9, 12, 14, 11, 11, 10, 9, 9, 11, 12, 9],
+  'Proexur':     [4, 4, 7, 5, 7, 8, 8, 6, 5, 6, 6, 5],
+  'Ciro Gentile':[5, 6, 9, 7, 8, 9, 8, 8, 7, 6, 6, 5],
+  'Lina Fresh':  [0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 5, 5]
+};
+const ctxEC = document.getElementById('chartDUAsEC')?.getContext('2d');
+if (ctxEC) {
+  new Chart(ctxEC, {
+    type: 'line',
+    data: {
+      labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'],
+      datasets: [
+        { label: 'Almar',        data: duasMonthlyEC.Almar,         borderColor: '#2f855a', backgroundColor: 'rgba(47,133,90,0.18)', borderWidth: 3, tension: 0.3, pointRadius: 5, fill: true },
+        { label: 'PROEXUR',      data: duasMonthlyEC.Proexur,       borderColor: '#3182ce', backgroundColor: 'rgba(49,130,206,0.10)', borderWidth: 2, tension: 0.3, pointRadius: 4 },
+        { label: 'Ciro Gentile', data: duasMonthlyEC['Ciro Gentile'], borderColor: '#c53030', backgroundColor: 'rgba(197,48,48,0.10)', borderWidth: 2, tension: 0.3, pointRadius: 4 },
+        { label: 'Lina Fresh (=Garmin)',   data: duasMonthlyEC['Lina Fresh'],  borderColor: '#d69e2e', backgroundColor: 'rgba(214,158,46,0.10)', borderWidth: 2, tension: 0.3, pointRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: true, title: { display: true, text: '# de DUAs (operaciones)' } } }
+    }
+  });
+}
+
+// DUAs mensuales 2025 (existing chart in Inteligencia)
+const duasMonthly = {
+  'Almar':        [11, 12, 17, 16, 13, 18, 12, 10, 22, 19, 18, 17],
+  'Ciro Gentile': [7,  9,  6,  7,  5,  2,  7,  5,  6,  10, 7,  9],
+  'Garmin':       [3,  3,  3,  5,  4,  4,  4,  3,  7,  7,  4,  3]
+};
+const ctxD = document.getElementById('chartDUAs').getContext('2d');
+new Chart(ctxD, {
+  type: 'line',
+  data: {
+    labels: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'],
+    datasets: [
+      { label: 'Almar',        data: duasMonthly.Almar,        borderColor: '#2f855a', backgroundColor: 'rgba(47,133,90,0.15)', borderWidth: 3, tension: 0.3, pointRadius: 5, fill: true },
+      { label: 'Ciro Gentile', data: duasMonthly['Ciro Gentile'], borderColor: '#c53030', backgroundColor: 'rgba(197,48,48,0.10)',  borderWidth: 2, tension: 0.3, pointRadius: 4 },
+      { label: 'Garmin',       data: duasMonthly.Garmin,       borderColor: '#d69e2e', backgroundColor: 'rgba(214,158,46,0.10)',  borderWidth: 2, tension: 0.3, pointRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: '# de DUAs (operaciones aduaneras)' } }
+    }
+  }
+});
+
+// Tabla mercado
+const tbodyM = document.getElementById('tablaMercado');
+mercado.forEach((m, i) => {
+  const rank = i + 1;
+  const v26Text = m.v26 !== null ? m.v26.toLocaleString('es-UY') : '—';
+  const p26Text = m.p26 !== null ? (m.p26 * 100).toFixed(2) + '%' : '—';
+  let delta = '—', estado = '', estadoColor = '#4a5568';
+  if (m.p26 !== null) {
+    const d = (m.p26 - m.p25) * 100;
+    delta = (d >= 0 ? '+' : '') + d.toFixed(2);
+    if (d > 0.5) { estado = '🟢 Creciendo'; estadoColor = '#2f855a'; }
+    else if (d < -0.5) { estado = '🔴 Perdiendo'; estadoColor = '#c53030'; }
+    else { estado = '⚪ Estable'; estadoColor = '#718096'; }
+  } else {
+    estado = '⚫ Salió del mercado 2026';
+    estadoColor = '#718096';
+  }
+  const isAlmar = m.n === 'ALMAR S.R.L.';
+  const rowStyle = isAlmar ? 'background:#f0fdf4;font-weight:600;' : '';
+  tbodyM.insertAdjacentHTML('beforeend', `<tr style="${rowStyle}">
+    <td><strong>${rank}</strong></td>
+    <td style="font-size:13px;">${isAlmar ? '🥇 ' : ''}${m.n}</td>
+    <td class="num">${m.v25.toLocaleString('es-UY')}</td>
+    <td class="num">${(m.p25 * 100).toFixed(2)}%</td>
+    <td class="num">${v26Text}</td>
+    <td class="num">${p26Text}</td>
+    <td class="num" style="color:${m.p26 !== null && (m.p26 - m.p25) > 0 ? '#2f855a' : (m.p26 !== null && (m.p26 - m.p25) < 0 ? '#c53030' : '#4a5568')};font-weight:700;">${delta}</td>
+    <td style="color:${estadoColor};font-weight:600;font-size:13px;">${estado}</td>
+  </tr>`);
+});
+</script>
+
+<!-- CEPEA-DATA-START (no editar a mano — se actualiza con actualizar_precios.ps1) -->
+<script id="cepea-data">
+window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org.br","producto":"Nanica primeira - produtor","region":"Norte de Santa Catarina","unidad":"R$/kg","actualizado":"2026-05-12 20:26","ultima_semana":"2026-05-08","ultimo_precio":0.64,"promedio_mensual":{"1":1.04,"2":1.2,"3":1.44,"4":1.12,"5":0.86,"6":0.86,"7":1.11,"8":1.86,"9":1.86,"10":2.06,"11":1.68,"12":1.53},"serie":[{"fecha":"2023-01-06","anio":2023,"mes":1,"precio":0.61},{"fecha":"2023-01-13","anio":2023,"mes":1,"precio":0.6},{"fecha":"2023-01-20","anio":2023,"mes":1,"precio":0.64},{"fecha":"2023-01-27","anio":2023,"mes":1,"precio":0.72},{"fecha":"2023-02-03","anio":2023,"mes":2,"precio":0.75},{"fecha":"2023-02-10","anio":2023,"mes":2,"precio":0.84},{"fecha":"2023-02-17","anio":2023,"mes":2,"precio":0.89},{"fecha":"2023-02-24","anio":2023,"mes":2,"precio":0.91},{"fecha":"2023-03-03","anio":2023,"mes":3,"precio":0.97},{"fecha":"2023-03-10","anio":2023,"mes":3,"precio":1.08},{"fecha":"2023-03-17","anio":2023,"mes":3,"precio":1.27},{"fecha":"2023-03-24","anio":2023,"mes":3,"precio":1.46},{"fecha":"2023-03-31","anio":2023,"mes":3,"precio":1.5},{"fecha":"2023-04-06","anio":2023,"mes":4,"precio":1.46},{"fecha":"2023-04-14","anio":2023,"mes":4,"precio":1.43},{"fecha":"2023-04-20","anio":2023,"mes":4,"precio":1.41},{"fecha":"2023-04-28","anio":2023,"mes":4,"precio":1.42},{"fecha":"2023-05-05","anio":2023,"mes":5,"precio":1.33},{"fecha":"2023-05-12","anio":2023,"mes":5,"precio":1.36},{"fecha":"2023-05-19","anio":2023,"mes":5,"precio":1.32},{"fecha":"2023-05-26","anio":2023,"mes":5,"precio":1.12},{"fecha":"2023-06-02","anio":2023,"mes":6,"precio":0.99},{"fecha":"2023-06-07","anio":2023,"mes":6,"precio":0.91},{"fecha":"2023-06-16","anio":2023,"mes":6,"precio":0.89},{"fecha":"2023-06-22","anio":2023,"mes":6,"precio":0.87},{"fecha":"2023-06-30","anio":2023,"mes":6,"precio":0.96},{"fecha":"2023-07-07","anio":2023,"mes":7,"precio":0.94},{"fecha":"2023-07-14","anio":2023,"mes":7,"precio":1.01},{"fecha":"2023-07-21","anio":2023,"mes":7,"precio":1.1},{"fecha":"2023-07-28","anio":2023,"mes":7,"precio":1.28},{"fecha":"2023-08-04","anio":2023,"mes":8,"precio":1.4},{"fecha":"2023-08-11","anio":2023,"mes":8,"precio":1.73},{"fecha":"2023-08-18","anio":2023,"mes":8,"precio":2.0},{"fecha":"2023-08-25","anio":2023,"mes":8,"precio":1.79},{"fecha":"2023-08-31","anio":2023,"mes":8,"precio":1.56},{"fecha":"2023-09-06","anio":2023,"mes":9,"precio":1.44},{"fecha":"2023-09-15","anio":2023,"mes":9,"precio":1.27},{"fecha":"2023-09-22","anio":2023,"mes":9,"precio":1.3},{"fecha":"2023-09-29","anio":2023,"mes":9,"precio":1.2},{"fecha":"2023-10-06","anio":2023,"mes":10,"precio":1.32},{"fecha":"2023-10-13","anio":2023,"mes":10,"precio":1.32},{"fecha":"2023-10-20","anio":2023,"mes":10,"precio":1.32},{"fecha":"2023-10-27","anio":2023,"mes":10,"precio":1.59},{"fecha":"2023-11-01","anio":2023,"mes":11,"precio":1.77},{"fecha":"2023-11-10","anio":2023,"mes":11,"precio":1.99},{"fecha":"2023-11-17","anio":2023,"mes":11,"precio":1.97},{"fecha":"2023-11-24","anio":2023,"mes":11,"precio":1.76},{"fecha":"2023-11-30","anio":2023,"mes":11,"precio":1.58},{"fecha":"2023-12-08","anio":2023,"mes":12,"precio":1.39},{"fecha":"2023-12-15","anio":2023,"mes":12,"precio":1.33},{"fecha":"2023-12-22","anio":2023,"mes":12,"precio":1.14},{"fecha":"2023-12-29","anio":2023,"mes":12,"precio":1.16},{"fecha":"2024-01-05","anio":2024,"mes":1,"precio":1.07},{"fecha":"2024-01-05","anio":2024,"mes":1,"precio":1.07},{"fecha":"2024-01-12","anio":2024,"mes":1,"precio":0.96},{"fecha":"2024-01-19","anio":2024,"mes":1,"precio":0.96},{"fecha":"2024-01-26","anio":2024,"mes":1,"precio":0.94},{"fecha":"2024-02-02","anio":2024,"mes":2,"precio":1.17},{"fecha":"2024-02-08","anio":2024,"mes":2,"precio":1.79},{"fecha":"2024-02-16","anio":2024,"mes":2,"precio":2.35},{"fecha":"2024-02-23","anio":2024,"mes":2,"precio":2.49},{"fecha":"2024-02-29","anio":2024,"mes":2,"precio":2.15},{"fecha":"2024-03-08","anio":2024,"mes":3,"precio":2.08},{"fecha":"2024-03-15","anio":2024,"mes":3,"precio":2.05},{"fecha":"2024-03-22","anio":2024,"mes":3,"precio":1.77},{"fecha":"2024-03-28","anio":2024,"mes":3,"precio":1.49},{"fecha":"2024-04-05","anio":2024,"mes":4,"precio":1.25},{"fecha":"2024-04-12","anio":2024,"mes":4,"precio":0.95},{"fecha":"2024-04-19","anio":2024,"mes":4,"precio":0.81},{"fecha":"2024-04-26","anio":2024,"mes":4,"precio":0.7},{"fecha":"2024-05-03","anio":2024,"mes":5,"precio":0.72},{"fecha":"2024-05-10","anio":2024,"mes":5,"precio":0.65},{"fecha":"2024-05-17","anio":2024,"mes":5,"precio":0.6},{"fecha":"2024-05-24","anio":2024,"mes":5,"precio":0.65},{"fecha":"2024-05-31","anio":2024,"mes":5,"precio":0.51},{"fecha":"2024-06-07","anio":2024,"mes":6,"precio":0.78},{"fecha":"2024-06-13","anio":2024,"mes":6,"precio":1.02},{"fecha":"2024-06-21","anio":2024,"mes":6,"precio":1.27},{"fecha":"2024-06-28","anio":2024,"mes":6,"precio":1.28},{"fecha":"2024-07-05","anio":2024,"mes":7,"precio":1.24},{"fecha":"2024-07-12","anio":2024,"mes":7,"precio":1.24},{"fecha":"2024-07-19","anio":2024,"mes":7,"precio":1.29},{"fecha":"2024-07-26","anio":2024,"mes":7,"precio":1.36},{"fecha":"2024-08-02","anio":2024,"mes":8,"precio":1.66},{"fecha":"2024-08-09","anio":2024,"mes":8,"precio":2.18},{"fecha":"2024-08-16","anio":2024,"mes":8,"precio":2.33},{"fecha":"2024-08-23","anio":2024,"mes":8,"precio":2.26},{"fecha":"2024-08-30","anio":2024,"mes":8,"precio":2.1},{"fecha":"2024-09-06","anio":2024,"mes":9,"precio":2.08},{"fecha":"2024-09-13","anio":2024,"mes":9,"precio":2.05},{"fecha":"2024-09-20","anio":2024,"mes":9,"precio":2.28},{"fecha":"2024-09-27","anio":2024,"mes":9,"precio":2.38},{"fecha":"2024-10-04","anio":2024,"mes":10,"precio":2.43},{"fecha":"2024-10-10","anio":2024,"mes":10,"precio":2.34},{"fecha":"2024-10-18","anio":2024,"mes":10,"precio":2.4},{"fecha":"2024-10-25","anio":2024,"mes":10,"precio":2.18},{"fecha":"2024-11-08","anio":2024,"mes":11,"precio":1.42},{"fecha":"2024-11-14","anio":2024,"mes":11,"precio":1.2},{"fecha":"2024-11-22","anio":2024,"mes":11,"precio":1.09},{"fecha":"2024-11-29","anio":2024,"mes":11,"precio":1.09},{"fecha":"2024-12-06","anio":2024,"mes":12,"precio":1.22},{"fecha":"2024-12-13","anio":2024,"mes":12,"precio":1.4},{"fecha":"2024-12-19","anio":2024,"mes":12,"precio":1.49},{"fecha":"2024-12-27","anio":2024,"mes":12,"precio":1.41},{"fecha":"2025-01-03","anio":2025,"mes":1,"precio":1.41},{"fecha":"2025-01-10","anio":2025,"mes":1,"precio":1.4},{"fecha":"2025-01-17","anio":2025,"mes":1,"precio":1.35},{"fecha":"2025-01-24","anio":2025,"mes":1,"precio":1.25},{"fecha":"2025-01-31","anio":2025,"mes":1,"precio":0.96},{"fecha":"2025-02-07","anio":2025,"mes":2,"precio":0.78},{"fecha":"2025-02-14","anio":2025,"mes":2,"precio":0.77},{"fecha":"2025-02-21","anio":2025,"mes":2,"precio":0.8},{"fecha":"2025-02-27","anio":2025,"mes":2,"precio":0.84},{"fecha":"2025-03-07","anio":2025,"mes":3,"precio":0.86},{"fecha":"2025-03-14","anio":2025,"mes":3,"precio":1.01},{"fecha":"2025-03-21","anio":2025,"mes":3,"precio":1.08},{"fecha":"2025-03-28","anio":2025,"mes":3,"precio":1.16},{"fecha":"2025-04-03","anio":2025,"mes":4,"precio":1.32},{"fecha":"2025-04-11","anio":2025,"mes":4,"precio":1.27},{"fecha":"2025-04-17","anio":2025,"mes":4,"precio":1.06},{"fecha":"2025-04-25","anio":2025,"mes":4,"precio":0.98},{"fecha":"2025-05-02","anio":2025,"mes":5,"precio":0.93},{"fecha":"2025-05-09","anio":2025,"mes":5,"precio":0.92},{"fecha":"2025-05-16","anio":2025,"mes":5,"precio":0.79},{"fecha":"2025-05-23","anio":2025,"mes":5,"precio":0.69},{"fecha":"2025-05-30","anio":2025,"mes":5,"precio":0.6},{"fecha":"2025-06-06","anio":2025,"mes":6,"precio":0.53},{"fecha":"2025-06-13","anio":2025,"mes":6,"precio":0.56},{"fecha":"2025-06-20","anio":2025,"mes":6,"precio":0.56},{"fecha":"2025-06-27","anio":2025,"mes":6,"precio":0.56},{"fecha":"2025-07-04","anio":2025,"mes":7,"precio":0.65},{"fecha":"2025-07-11","anio":2025,"mes":7,"precio":0.86},{"fecha":"2025-07-18","anio":2025,"mes":7,"precio":1.04},{"fecha":"2025-07-25","anio":2025,"mes":7,"precio":1.16},{"fecha":"2025-07-31","anio":2025,"mes":7,"precio":1.24},{"fecha":"2025-08-08","anio":2025,"mes":8,"precio":1.61},{"fecha":"2025-08-14","anio":2025,"mes":8,"precio":1.8},{"fecha":"2025-08-21","anio":2025,"mes":8,"precio":1.87},{"fecha":"2025-08-28","anio":2025,"mes":8,"precio":1.78},{"fecha":"2025-09-05","anio":2025,"mes":9,"precio":1.75},{"fecha":"2025-09-12","anio":2025,"mes":9,"precio":1.94},{"fecha":"2025-09-18","anio":2025,"mes":9,"precio":2.18},{"fecha":"2025-09-25","anio":2025,"mes":9,"precio":2.39},{"fecha":"2025-10-02","anio":2025,"mes":10,"precio":2.49},{"fecha":"2025-10-10","anio":2025,"mes":10,"precio":2.53},{"fecha":"2025-10-17","anio":2025,"mes":10,"precio":2.39},{"fecha":"2025-10-24","anio":2025,"mes":10,"precio":2.33},{"fecha":"2025-10-31","anio":2025,"mes":10,"precio":2.18},{"fecha":"2025-11-07","anio":2025,"mes":11,"precio":2.17},{"fecha":"2025-11-14","anio":2025,"mes":11,"precio":1.82},{"fecha":"2025-11-21","anio":2025,"mes":11,"precio":2.01},{"fecha":"2025-11-28","anio":2025,"mes":11,"precio":1.96},{"fecha":"2025-12-05","anio":2025,"mes":12,"precio":2.09},{"fecha":"2025-12-12","anio":2025,"mes":12,"precio":1.97},{"fecha":"2025-12-19","anio":2025,"mes":12,"precio":1.9},{"fecha":"2025-12-26","anio":2025,"mes":12,"precio":1.9},{"fecha":"2026-01-02","anio":2026,"mes":1,"precio":1.9},{"fecha":"2026-01-09","anio":2026,"mes":1,"precio":1.26},{"fecha":"2026-01-16","anio":2026,"mes":1,"precio":1.17},{"fecha":"2026-01-23","anio":2026,"mes":1,"precio":0.84},{"fecha":"2026-01-30","anio":2026,"mes":1,"precio":0.68},{"fecha":"2026-02-06","anio":2026,"mes":2,"precio":0.75},{"fecha":"2026-02-13","anio":2026,"mes":2,"precio":0.89},{"fecha":"2026-02-20","anio":2026,"mes":2,"precio":1.06},{"fecha":"2026-02-27","anio":2026,"mes":2,"precio":1.14},{"fecha":"2026-03-06","anio":2026,"mes":3,"precio":1.29},{"fecha":"2026-03-13","anio":2026,"mes":3,"precio":1.65},{"fecha":"2026-03-20","anio":2026,"mes":3,"precio":1.92},{"fecha":"2026-03-27","anio":2026,"mes":3,"precio":1.89},{"fecha":"2026-04-02","anio":2026,"mes":4,"precio":1.41},{"fecha":"2026-04-10","anio":2026,"mes":4,"precio":1.12},{"fecha":"2026-04-17","anio":2026,"mes":4,"precio":0.98},{"fecha":"2026-04-24","anio":2026,"mes":4,"precio":0.72},{"fecha":"2026-04-30","anio":2026,"mes":4,"precio":0.69},{"fecha":"2026-05-08","anio":2026,"mes":5,"precio":0.64}],"almar":{"variedad":"Nanica/Cavendish","kg_caja_neto":22,"kg_caja_bruto":26,"servicios_caja":16,"nota_servicios":"R$/caja adicional sobre el precio Cepea del cacho: envalado, paletizado y flete interno hasta acopio.","total_cargas":253.0,"n_productores":16,"semanas":[{"fecha":"2026-01-03","cargas":8.0,"precio_avg_caja":49.25,"precio_avg_kg":2.239},{"fecha":"2026-01-10","cargas":18.0,"precio_avg_caja":40.17,"precio_avg_kg":1.826},{"fecha":"2026-01-17","cargas":17.0,"precio_avg_caja":32.0,"precio_avg_kg":1.455},{"fecha":"2026-01-24","cargas":16.0,"precio_avg_caja":30.12,"precio_avg_kg":1.369},{"fecha":"2026-01-31","cargas":7.0,"precio_avg_caja":28.57,"precio_avg_kg":1.299},{"fecha":"2026-02-07","cargas":13.0,"precio_avg_caja":29.46,"precio_avg_kg":1.339},{"fecha":"2026-02-14","cargas":12.0,"precio_avg_caja":34.58,"precio_avg_kg":1.572},{"fecha":"2026-02-21","cargas":12.0,"precio_avg_caja":39.08,"precio_avg_kg":1.777},{"fecha":"2026-02-28","cargas":13.0,"precio_avg_caja":41.58,"precio_avg_kg":1.89},{"fecha":"2026-03-07","cargas":16.0,"precio_avg_caja":45.62,"precio_avg_kg":2.074},{"fecha":"2026-03-14","cargas":15.0,"precio_avg_caja":54.2,"precio_avg_kg":2.464},{"fecha":"2026-03-21","cargas":19.0,"precio_avg_caja":58.37,"precio_avg_kg":2.653},{"fecha":"2026-03-28","cargas":19.0,"precio_avg_caja":53.32,"precio_avg_kg":2.423},{"fecha":"2026-04-04","cargas":5.0,"precio_avg_caja":45.8,"precio_avg_kg":2.082},{"fecha":"2026-04-11","cargas":20.0,"precio_avg_caja":37.52,"precio_avg_kg":1.706},{"fecha":"2026-04-18","cargas":16.0,"precio_avg_caja":35.25,"precio_avg_kg":1.602},{"fecha":"2026-04-25","cargas":15.0,"precio_avg_caja":31.6,"precio_avg_kg":1.436},{"fecha":"2026-05-02","cargas":12.0,"precio_avg_caja":53.75,"precio_avg_kg":2.443}],"productores":[{"productor":"Cassio","cargas":67.5,"precio_avg_caja":39.35,"precio_avg_kg":1.789,"precio_min":28.0,"precio_max":57.0,"n_operaciones":68},{"productor":"Valdemar","cargas":34.0,"precio_avg_caja":45.03,"precio_avg_kg":2.047,"precio_min":30.0,"precio_max":56.0,"n_operaciones":34},{"productor":"Fisher","cargas":32.0,"precio_avg_caja":34.84,"precio_avg_kg":1.584,"precio_min":28.0,"precio_max":52.0,"n_operaciones":33},{"productor":"Jony","cargas":26.0,"precio_avg_caja":40.58,"precio_avg_kg":1.844,"precio_min":28.0,"precio_max":56.0,"n_operaciones":26},{"productor":"Gilson","cargas":25.5,"precio_avg_caja":41.29,"precio_avg_kg":1.877,"precio_min":30.0,"precio_max":56.0,"n_operaciones":26},{"productor":"Agrocurupa","cargas":18.0,"precio_avg_caja":53.83,"precio_avg_kg":2.447,"precio_min":29.0,"precio_max":299.0,"n_operaciones":18},{"productor":"Curuca","cargas":17.0,"precio_avg_caja":45.12,"precio_avg_kg":2.051,"precio_min":30.0,"precio_max":67.0,"n_operaciones":17},{"productor":"Ivo zimer","cargas":6.0,"precio_avg_caja":39.33,"precio_avg_kg":1.788,"precio_min":33.0,"precio_max":56.0,"n_operaciones":6},{"productor":"Sergio","cargas":6.0,"precio_avg_caja":41.83,"precio_avg_kg":1.902,"precio_min":30.0,"precio_max":63.0,"n_operaciones":6},{"productor":"Marconi","cargas":5.0,"precio_avg_caja":48.4,"precio_avg_kg":2.2,"precio_min":34.0,"precio_max":67.0,"n_operaciones":5},{"productor":"Marangoni","cargas":4.0,"precio_avg_caja":40.0,"precio_avg_kg":1.818,"precio_min":33.0,"precio_max":56.0,"n_operaciones":4},{"productor":"Furlani","cargas":3.0,"precio_avg_caja":34.67,"precio_avg_kg":1.576,"precio_min":31.0,"precio_max":39.0,"n_operaciones":3},{"productor":"Joao vinter","cargas":3.0,"precio_avg_caja":37.67,"precio_avg_kg":1.712,"precio_min":37.0,"precio_max":39.0,"n_operaciones":3},{"productor":"Waguiner","cargas":3.0,"precio_avg_caja":34.67,"precio_avg_kg":1.576,"precio_min":33.0,"precio_max":37.0,"n_operaciones":3},{"productor":"Stein","cargas":2.0,"precio_avg_caja":38.0,"precio_avg_kg":1.727,"precio_min":30.0,"precio_max":46.0,"n_operaciones":2},{"productor":"Winter","cargas":1.0,"precio_avg_caja":46.0,"precio_avg_kg":2.091,"precio_min":46.0,"precio_max":46.0,"n_operaciones":1}]}}/*__END__*/;
+</script>
+<!-- CEPEA-DATA-END -->
+
+<script>
+(function(){
+  const data = window.CEPEA_DATA;
+  if (!data || !data.serie || data.serie.length === 0) {
+    console.warn('CEPEA: sin datos cargados');
+    return;
+  }
+
+  const TC_USD = 5.20;          // BRL/USD - ajustar si cambia
+  const KG_CAJA = 26;            // kg por caja Almar
+  const MESES = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const MESES_FULL = ['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  const serie = data.serie.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const ultimo = serie[serie.length-1];
+  const prev = serie[serie.length-2];
+  const trend3 = serie[serie.length-4];
+
+  // Métricas
+  const deltaSem = ((ultimo.precio - prev.precio) / prev.precio) * 100;
+  const trend3pct = trend3 ? ((ultimo.precio - trend3.precio) / trend3.precio) * 100 : 0;
+  const tendencia = trend3pct > 4 ? 'subiendo' : trend3pct < -4 ? 'bajando' : 'estable';
+
+  const promHist = serie.reduce((s,x)=>s+x.precio,0) / serie.length;
+  const vsHist = ((ultimo.precio - promHist) / promHist) * 100;
+
+  const mesActual = parseInt(ultimo.fecha.substring(5,7),10);
+  const promMes = data.promedio_mensual[String(mesActual)];
+  const vsMes = ((ultimo.precio - promMes) / promMes) * 100;
+
+  // Zona basada en promedio del mes actual
+  let zonaCod, zonaTxt, zonaBorder;
+  if (promMes <= 1.10)      { zonaCod = 'BAJA';  zonaTxt = '🟢 BAJA';  zonaBorder = '#2f855a'; }
+  else if (promMes <= 1.60) { zonaCod = 'MEDIA'; zonaTxt = '🟡 MEDIA'; zonaBorder = '#d69e2e'; }
+  else                      { zonaCod = 'ALTA';  zonaTxt = '🔴 ALTA';  zonaBorder = '#c53030'; }
+
+  // Conversion a caja Almar
+  const brlCaja = ultimo.precio * KG_CAJA;
+  const usdCaja = brlCaja / TC_USD;
+
+  // Formateo dd/mm/yyyy
+  function fmtFecha(s) {
+    return s.substring(8,10)+'/'+s.substring(5,7)+'/'+s.substring(0,4);
+  }
+  function fmt(n,d){ return n.toFixed(d||2).replace('.', ','); }
+  function sign(n,d){ return (n>=0?'+':'')+fmt(n,d||1)+'%'; }
+
+  // ============ KPIs ============
+  document.getElementById('cepea-price').textContent = 'R$ '+fmt(ultimo.precio)+'/kg';
+  document.getElementById('cepea-price-sub').innerHTML =
+    'Semana <strong>'+fmtFecha(ultimo.fecha)+'</strong> · ≈ R$ '+fmt(brlCaja)+'/caja '+KG_CAJA+'kg · USD '+fmt(usdCaja);
+
+  const wkEl = document.getElementById('cepea-week');
+  wkEl.textContent = sign(deltaSem);
+  wkEl.style.color = deltaSem < -2 ? '#2f855a' : deltaSem > 2 ? '#c53030' : '#1e3a5f';
+  document.getElementById('cepea-kpi-week').style.borderLeftColor = wkEl.style.color;
+  document.getElementById('cepea-week-sub').textContent =
+    'vs R$ '+fmt(prev.precio)+'/kg ('+fmtFecha(prev.fecha)+')';
+
+  const vsEl = document.getElementById('cepea-vs');
+  vsEl.textContent = sign(vsHist);
+  vsEl.style.color = vsHist < -10 ? '#2f855a' : vsHist > 10 ? '#c53030' : '#1e3a5f';
+  document.getElementById('cepea-kpi-vs').style.borderLeftColor = vsEl.style.color;
+  document.getElementById('cepea-vs-sub').innerHTML =
+    'Promedio 4 años: R$ '+fmt(promHist)+'/kg · ('+serie.length+' semanas)';
+
+  const zoneEl = document.getElementById('cepea-zone');
+  zoneEl.textContent = zonaTxt;
+  zoneEl.style.color = zonaBorder;
+  document.getElementById('cepea-kpi-zone').style.borderLeftColor = zonaBorder;
+  document.getElementById('cepea-zone-sub').innerHTML =
+    'Promedio '+MESES_FULL[mesActual]+' (4 años): R$ '+fmt(promMes)+'/kg';
+
+  // ============ RECOMENDACION ============
+  const matrix = {
+    'BAJA-bajando':   { txt: '🟢 <strong>Comprá agresivo.</strong> Estás en zona BAJA estacional y el precio sigue cayendo. Es el mejor momento del año — cerrá contratos largos con productores ahora.', color:'#2f855a' },
+    'BAJA-estable':   { txt: '🟢 <strong>Comprá fuerte.</strong> Zona BAJA estacional, precio estable. Buena ventana para cargar inventario y cerrar volúmenes.', color:'#2f855a' },
+    'BAJA-subiendo':  { txt: '🟡 <strong>Comprá ya lo pendiente.</strong> Zona BAJA pero el precio empezó a subir. Cerrá lo que tengas en negociación antes que la ventana se cierre.', color:'#d69e2e' },
+    'MEDIA-bajando':  { txt: '🟢 <strong>Esperá 1-2 semanas y compra.</strong> Zona MEDIA pero bajando. Probablemente entres a zona BAJA pronto — paciencia rinde.', color:'#2f855a' },
+    'MEDIA-estable':  { txt: '🟡 <strong>Compras normales.</strong> Precio en zona MEDIA estable. Sin urgencia ni gangas. Operá por demanda.', color:'#d69e2e' },
+    'MEDIA-subiendo': { txt: '🔴 <strong>Cerrá rápido.</strong> Zona MEDIA y subiendo. Vas camino a zona ALTA — no esperes más, fijá precios ya.', color:'#c53030' },
+    'ALTA-bajando':   { txt: '🟡 <strong>Reducí compras spot.</strong> Zona ALTA pero bajando. Si podés esperar 2-3 semanas, vas a comprar más barato.', color:'#d69e2e' },
+    'ALTA-estable':   { txt: '🔴 <strong>Compras mínimas.</strong> Zona ALTA estable. Solo cubrir lo esencial. Aprovechá contratos previos.', color:'#c53030' },
+    'ALTA-subiendo':  { txt: '🔴 <strong>Stop compras spot.</strong> Zona ALTA y subiendo. Activá contratos previos / vendé inventario si tenés.', color:'#c53030' }
+  };
+  const recoKey = zonaCod+'-'+tendencia;
+  const reco = matrix[recoKey] || matrix['MEDIA-estable'];
+  document.getElementById('cepea-reco-card').style.borderLeftColor = reco.color;
+
+  const detalle = '<br><br><span style="font-size:13px;color:#4a5568;">Detalle: precio actual <strong>R$ '+fmt(ultimo.precio)+'/kg</strong> está '+
+    '<strong style="color:'+(vsMes<0?'#2f855a':'#c53030')+';">'+sign(vsMes)+'</strong> vs promedio de '+MESES_FULL[mesActual]+' (R$ '+fmt(promMes)+'/kg) y '+
+    '<strong style="color:'+(vsHist<0?'#2f855a':'#c53030')+';">'+sign(vsHist)+'</strong> vs promedio histórico 4 años (R$ '+fmt(promHist)+'/kg).<br>'+
+    'Tendencia 3 semanas: '+sign(trend3pct)+' → <strong>'+tendencia+'</strong>.</span>';
+  document.getElementById('cepea-reco').innerHTML = reco.txt + detalle;
+
+  // ============ GRAFICO ============
+  function dayOfYear(dateStr) {
+    const parts = dateStr.split('-');
+    const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    const start = new Date(d.getFullYear(), 0, 0);
+    return Math.floor((d - start) / 86400000);
+  }
+  const byYear = {};
+  serie.forEach(p => {
+    if (!byYear[p.anio]) byYear[p.anio] = [];
+    byYear[p.anio].push({ x: dayOfYear(p.fecha), y: p.precio });
+  });
+  // Reference line: promedio mensual repartido en el dia 15 de cada mes
+  const refLine = [];
+  for (let m=1; m<=12; m++) {
+    if (data.promedio_mensual[String(m)] !== undefined) {
+      const refDay = dayOfYear(`2024-${String(m).padStart(2,'0')}-15`);
+      refLine.push({ x: refDay, y: data.promedio_mensual[String(m)] });
+    }
+  }
+
+  const colors = {
+    2023: 'rgba(160,174,192,0.5)',
+    2024: 'rgba(66,153,225,0.7)',
+    2025: 'rgba(214,158,46,0.8)',
+    2026: '#c53030'
+  };
+
+  const datasets = [];
+  [2024, 2025, 2026].forEach(y => {
+    if (byYear[y]) {
+      datasets.push({
+        label: y,
+        data: byYear[y].sort((a,b)=>a.x-b.x),
+        borderColor: colors[y],
+        backgroundColor: 'rgba(0,0,0,0)',
+        borderWidth: y === 2026 ? 3.5 : 1.8,
+        tension: 0.25,
+        pointRadius: y === 2026 ? 4 : 2,
+        pointHoverRadius: 6
+      });
+    }
+  });
+  datasets.push({
+    label: 'Promedio 4 años',
+    data: refLine,
+    borderColor: '#2f855a',
+    borderDash: [6,4],
+    borderWidth: 2,
+    pointRadius: 0,
+    tension: 0.4,
+    fill: false
+  });
+
+  const monthTicks = [1,32,60,91,121,152,182,213,244,274,305,335];
+  const ctx = document.getElementById('cepeaChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: { datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            title: function(items) {
+              if (!items.length) return '';
+              const dy = items[0].parsed.x;
+              const year = items[0].dataset.label;
+              const d = new Date(2024, 0, dy);
+              return year + ' · ' + d.toLocaleDateString('es-UY', { day: '2-digit', month: 'short' });
+            },
+            label: function(item) {
+              return 'R$ ' + fmt(item.parsed.y) + '/kg';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          min: 1,
+          max: 366,
+          ticks: {
+            callback: function(v) {
+              const idx = monthTicks.indexOf(v);
+              return idx >= 0 ? MESES[idx+1] : '';
+            },
+            stepSize: 1,
+            autoSkip: false,
+            maxRotation: 0
+          },
+          grid: {
+            color: function(ctx) {
+              return monthTicks.indexOf(ctx.tick.value) >= 0 ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0)';
+            }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'R$/kg' }
+        }
+      }
+    }
+  });
+})();
+</script>
+
+<script>
+// ============ ALMAR vs CEPEA ============
+(function(){
+  const data = window.CEPEA_DATA;
+  if (!data || !data.almar || !data.almar.semanas || data.almar.semanas.length === 0) {
+    console.warn('Almar: sin datos de compras');
+    return;
+  }
+
+  const cepeaSerie = data.serie.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const almar = data.almar;
+  const semanasAlmar = almar.semanas.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const productores = almar.productores;
+  const KG = almar.kg_caja_neto || 22;
+  const SERVICIOS = almar.servicios_caja || 16;  // R$/caja extra (envalado + paletizado + flete interno)
+  const SERV_KG = SERVICIOS / KG;                // ~R$ 0,73/kg equivalente
+
+  // Cepea cacho + servicios = lo que costaría una caja completa al precio Cepea
+  function cepeaFullKg(precioKg) { return precioKg + SERV_KG; }
+
+  function fmt(n,d){ return n.toFixed(d!==undefined?d:2).replace('.', ','); }
+  function sign(n,d){ return (n>=0?'+':'')+fmt(n,d||1)+'%'; }
+  function fmtFecha(s) { return s.substring(8,10)+'/'+s.substring(5,7)+'/'+s.substring(0,4); }
+
+  // Helper: encontrar Cepea price para fecha (closest dentro de 5 dias)
+  function cepeaForDate(fecha) {
+    let best = null; let bestDiff = Infinity;
+    const target = new Date(fecha+'T12:00:00').getTime();
+    for (const c of cepeaSerie) {
+      const t = new Date(c.fecha+'T12:00:00').getTime();
+      const d = Math.abs(t - target);
+      if (d < bestDiff) { bestDiff = d; best = c; }
+    }
+    return (bestDiff <= 6*86400000) ? best : null;
+  }
+
+  // ---- Promedio Cepea YTD 2026 (raw del cacho)
+  const cepeaYTD2026 = cepeaSerie.filter(c => c.anio === 2026);
+  const cepeaYTDAvgCacho = cepeaYTD2026.length > 0
+    ? cepeaYTD2026.reduce((s,x)=>s+x.precio,0)/cepeaYTD2026.length
+    : null;
+  // Cepea YTD comparable a Almar (cacho + servicios)
+  const cepeaYTDAvg = cepeaYTDAvgCacho !== null ? cepeaFullKg(cepeaYTDAvgCacho) : null;
+
+  // ---- Métricas para KPIs
+  const totalCargas = almar.total_cargas;
+  const ultimaSemana = semanasAlmar[semanasAlmar.length-1];
+
+  // 4 últimas semanas
+  const ult4 = semanasAlmar.slice(-4);
+  const sumCargasUlt4 = ult4.reduce((s,w)=>s+w.cargas,0);
+  const sumValorUlt4 = ult4.reduce((s,w)=>s+w.precio_avg_caja*w.cargas,0);
+  const almarAvg4Caja = sumCargasUlt4 > 0 ? sumValorUlt4/sumCargasUlt4 : 0;
+  const almarAvg4Kg = almarAvg4Caja / KG;
+
+  // Cepea promedio mismas 4 semanas (cacho + servicios para comparar)
+  let cepeaSumKgCacho = 0, cepeaCnt = 0;
+  ult4.forEach(w => {
+    const c = cepeaForDate(w.fecha);
+    if (c) { cepeaSumKgCacho += c.precio; cepeaCnt++; }
+  });
+  const cepeaAvg4Cacho = cepeaCnt > 0 ? cepeaSumKgCacho/cepeaCnt : null;
+  const cepeaAvg4Kg = cepeaAvg4Cacho !== null ? cepeaFullKg(cepeaAvg4Cacho) : null;
+  const cepeaAvg4Caja = cepeaAvg4Cacho !== null ? cepeaAvg4Cacho * KG + SERVICIOS : null;
+
+  const spreadKg = cepeaAvg4Kg !== null ? almarAvg4Kg - cepeaAvg4Kg : null;
+  const spreadPct = cepeaAvg4Kg !== null && cepeaAvg4Kg > 0
+    ? ((almarAvg4Kg - cepeaAvg4Kg)/cepeaAvg4Kg)*100
+    : null;
+
+  // ============ KPIs render ============
+  document.getElementById('almar-cargas-value').textContent = fmt(totalCargas, 1) + ' cargas';
+  document.getElementById('almar-cargas-sub').innerHTML =
+    productores.length + ' productores activos · ' +
+    (semanasAlmar.length) + ' semanas operadas';
+
+  document.getElementById('almar-precio-value').textContent = 'R$ ' + fmt(almarAvg4Caja) + '/caja';
+  document.getElementById('almar-precio-sub').innerHTML =
+    '≈ R$ ' + fmt(almarAvg4Kg) + '/kg · USD ' + fmt(almarAvg4Caja/5.20) + '/caja';
+
+  if (cepeaAvg4Kg !== null) {
+    const sEl = document.getElementById('almar-spread-value');
+    const spreadCaja = almarAvg4Caja - cepeaAvg4Caja;
+    sEl.textContent = (spreadCaja>=0?'+':'') + 'R$ ' + fmt(spreadCaja) + '/caja';
+    sEl.style.color = spreadCaja > 2 ? '#c53030' : (spreadCaja < -1 ? '#2f855a' : '#1e3a5f');
+    document.getElementById('almar-kpi-spread').style.borderLeftColor = sEl.style.color;
+    document.getElementById('almar-spread-sub').innerHTML =
+      'Cepea + servicios: R$ ' + fmt(cepeaAvg4Caja) + '/caja · ' + sign(spreadPct) + ' vs referencia';
+  } else {
+    document.getElementById('almar-spread-value').textContent = '—';
+    document.getElementById('almar-spread-sub').textContent = 'Sin match con Cepea';
+  }
+
+  if (ultimaSemana) {
+    document.getElementById('almar-ultima-value').textContent =
+      ultimaSemana.cargas + ' cargas · R$ ' + fmt(ultimaSemana.precio_avg_caja) + '/caja';
+    document.getElementById('almar-ultima-sub').textContent =
+      'Semana ' + fmtFecha(ultimaSemana.fecha) + ' · ≈ R$ ' + fmt(ultimaSemana.precio_avg_kg) + '/kg';
+  }
+
+  // ============ Productores table ============
+  const tbody = document.getElementById('almar-productores-tbody');
+  const totalCargas2 = productores.reduce((s,p)=>s+p.cargas,0);
+  productores.forEach((p, i) => {
+    const vol = (p.cargas/totalCargas2*100);
+    const vsRef = cepeaYTDAvg ? ((p.precio_avg_kg - cepeaYTDAvg)/cepeaYTDAvg*100) : null;
+    const vsColor = vsRef === null ? '#4a5568' : (vsRef > 50 ? '#c53030' : vsRef > 20 ? '#d69e2e' : '#2f855a');
+    const vsTxt = vsRef === null ? '—' : sign(vsRef);
+    const isFav = i < 3;
+    tbody.insertAdjacentHTML('beforeend', `<tr style="border-bottom:1px solid #e2e8f0;${isFav?'background:#f0fff4;':''}">
+      <td style="padding:7px 8px;font-weight:600;">${i+1}</td>
+      <td style="padding:7px 8px;font-weight:${isFav?'700':'500'};">${p.productor}</td>
+      <td style="padding:7px 8px;text-align:right;font-weight:600;">${fmt(p.cargas,1)}</td>
+      <td style="padding:7px 8px;text-align:right;color:#4a5568;">${fmt(vol,1)}%</td>
+      <td style="padding:7px 8px;text-align:right;">${fmt(p.precio_avg_caja)}</td>
+      <td style="padding:7px 8px;text-align:right;">${fmt(p.precio_avg_kg)}</td>
+      <td style="padding:7px 8px;text-align:right;color:#718096;font-size:12px;">${fmt(p.precio_min)} - ${fmt(p.precio_max)}</td>
+      <td style="padding:7px 8px;text-align:right;color:${vsColor};font-weight:700;">${vsTxt}</td>
+    </tr>`);
+  });
+
+  // ============ Chart Almar vs Cepea (R$/kg) ============
+  function dayOfYear(dateStr) {
+    const parts = dateStr.split('-');
+    const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    const start = new Date(d.getFullYear(), 0, 0);
+    return Math.floor((d - start) / 86400000);
+  }
+
+  const cepea2026Cacho = cepeaYTD2026.map(c => ({ x: dayOfYear(c.fecha), y: c.precio }));
+  const cepea2026Full = cepeaYTD2026.map(c => ({ x: dayOfYear(c.fecha), y: cepeaFullKg(c.precio) }));
+  const almar2026 = semanasAlmar.map(s => ({ x: dayOfYear(s.fecha), y: s.precio_avg_kg }));
+
+  const monthTicks2 = [1,32,60,91,121,152,182,213,244,274,305,335];
+  const MESES2 = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  new Chart(document.getElementById('almarVsCepeaChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Almar pagado (R$/kg en caja)',
+          data: almar2026.sort((a,b)=>a.x-b.x),
+          borderColor: '#2c5282',
+          backgroundColor: 'rgba(44,82,130,0.10)',
+          borderWidth: 3.5,
+          tension: 0.25,
+          pointRadius: 5,
+          fill: false
+        },
+        {
+          label: 'Cepea + servicios (caja equivalente)',
+          data: cepea2026Full.sort((a,b)=>a.x-b.x),
+          borderColor: '#c53030',
+          backgroundColor: 'rgba(197,48,48,0.08)',
+          borderWidth: 2.5,
+          tension: 0.25,
+          pointRadius: 3,
+          fill: false
+        },
+        {
+          label: 'Cepea solo cacho (al productor)',
+          data: cepea2026Cacho.sort((a,b)=>a.x-b.x),
+          borderColor: '#a0aec0',
+          borderDash: [6,4],
+          borderWidth: 1.8,
+          tension: 0.25,
+          pointRadius: 2,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        tooltip: {
+          callbacks: {
+            title: function(items) {
+              if (!items.length) return '';
+              const dy = items[0].parsed.x;
+              const d = new Date(2026, 0, dy);
+              return d.toLocaleDateString('es-UY', { day: '2-digit', month: 'short' });
+            },
+            label: function(item) {
+              return item.dataset.label + ': R$ ' + fmt(item.parsed.y) + '/kg';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          min: 1,
+          max: 366,
+          ticks: {
+            callback: function(v) {
+              const idx = monthTicks2.indexOf(v);
+              return idx >= 0 ? MESES2[idx+1] : '';
+            },
+            stepSize: 1,
+            autoSkip: false,
+            maxRotation: 0
+          },
+          grid: {
+            color: function(ctx) {
+              return monthTicks2.indexOf(ctx.tick.value) >= 0 ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0)';
+            }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'R$/kg (al productor)' }
+        }
+      }
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
