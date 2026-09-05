@@ -1,0 +1,23 @@
+# Secretos y datos personales: NUNCA al repo (es publico). Sacados del indice el
+# 04/09/2026; el token que estaba en el commit 313d989 se da por quemado.
+# (gitignore no admite comentarios al final de la linea: van arriba de cada patron)
+# token Whapi + telefonos destino:
+config/whatsapp.json
+# la salida del pipeline lista los telefonos destino:
+last_run.log
+
+# Respaldos y zips: no van al repo (el de 16 MB se saco del indice el 04/09/2026)
+*.zip
+*.bak
+*.pre-splice.bak
+
+# Pendiente (ver MIGRACION_SERVIDOR.md, seccion 13): cuando se decida sacar del
+# repo el estado del servidor, agregar aca y hacer `git rm --cached` de:
+#   fuentes/state_alertas.json
+#   fuentes/state_whatsapp.json
+#   fuentes/precios_py_cache.json
+#   fuentes/indexmundi_cache.json
+#   fuentes/clima_archive_cache/
+#   alertas.log
+# correr_servidor.ps1 ya los preserva en el servidor aunque el pull los borre,
+# asi que ese paso es seguro de hacer cuando quieras.

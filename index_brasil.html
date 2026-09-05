@@ -1571,7 +1571,26 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
     'ALTA-subiendo':  { txt: '🔴 <strong>Stop compras spot.</strong> Zona ALTA y subiendo. Activá contratos previos / vendé inventario si tenés.', color:'#c53030' }
   };
   const recoKey = zonaCod+'-'+tendencia;
-  const reco = matrix[recoKey] || matrix['MEDIA-estable'];
+  let reco = matrix[recoKey] || matrix['MEDIA-estable'];
+
+  // FIX 04/09/2026 — la matriz sale de zonaCod + tendencia, y zonaCod es
+  // calendario puro (promedio historico del mes, todos los años): nunca mira el
+  // precio de hoy. Mismo error que se corrigio en actualizar_precios.ps1 con
+  // Get-AccionZona: el 04/09 este panel decia "Reducí compras spot. Zona ALTA"
+  // con Cepea en R$ 0,91 = -49% vs el promedio de septiembre. Si calendario y
+  // precio real divergen >= 12% (mismo umbral que $script:ZONA_DIVERGE_PCT en
+  // el .ps1, mantener sincronizados), el titular pasa a ser la lectura cruzada.
+  const ZONA_DIVERGE_PCT = 12;
+  const absVsMes = Math.abs(Math.round(vsMes));
+  const mesNom = MESES_FULL[mesActual];
+  if (zonaCod === 'ALTA' && vsMes <= -ZONA_DIVERGE_PCT) {
+    reco = { txt: '🟢 <strong>Ventana atípica — evaluar compra.</strong> Mes caro por calendario, PERO el precio real está '+absVsMes+'% por debajo del histórico de '+mesNom+'. No reducir compras por calendario.', color:'#2f855a' };
+  } else if (zonaCod === 'BAJA' && vsMes >= ZONA_DIVERGE_PCT) {
+    reco = { txt: '🟠 <strong>Cautela — no comprar fuerte a ciegas.</strong> Mes barato por calendario, PERO el precio real está '+absVsMes+'% por encima del histórico de '+mesNom+'.', color:'#ea580c' };
+  } else if (zonaCod === 'MEDIA' && Math.abs(vsMes) >= ZONA_DIVERGE_PCT) {
+    const sesgo = vsMes < 0 ? 'con sesgo a comprar: precio '+absVsMes+'% bajo' : 'con cautela: precio '+absVsMes+'% sobre';
+    reco = { txt: reco.txt + ' Compras normales, '+sesgo+' el histórico de '+mesNom+'.', color: reco.color };
+  }
   document.getElementById('cepea-reco-card').style.borderLeftColor = reco.color;
 
   const detalle = '<br><br><span style="font-size:13px;color:#4a5568;">Detalle: precio actual <strong>R$ '+fmt(ultimo.precio)+'/kg</strong> está '+

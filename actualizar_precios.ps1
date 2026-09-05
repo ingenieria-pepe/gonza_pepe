@@ -2034,12 +2034,19 @@ function Get-Zone {
 # precio contra ese mismo promedio historico. Si divergen mas de 12%, avisa
 # de la divergencia en lugar de repetir la accion del calendario.
 # --------------------------------------------------------------------------
+# Umbral de divergencia calendario-vs-precio real. Vive afuera de la funcion
+# porque el resumen semanal tambien necesita saber si la zona sola alcanza o
+# si esta mintiendo, y los dos tienen que cortar en el mismo numero.
+$script:ZONA_DIVERGE_PCT = 12.0
+# Precio minimo de sustentacion Ecuador (USD/caja). Lo usan la alerta EC y el resumen.
+$script:EC_PMS_USD_CAJA = 7.50
+
 function Get-AccionZona {
     param(
         [string]$zona,
         [double]$vsHistPct   # % del precio real vs el promedio historico del mes (+ arriba / - abajo)
     )
-    $DIVERGE = 12.0
+    $DIVERGE = $script:ZONA_DIVERGE_PCT
     $abs = [math]::Abs([math]::Round($vsHistPct))
 
     if ($zona -eq "ALTA") {
@@ -2521,7 +2528,7 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
     if ($waConfig.alerts.movimientos_precio -and $script:ecHasNewExport -and $script:ecLastPoint) {
         $ecP = [double]$script:ecLastPoint.usd_box
         $ecD = $script:ecLastPoint.date
-        $ecPmsBox = 7.50
+        $ecPmsBox = $script:EC_PMS_USD_CAJA
         $spread = (($ecP - $ecPmsBox) / $ecPmsBox) * 100
         $sgnEc = if ($spread -ge 0) {"+"} else {""}
         $msgEc = "🍌 *ALMAR · 🇪🇨 Ecuador spot FOB*`n"
@@ -2558,6 +2565,21 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
         } else { $sendResumen = $true }
 
         if ($sendResumen) {
+            # ------------------------------------------------------------------
+            # Resumen semanal - reescrito 04/09/2026.
+            #
+            # Regla: cada linea lleva la FECHA del dato que muestra y ninguna
+            # afirma algo que no salga de un numero calculado mas arriba. Si una
+            # fuente quedo vieja, se nota por su propia fecha (Ecuador estuvo 42
+            # dias sin actualizar y nadie se entero: esta es la proteccion, en vez
+            # del bloque "Salud" que se saco). Las fallas del pipeline ya tienen su
+            # propia alerta ('fallas'), asi que no se repiten aca. Sin footer.
+            # ------------------------------------------------------------------
+            function Get-FechaCorta { param([string]$iso) try { ([DateTime]::Parse($iso)).ToString('dd/MM') } catch { $iso } }
+            function Get-PctTxt { param([double]$v, [int]$dec = 0) $s = if ($v -ge 0) {'+'} else {''}; "$s$($v.ToString('F' + $dec))%" }
+            function Get-SigTxt { param([int]$s) if ($s -gt 0) { "+$s" } else { "$s" } }
+            function Get-DiasTxt { param([int]$n) if ($n -eq 1) { "1 día" } else { "$n días" } }
+
             # Delta semanal para contexto
             $deltaSemPct = $null
             $precioSemAnt = $null
@@ -2565,50 +2587,133 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $precioSemAnt = [double]$nanica[-2].precio
                 $deltaSemPct = (($oppLast - $precioSemAnt) / $precioSemAnt) * 100
             }
-            $zonaEmoji = if ($zonaAct -eq "BAJA") {"🟢"} elseif ($zonaAct -eq "MEDIA") {"🟡"} else {"🔴"}
-            # vs promedio del mes
+            # vs promedio historico del mes (calendario)
             $vsProm = (($oppLast - $oppPM) / $oppPM) * 100
 
             $msg = "🍌 *ALMAR · Resumen semanal $((Get-Date).ToString('dd/MM'))*`n`n"
-            $msg += "*💰 Cepea:* R$ $($oppLast.ToString('F2'))/kg"
-            if ($null -ne $deltaSemPct) {
-                $sgnD = if ($deltaSemPct -ge 0) {"+"} else {""}
-                $msg += " ($sgnD$($deltaSemPct.ToString('F1'))% vs R$ $($precioSemAnt.ToString('F2')) sem ant)"
+
+            # --- Cepea: precio, variacion semanal y de 3 semanas (la que mueve el score)
+            $msg += "*💰 Cepea Nanica 1ª (SC)* — semana $(Get-FechaCorta $nanica[-1].fecha)`n"
+            $msg += "R$ $($oppLast.ToString('F2'))/kg"
+            if ($null -ne $deltaSemPct) { $msg += " · $(Get-PctTxt $deltaSemPct 1) vs sem ant (R$ $($precioSemAnt.ToString('F2')))" }
+            if ($nanica.Count -ge 4) {
+                $p3 = [double]$nanica[-4].precio
+                $msg += " · $(Get-PctTxt $pctChg3w 1) en 3 sem (R$ $($p3.ToString('F2')))"
             }
-            $msg += "`n"
-            $sgnP = if ($vsProm -ge 0) {"+"} else {""}
-            $msg += "*📅 Zona:* $zonaEmoji $zonaAct (prom $nombreMes R$ $($oppPM.ToString('F2')) → $sgnP$($vsProm.ToString('F0'))%)`n"
-            $msg += "*🎯 Score:* $oppScore · $oppLevel`n"
-            if ($spreadAvg -ne 0) {
-                $sgn = if ($spreadAvg -ge 0) {"+"} else {""}
-                $msg += "*💵 Spread Almar:* $sgn$($spreadAvg.ToString('F1'))/caja vs Cepea`n"
+            $msg += "`n`n"
+
+            # --- Calendario vs precio real. La "zona" es el promedio historico del
+            #     mes, no el mercado de hoy: se dice tal cual, sin semaforo rojo.
+            $lado = if ($vsProm -lt 0) { "por debajo" } else { "por encima" }
+            $mesCap = $nombreMes.Substring(0,1).ToUpper() + $nombreMes.Substring(1)
+            $msg += "*📅 Calendario vs precio*`n"
+            $msg += "$mesCap promedia R$ $($oppPM.ToString('F2'))/kg (hist. $($nanica[0].anio)-$($nanica[-1].anio)) → hoy $([math]::Abs([math]::Round($vsProm)))% $lado`n`n"
+
+            # --- Score con su descomposicion, asi se ve POR QUE da lo que da
+            $msg += "*🎯 Score: $oppScore · $oppLevel*`n"
+            $msg += "Cepea $(Get-SigTxt $oppCepeaSig) · calendario $(Get-SigTxt $oppZonaSig) · spread $(Get-SigTxt $oppSpreadSig) · clima $(Get-SigTxt $oppClimaSig)`n`n"
+
+            # --- Clima prox 7 dias por zona, con los mismos umbrales que usan las
+            #     alertas del script (frio <=14, helada <=2, calor >=32, lluvia >=50mm)
+            $climaLineas = @()
+            foreach ($r in $climaData) {
+                $fc = @($r.forecast_7d)
+                if ($fc.Count -eq 0) { continue }
+                $frios  = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 14 })
+                $helada = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 2 })
+                $calor  = @($fc | Where-Object { $null -ne $_.tmax -and [double]$_.tmax -ge 32 })
+                $lluvia = @($fc | Where-Object { $null -ne $_.lluvia -and [double]$_.lluvia -ge 50 })
+                $partes = @()
+                if ($helada.Count -gt 0) { $partes += "❄️ RIESGO HELADA ($(Get-DiasTxt $helada.Count))" }
+                if ($frios.Count -gt 0) {
+                    $piso = $frios | Sort-Object { [double]$_.tmin } | Select-Object -First 1
+                    $partes += "$(Get-DiasTxt $frios.Count) con mín ≤14°C (piso $(([double]$piso.tmin).ToString('F1'))°C el $(Get-FechaCorta $piso.fecha))"
+                }
+                if ($calor.Count -gt 0)  { $partes += "$(Get-DiasTxt $calor.Count) máx ≥32°C" }
+                if ($lluvia.Count -gt 0) { $partes += "$(Get-DiasTxt $lluvia.Count) lluvia ≥50mm" }
+                if ($partes.Count -gt 0) { $climaLineas += "$($r.bandera) $($r.ciudad): $($partes -join ' · ')" }
             }
-            if ($correlData -and $correlData.Count -gt 0 -and $correlData[0].forecast_4w -and $correlData[0].forecast_4w.Count -ge 4) {
+            $msg += "*🌡️ Clima próx 7d*`n"
+            if ($climaLineas.Count -gt 0) { $msg += ($climaLineas -join "`n") + "`n`n" }
+            else { $msg += "sin frío, calor ni lluvia fuerte en las zonas productoras`n`n" }
+
+            # --- Modelo 4 semanas. Se dice de que esta hecho: r² del clima (peso_clim)
+            #     y el resto es el promedio historico del mes destino. Sin eso, un
+            #     "+75%" parece pronostico y es casi todo calendario.
+            if ($correlData -and $correlData.Count -gt 0 -and $correlData[0].forecast_4w -and @($correlData[0].forecast_4w).Count -ge 4) {
+                $f4 = $correlData[0].forecast_4w[-1]
                 $fc4 = ($correlData | ForEach-Object { [double]$_.forecast_4w[-1].precio_pred } | Measure-Object -Average).Average
-                $fcPct2 = (($fc4 - $oppLast) / $oppLast) * 100
-                $sgnF = if ($fcPct2 -ge 0) {"+"} else {""}
-                $msg += "*🔮 Forecast 4 sem:* R$ $($fc4.ToString('F2')) ($sgnF$($fcPct2.ToString('F0'))%)`n"
-            }
-            $climaTotal = 0
-            foreach ($r in $climaData) { if ($r.alertas) { $climaTotal += $r.alertas.Count } }
-            if ($climaTotal -gt 0) {
-                $msg += "*🌤️ Clima:* $climaTotal alerta(s) próx 7d`n"
-            } else {
-                $msg += "*🌤️ Clima:* estable`n"
+                $fcPct = (($fc4 - $oppLast) / $oppLast) * 100
+                $wClim = [math]::Round(100 * [double]$f4.peso_clim)
+                $msg += "*🔮 Modelo 4 sem* (al $(Get-FechaCorta $f4.fecha))`n"
+                $msg += "R$ $($fc4.ToString('F2')) ($(Get-PctTxt $fcPct)) · rango R$ $(([double]$f4.ci_low).ToString('F2'))–$(([double]$f4.ci_high).ToString('F2'))`n"
+                $msg += "_El clima pesa $wClim%; el resto es el histórico del mes destino (R$ $(([double]$f4.baseline_mes).ToString('F2')))._`n`n"
             }
 
-            # Comparativa Paraguay si hay data
+            # --- Paraguay: fecha del dato SIMA, variacion vs medicion anterior y el
+            #     tipo de cambio que se usa (fijo en el script) declarado en el texto.
             if ($null -ne $pyData -and $pyData.precio_caja_pyg -gt 0) {
-                $pyKg = $pyData.kg_caja_aprox
-                if (-not $pyKg) { $pyKg = 24 }
-                $pyUsdKg = ($pyData.precio_caja_pyg / 7500.0) / $pyKg   # TC aprox 7500 PYG/USD
-                $brUsdKg = ($oppLast + 0.73) / 5.2                       # +R$0,73 servicios, TC 5.2
+                $pyKg = if ($pyData.kg_caja_aprox) { [double]$pyData.kg_caja_aprox } else { 24 }
+                $PYG_USD = 7500.0
+                $pyUsdKg = ([double]$pyData.precio_caja_pyg / $PYG_USD) / $pyKg
+                $brUsdKg = ($oppLast + 0.73) / 5.2   # +R$0,73/kg servicios, TC 5,2
                 $diffPct = (($pyUsdKg - $brUsdKg) / $brUsdKg) * 100
-                $sgnPY = if ($diffPct -ge 0) {"+"} else {""}
-                $msg += "*🇵🇾 PY Carape:* PYG $($pyData.precio_caja_pyg.ToString('N0'))/caja (≈USD $($pyUsdKg.ToString('F2'))/kg) · $sgnPY$($diffPct.ToString('F0'))% vs BR`n"
+                $pyFecha = ''; $pyVar = ''
+                if ($pyData.serie -and @($pyData.serie).Count -ge 1) {
+                    $pyOrd = @($pyData.serie | Sort-Object fecha)
+                    $pyFecha = " (SIMA $(Get-FechaCorta $pyOrd[-1].fecha))"
+                    if ($pyOrd.Count -ge 2 -and [double]$pyOrd[-2].precio_caja_pyg -gt 0) {
+                        $pyD = (([double]$pyOrd[-1].precio_caja_pyg - [double]$pyOrd[-2].precio_caja_pyg) / [double]$pyOrd[-2].precio_caja_pyg) * 100
+                        $pyVar = " · $(Get-PctTxt $pyD) vs $(Get-FechaCorta $pyOrd[-2].fecha)"
+                    }
+                }
+                $msg += "*🇵🇾 PY Carape*$pyFecha`n"
+                $msg += "PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))/caja$pyVar · ≈USD $($pyUsdKg.ToString('F2'))/kg a $($PYG_USD.ToString('N0')) PYG/USD · $(Get-PctTxt $diffPct) vs BR`n`n"
+            }
+
+            # --- Ecuador: siempre con la fecha del ultimo punto Tridge (rezago ~2 sem)
+            if ($script:ecLastPoint) {
+                $ecP = [double]$script:ecLastPoint.usd_box
+                $ecSpread = (($ecP - $script:EC_PMS_USD_CAJA) / $script:EC_PMS_USD_CAJA) * 100
+                $msg += "*🇪🇨 Ecuador FOB* (Tridge, dato $(Get-FechaCorta $script:ecLastPoint.date))`n"
+                $msg += "USD $($ecP.ToString('F2'))/caja · $(Get-PctTxt $ecSpread) vs PMS USD $($script:EC_PMS_USD_CAJA.ToString('F2'))`n`n"
+            }
+
+            # --- Almar: ultima semana con cargas en la planilla. Si la planilla no se
+            #     carga, se ve aca (y explica por que el spread da 0).
+            if ($almarSemanas.Count -gt 0) {
+                $alU = $almarSemanas[-1]
+                $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
+                $msg += "*🚚 Almar* — última semana cargada $(Get-FechaCorta $alU.fecha)"
+                if ($semSin -ge 2) { $msg += " (hace $semSin sem, sin cargas nuevas en la planilla)" }
+                $msg += "`n"
+                $msg += "R$ $(([double]$alU.precio_avg_caja).ToString('F2'))/caja prom · $($alU.cargas) cargas"
+                if ($spreadAvg -ne 0) { $msg += " · spread $(if ($spreadAvg -ge 0) {'+'} else {''})R$ $($spreadAvg.ToString('F1'))/caja vs Cepea" }
+                $msg += "`n"
             }
 
             # Recomendación accionable según score + zona
+            #
+            # FIX 04/09/2026 - este bloque tenia dos errores:
+            #
+            #  1) El corte de "compras normales" era -ge 0, pero $oppLevel (y el JS
+            #     de index_brasil.html, que se supone que estan en sync) cortan en
+            #     -ge -1. Un score -1 imprimia "Score: -1 · NORMAL" y en el renglon
+            #     siguiente "Cautela": el mismo mensaje se contradecia solo.
+            #
+            #  2) Decia "precio en zona alta" leyendo solo $zonaAct, que sale del
+            #     promedio historico del mes cruzando TODOS los anios. Eso es
+            #     calendario, no el precio de hoy. El 04/09/2026 mando "precio en
+            #     zona alta" con Cepea en R$ 0,91 = -49% contra ese mismo promedio,
+            #     o sea el consejo justo al reves. Es el mismo error que ya se habia
+            #     arreglado el 02/09 en las alertas de zona con Get-AccionZona; aca
+            #     habia quedado el texto viejo hardcodeado.
+            #
+            # Ahora ninguna rama afirma nada sobre el nivel del precio: eso lo dice
+            # Get-AccionZona, que cruza calendario contra precio real, y solo se
+            # agrega cuando los dos efectivamente divergen (si coinciden, la frase
+            # del score ya alcanza y repetirla solo alarga el mensaje).
+            $zonaDiverge = [math]::Abs($vsProm) -ge $script:ZONA_DIVERGE_PCT
             $msg += "`n*👉 Sugerencia:* "
             if ($oppScore -ge 4) {
                 $msg += "Comprar fuerte — ventana óptima."
@@ -2616,36 +2721,19 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $msg += "Buena ventana de compra. "
                 if ($null -ne $deltaSemPct -and $deltaSemPct -gt 5) { $msg += "Precio recuperando desde mínimo." }
                 elseif ($zonaAct -eq "BAJA") { $msg += "Aprovechar zafra alta." }
-            } elseif ($oppScore -ge 0) {
+            } elseif ($oppScore -ge -1) {
                 $msg += "Compras normales, sin urgencia."
             } elseif ($oppScore -ge -3) {
-                $msg += "Cautela — precio en zona alta. Activar contratos previos."
+                $msg += "Cautela — señales combinadas negativas."
             } else {
                 $msg += "STOP compras spot — momento de descarga."
             }
-            # ---- Salud del sistema (agregado 04/09/2026) ----
-            # Ecuador estuvo 42 dias sin actualizar y nadie se entero. Ahora el
-            # resumen dice siempre en que estado esta el pipeline.
-            $lineasSalud = @()
-            if ($script:fallosPipeline.Count -gt 0) {
-                foreach ($f in $script:fallosPipeline) { $lineasSalud += "⚠️ $($f.paso): $($f.detalle)" }
+            # La rama "Buena ventana" deja un espacio colgado si no entra ninguna
+            # de sus dos sub-condiciones, asi que recortamos siempre.
+            $msg = $msg.TrimEnd()
+            if ($zonaDiverge) {
+                $msg += " " + (Get-AccionZona -zona $zonaAct -vsHistPct $vsProm)
             }
-            $portPath = Join-Path $fuentes "portada.json"
-            if (Test-Path $portPath) {
-                try {
-                    $portJ = Get-Content $portPath -Raw -Encoding UTF8 | ConvertFrom-Json
-                    foreach ($pan in ($portJ.paneles | Where-Object { $_.estado -eq 'atrasada' })) {
-                        $lineasSalud += "⚠️ $($pan.titulo): $([math]::Round($pan.dias,0)) días sin actualizar"
-                    }
-                } catch {}
-            }
-            if ($lineasSalud.Count -gt 0) {
-                $msg += "`n`n*🩺 Salud del sistema*`n" + (($lineasSalud | Select-Object -Unique) -join "`n")
-            } else {
-                $msg += "`n`n*🩺 Salud:* todo al día ✅"
-            }
-
-            $msg += "`n`n_Abrí inicio.html para ver todos los paneles_"
             $alertasFire += @{ tipo='resumen'; msg=$msg }
         }
     }

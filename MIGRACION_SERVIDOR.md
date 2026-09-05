@@ -5,9 +5,12 @@ en la PC-servidor** (la que tiene UPS, BIOS que prende sola, etc.), para que dej
 de la laptop personal.
 
 > **TL;DR / apurado:**
-> 1. Copiá esta carpeta entera al servidor (a donde quieras, p. ej. `C:\poronga`).
+> 1. La carpeta del servidor (`poronga_servidor`) **ya es un clon git**: hacé `git pull`
+>    siguiendo §13.2 (respaldá `config\whatsapp.json` antes, el primer pull lo borra).
 > 2. Abrí PowerShell **como Administrador** y corré `setup_servidor.ps1`.
-> 3. Listo: corre solo **miércoles 12:00 y viernes 19:00**.
+> 3. Listo: corre solo **miércoles 12:00 y viernes 19:00**, haciendo `git pull` antes de cada
+>    corrida — lo que pushees desde la laptop se toma solo. La laptop no corre nada.
+> 4. 🚨 **Rotá el token de Whapi y pasá el repo a privado** (§13.4).
 >
 > Ya **no** hace falta Excel instalado ni auto-login (ver §6 y §12).
 
@@ -24,7 +27,7 @@ de la laptop personal.
 | Tarea programada | `Cepea_ActualizarPrecios_Almar` — Mié 12:00 + Vie 19:00 |
 | Corre como | `DESKTOP-NVE8NNB\User`, **LogonType S4U** (con o sin sesión iniciada) |
 | Lector de `.xlsx` | **ImportExcel 7.8.10** (EPPlus) — sin Excel instalado |
-| WhatsApp | `enabled: true`, 3 números, canal Whapi `DAREDL-9FA6E` (remitente `59892284457`) |
+| WhatsApp | `enabled: true`, 3 números, canal Whapi `DAREDL-9FA6E` (remitente `5989…`, ver `config\whatsapp.json` del servidor) |
 
 Antes de esto el pipeline había quedado mudo desde el **24/07/2026** (última corrida en la
 laptop): esta PC no tiene Excel, así que las fases `[2/6]` y `[3/6]` no podían correr.
@@ -182,7 +185,7 @@ Se verificó **paridad de datos** contra la última corrida con Excel: mismas 29
 ```json
 {
   "enabled": true,
-  "phones": ["59899244062", "554799028111", "59896663167"],
+  "phones": ["5989XXXXXXX", "5547XXXXXXXX", "5989XXXXXXX"],   // los reales están solo en el servidor
   "token": "····",                 // token de Whapi.cloud (sensible, no compartir)
   "min_silence_hours": 6,          // ventana anti-spam por tipo de alerta
   "alerts": { "criticas_compra": true, "movimientos_precio": true,
@@ -192,7 +195,7 @@ Se verificó **paridad de datos** contra la última corrida con Excel: mismas 29
 
 - **Números:** internacional, solo dígitos, **sin `+`**.
 - ⚠️ **Quirk Brasil:** los números de Brasil van **sin el “9” extra** del celular
-  (así está cargado `554799028111`). Si agregás uno nuevo de Brasil y no llega, probá sin el 9.
+  (así está cargado el número de Brasil: `5547` + 8 dígitos, sin el 9). Si agregás uno nuevo de Brasil y no llega, probá sin el 9.
 - **Apagar WhatsApp:** poné `"enabled": false` y el pipeline sigue corriendo sin mandar nada.
 - **Rotar token:** si Whapi lo regenera, reemplazá `token` en este archivo. El número remitente
   está atado al *channel* del token (no hay QR ni reconexión).
@@ -283,6 +286,119 @@ poronga_servidor/
   a los paths de PS 5.1 y AllUsers.
 
 Todo lo demás (lógica de score, alertas, dashboards, fuentes, config, datos) es **idéntico**.
+
+---
+
+## 13. Sincronizar desde GitHub (04/09/2026)
+
+**Objetivo:** el código se edita en la laptop y se pushea a GitHub
+(`ingenieria-pepe/gonza_pepe`); el servidor lo toma solo en la próxima corrida.
+La laptop **no corre nada**: se apaga, no puede tener tareas ni servicios.
+
+### 13.1 Cómo funciona
+La tarea programada ya no ejecuta `actualizar_precios.ps1` directo sino
+**`correr_servidor.ps1`**, que en cada disparo:
+
+1. Si la carpeta es un **clon git** y hay git instalado → descarta **solo** los
+   archivos que el pipeline regenera (`index*.html`, `fuentes/precios_*.json`,
+   `portada/proyeccion/calidad/mercado_uy.json`, el xlsx de Cepea, `last_run.log`)
+   y hace `git pull --ff-only`.
+2. **Nunca toca** `config/whatsapp.json`, `fuentes/state_*.json`, los caches,
+   `alertas.log` ni las planillas de entrada. Si un pull los borrara, los restaura.
+3. Si el pull falla (sin internet, conflicto, sin credenciales) → lo anota en
+   `last_run.log` y **corre igual** con el código que hay. Nunca deja de correr.
+4. Corre el pipeline y guarda la salida en `last_run.log` (la primera línea dice
+   qué pasó con el pull: `[sync] git pull OK: a1b2c3d -> e4f5g6h`).
+
+### 13.2 Activar la sincronización en el servidor (una vez)
+**Verificado el 04/09/2026 desde el servidor:** `C:\Users\User\Desktop\poronga_servidor`
+**ya es un clon git** (el "first commit" del repo salió de esa PC), en `main` siguiendo a
+`origin/main`. **No hay que clonar de nuevo.** Lo único roto era el remote, que tenía un
+placeholder (`https://TU_OTRO_USUARIO@github.com/...`) y bajo S4U habría colgado el pull
+pidiendo usuario; ya quedó en `https://github.com/ingenieria-pepe/gonza_pepe`.
+
+Pasos (PowerShell en el servidor, con el usuario `User`):
+
+```powershell
+cd C:\Users\User\Desktop\poronga_servidor
+git remote -v            # https://github.com/ingenieria-pepe/gonza_pepe  (sin usuario@)
+
+# 1. RESPALDO antes del primer pull. config\whatsapp.json y last_run.log dejaron de
+#    estar trackeados (tenían el token y los teléfonos): un pull que los ve borrados
+#    en GitHub LOS BORRA del árbol local si están limpios. Se respaldan y se restauran.
+$bk = "$env:TEMP\poronga_estado_$(Get-Date -Format yyyyMMdd_HHmmss)"
+New-Item -ItemType Directory $bk -Force | Out-Null
+Copy-Item config\whatsapp.json $bk\ ; Copy-Item fuentes\state_*.json $bk\
+Copy-Item alertas.log $bk\ -ErrorAction SilentlyContinue
+
+# 2. Pull
+git pull --ff-only
+
+# 3. Restaurar lo que el pull haya borrado
+if (-not (Test-Path config\whatsapp.json)) { Copy-Item $bk\whatsapp.json config\ }
+Get-ChildItem $bk\state_*.json | ForEach-Object {
+    if (-not (Test-Path "fuentes\$($_.Name)")) { Copy-Item $_.FullName fuentes\ } }
+
+# 4. Verificar que llegó el wrapper
+Test-Path correr_servidor.ps1     # True. Si es False, falta pushear desde la laptop.
+
+# 5. Re-registrar la tarea apuntando al wrapper (PowerShell COMO ADMINISTRADOR)
+Set-ExecutionPolicy -Scope Process Bypass -Force
+& "C:\Users\User\Desktop\poronga_servidor\setup_servidor.ps1"
+(Get-ScheduledTask 'Cepea_ActualizarPrecios_Almar').Actions[0].Arguments   # ...correr_servidor.ps1
+
+# 6. Probar SIN mandar WhatsApp: poner "enabled": false en config\whatsapp.json, después
+Start-ScheduledTask -TaskName 'Cepea_ActualizarPrecios_Almar'
+Get-Content last_run.log -TotalCount 3    # primera línea: [sync] git pull OK: ...
+
+# 7. Volver a "enabled": true
+```
+
+Desde el paso 5 en adelante, `correr_servidor.ps1` hace ese respaldo/restauración solo
+en cada corrida, así que el paso 1-3 es solo para la primera vez.
+
+**Credenciales.** Hoy el repo es **público**, así que el pull no pide nada. Si se pasa a
+privado (recomendado, §13.4): la tarea corre S4U —sesión sin contraseña, sin DPAPI— y el
+Administrador de credenciales de Windows **no está disponible**. Usar un *fine-grained PAT*
+de solo lectura (Contents: Read) en la URL del remote:
+`git remote set-url origin https://<PAT>@github.com/ingenieria-pepe/gonza_pepe`
+(queda en texto plano en `.git\config` del servidor; es un PAT de solo lectura).
+
+### 13.3 Reglas del flujo
+- **El servidor nunca commitea ni pushea.** El flujo es de una sola dirección:
+  laptop → GitHub → servidor. Los dashboards que genera el servidor se ven
+  abriendo los HTML en el servidor (o compartiendo la carpeta), no en GitHub.
+- **La planilla `fuentes/cargas 2026.xlsx` se edita en un solo lugar.** Si la
+  editás en la laptop y pusheás, el servidor la toma. Si la editás en el servidor,
+  el pull va a fallar cuando GitHub también la cambie (el wrapper avisa y corre igual).
+- **En la laptop no debe quedar ninguna tarea.** El 04/09/2026 se encontró
+  `Cepea_ActualizarPrecios_Almar` apuntando a `Desktop\poronga` (copia de mayo,
+  sin git, código viejo) disparándose en cada logon. Desactivarla requiere
+  PowerShell como Administrador:
+  `Disable-ScheduledTask -TaskName 'Cepea_ActualizarPrecios_Almar'`
+  (mientras tanto, esa copia quedó con `enabled: false` en su `whatsapp.json`).
+
+### 13.4 🚨 Seguridad: el token de Whapi quedó PÚBLICO
+**Verificado el 04/09/2026:** el repo `ingenieria-pepe/gonza_pepe` es **público**, y
+`config/whatsapp.json` con el **token real** (32 caracteres) quedó en el commit
+`313d989`; `raw.githubusercontent.com` lo servía sin login (HTTP 200). También quedaron
+públicos los **teléfonos de las 3 personas** (en ese archivo, en `last_run.log` y en
+esta guía, §0/§7 — ya enmascarados).
+
+Lo que se hizo desde la laptop el 04/09: `config/whatsapp.json` y `last_run.log` salieron
+del índice y están en `.gitignore`; el commit siguiente ya no los tiene. **Eso no borra
+el historial:** el token sigue en `313d989`. Por eso:
+
+1. **Rotar el token en el panel de Whapi, YA.** El viejo se da por quemado. El nuevo va
+   **solo** en el `config\whatsapp.json` del servidor (el archivo ya no se commitea y
+   `correr_servidor.ps1` lo preserva en cada corrida).
+2. **Pasar el repo a privado** (GitHub → Settings → Danger Zone → Change visibility).
+   Además del token, en el repo hay teléfonos personales, planillas de compras y
+   precios pagados por productor.
+3. Opcional, cuando el servidor esté estable: purgar el archivo del historial con
+   `git filter-repo` y `push --force`. Ojo: después de eso el servidor tiene que
+   re-clonar (o `git fetch` + `git reset --hard origin/main`, respaldando el estado).
+   Con el token rotado y el repo privado, esto es limpieza, no urgencia.
 
 ---
 

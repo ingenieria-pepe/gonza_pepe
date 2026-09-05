@@ -122,12 +122,12 @@ if (Test-Path $waPath) {
 # --- 3) Registrar tarea programada ----------------------------------------
 Titulo "[3/4] Registrando tarea programada '$TASK_NAME'"
 try {
-    # -Command (en vez de -File) para poder redirigir stdout+stderr a last_run.log,
-    # que es como se documenta ver la ultima corrida. Con -File no hay redireccion.
-    # Out-File -Encoding utf8 y no '*> archivo': la redireccion nativa de PS 5.1
-    # escribe UTF-16 y el log queda ilegible (bytes nulos entre cada letra).
-    $logRun = Join-Path $base 'last_run.log'
-    $cmd    = "& '{0}' *>&1 | Out-File -FilePath '{1}' -Encoding utf8" -f $scriptMain, $logRun
+    # La tarea corre correr_servidor.ps1 (04/09/2026): si la carpeta es un clon
+    # git hace pull antes de correr el pipeline, asi con pushear a GitHub desde
+    # la laptop alcanza. Ese wrapper es el que escribe last_run.log.
+    $wrapper = Join-Path $base 'correr_servidor.ps1'
+    if (-not (Test-Path $wrapper)) { throw "falta correr_servidor.ps1 al lado de este setup" }
+    $cmd     = "& '{0}'" -f $wrapper
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
         -Argument ("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"{0}`"" -f $cmd) `
         -WorkingDirectory $base
