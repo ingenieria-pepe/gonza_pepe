@@ -108,6 +108,23 @@
   }
   .chart-card h3 { margin: 0 0 16px 0; font-size: 16px; color: #4a5568; }
   .chart-container { position: relative; height: 360px; }
+  /* Gráfico Cepea: texto de apoyo, leyenda inline y tabla */
+  .chart-lead { margin: -6px 0 14px 0; font-size: 13.5px; line-height: 1.65; color: #4a5568; }
+  .chart-lead .key { display: inline-block; width: 20px; height: 0; border-top: 2px solid #4a5568; vertical-align: middle; margin: 0 5px 0 4px; }
+  .chart-lead .key.dash { border-top-style: dashed; }
+  .chart-lead .key.band { height: 10px; border: 0; background: rgba(113,128,150,0.3); border-radius: 2px; }
+  .chart-lead .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #63b3ed; border: 2px solid #2b6cb0; vertical-align: middle; margin: 0 5px 0 4px; }
+  .chart-lead .zona { padding: 0 5px; border-radius: 3px; font-weight: 600; }
+  .chart-lead .zona-baja { background: rgba(47,133,90,0.14); color: #276749; }
+  .chart-lead .zona-media { background: rgba(214,158,46,0.2); color: #975a16; }
+  .chart-lead .zona-alta { background: rgba(197,48,48,0.12); color: #9b2c2c; }
+  .chart-hint { font-size: 12px; color: #718096; margin-top: 10px; }
+  .chart-table { margin-top: 8px; }
+  .chart-table summary { cursor: pointer; font-size: 13px; color: #2c5282; font-weight: 600; }
+  .chart-table table { border-collapse: collapse; font-size: 13px; margin-top: 8px; min-width: 560px; }
+  .chart-table th, .chart-table td { padding: 5px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chart-table th:first-child, .chart-table td:first-child { text-align: left; }
+  .chart-table th { color: #718096; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
 
   .phases {
     display: grid;
@@ -359,9 +376,21 @@
       <div class="sub" id="cepea-zone-sub">—</div>
     </div>
   </div>
-  <div class="chart-card">
-    <h3>Curva semanal 2024 · 2025 · 2026 (R$/kg al productor)</h3>
-    <div class="chart-container"><canvas id="cepeaChart"></canvas></div>
+  <div class="chart-card" id="cepea-chart-card">
+    <h3>Precio semanal al productor: <span id="cepea-lead-anio">2026</span> frente a los años anteriores (R$/kg)</h3>
+    <p class="chart-lead">
+      <span class="key" style="border-top:3px solid #c53030"></span><strong>Línea roja</strong> = este año.
+      <span class="key band"></span><strong>Banda gris</strong> = entre qué precios se movió la misma semana en <span id="cepea-lead-rango">2023–2025</span>.
+      <span class="key dash"></span><strong>Punteada</strong> = promedio de 4 años.
+      El fondo dice si el precio está <span class="zona zona-baja">bajo</span>, <span class="zona zona-media">medio</span> o <span class="zona zona-alta">alto</span>.
+      <span class="dot"></span><strong>Punto celeste</strong> = semana fría (mín. &lt;15 °C): la planta crece menos y el precio suele subir unas semanas después.
+    </p>
+    <div class="chart-container" style="height:400px;"><canvas id="cepeaChart"></canvas></div>
+    <div class="chart-hint">Pasá el mouse (o el dedo) por el gráfico para comparar la misma semana en todos los años · Clic en un año de la leyenda para mostrarlo u ocultarlo (2023 y 2024 arrancan ocultos para no ensuciar la lectura).</div>
+    <details class="chart-table">
+      <summary>Ver en tabla: últimas 8 semanas</summary>
+      <div id="cepea-table"></div>
+    </details>
   </div>
   <div class="chart-card" id="cepea-reco-card" style="border-left:5px solid #2f855a;">
     <h3>🎯 Recomendación automática</h3>
@@ -1600,200 +1629,360 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
   document.getElementById('cepea-reco').innerHTML = reco.txt + detalle;
 
   // ============ GRAFICO ============
+  // Rediseño 05/09/2026 — el gráfico cuenta una sola historia: "¿cómo viene el año
+  // actual frente a los anteriores?". Para que se lea de un vistazo:
+  //   · año actual: línea roja gruesa con puntos; año anterior: línea ámbar fina;
+  //     años más viejos: ocultos por defecto (se prenden con un clic en la leyenda);
+  //   · banda gris = rango mín–máx de los años anteriores; punteada gris = promedio 4 años;
+  //   · fondo verde/ámbar/rojo = precio bajo/medio/alto (mismos cortes que la zona estacional);
+  //   · puntos celestes sobre las líneas = semanas frías (tmin < 15 °C), que frenan la planta;
+  //   · un solo tooltip por semana con todos los años y la diferencia vs promedio;
+  //   · etiquetas al final de cada línea + marca de "última semana" + tabla de apoyo.
+  // Colores validados contra daltonismo (protan/deutan) con el validador de la guía dataviz.
   function dayOfYear(dateStr) {
     const parts = dateStr.split('-');
     const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
     const start = new Date(d.getFullYear(), 0, 0);
     return Math.floor((d - start) / 86400000);
   }
-  const byYear = {};
+  function fechaDesdeDia(dy) {            // día del año -> "12 jun" (referencia bisiesta 2024)
+    const d = new Date(2024, 0, dy);
+    return d.getDate() + ' ' + MESES[d.getMonth()+1].toLowerCase();
+  }
+  function interpEn(pts, x) {             // interpolación lineal sobre puntos ordenados por x
+    if (!pts || !pts.length || x < pts[0].x || x > pts[pts.length-1].x) return null;
+    for (let i = 1; i < pts.length; i++) {
+      if (pts[i].x >= x) {
+        const a = pts[i-1], b = pts[i];
+        return b.x === a.x ? b.y : a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x);
+      }
+    }
+    return pts[pts.length-1].y;
+  }
+  const pct = v => (v >= 0 ? '+' : '-') + Math.abs(Math.round(v)) + '%';
+
+  const anioActual = ultimo.anio;
+  const UMBRAL_BAJA = 1.10, UMBRAL_MEDIA = 1.60;   // mismos cortes que zonaCod (arriba)
+  const COLOR_FRIO = '#63b3ed', COLOR_FRIO_BORDE = '#2b6cb0';
+  // Color por rol según distancia al año actual: 0 = actual (rojo), 1 = anterior (ámbar),
+  // 2 = violeta, 3 = teal, 4+ = gris. Rojo/ámbar se distinguen además por grosor.
+  const COLOR_POR_ROL = ['#c53030', '#b7791f', '#6b46c1', '#0987a0', '#718096'];
+  const FUENTE = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  // Swatch de "semana fría" para la leyenda: un canvas chico se dibuja a tamaño real
+  // (los pointStyle comunes se estiran con pointStyleWidth y el círculo quedaba ovalado).
+  const swatchFrio = document.createElement('canvas');
+  swatchFrio.width = 14; swatchFrio.height = 14;
+  (function(){ const g = swatchFrio.getContext('2d'); if (!g) return; g.beginPath(); g.arc(7, 7, 5, 0, Math.PI * 2); g.fillStyle = COLOR_FRIO; g.fill(); g.lineWidth = 2; g.strokeStyle = COLOR_FRIO_BORDE; g.stroke(); })();
+
+  // ---- Semanas frías por año: tmin promedio Luiz Alves + Guaramirim < 15 °C ----
+  // Primaria: clima.correlacion.regiones[*].serie_semanal (multi-año, NASA POWER cacheado)
+  // Fallback: clima.regiones[*].historico_semanal (solo año actual)
+  const frioPorAnio = {};                 // anio -> [{dy, tmin}]
+  (function construirFrio(){
+    const porFecha = {};
+    const add = (fecha, t) => { if (typeof t === 'number' && fecha) (porFecha[fecha] = porFecha[fecha] || []).push(t); };
+    let multiAnio = false;
+    if (data.clima && data.clima.correlacion && data.clima.correlacion.regiones) {
+      data.clima.correlacion.regiones.forEach(reg => {
+        if (reg.serie_semanal && reg.serie_semanal.length) {
+          multiAnio = true;
+          reg.serie_semanal.forEach(s => add(s.fecha, s.tmin));
+        }
+      });
+    }
+    if (!multiAnio && data.clima && data.clima.regiones) {
+      data.clima.regiones.filter(r => r.bandera === 'BR').forEach(reg => {
+        (reg.historico_semanal || []).forEach(s => add(s.fecha, s.tmin_avg));
+      });
+    }
+    Object.keys(porFecha).forEach(fecha => {
+      const t = porFecha[fecha];
+      const avg = t.reduce((a,b)=>a+b,0) / t.length;
+      if (avg < 15) {
+        const yr = parseInt(fecha.substring(0,4), 10);
+        (frioPorAnio[yr] = frioPorAnio[yr] || []).push({ dy: dayOfYear(fecha), tmin: avg });
+      }
+    });
+  })();
+  function frioDe(anio, dy) {             // semana fría más cercana (±3 días) o null
+    const lista = frioPorAnio[anio];
+    if (!lista) return null;
+    for (const f of lista) if (Math.abs(f.dy - dy) <= 3) return f;
+    return null;
+  }
+
+  // ---- Puntos por año ----
+  const porAnio = {};
   serie.forEach(p => {
-    if (!byYear[p.anio]) byYear[p.anio] = [];
-    byYear[p.anio].push({ x: dayOfYear(p.fecha), y: p.precio });
+    const dy = dayOfYear(p.fecha);
+    const f = frioDe(p.anio, dy);
+    (porAnio[p.anio] = porAnio[p.anio] || []).push({ x: dy, y: p.precio, fecha: p.fecha, frio: !!f, tmin: f ? f.tmin : null });
   });
-  // Reference line: promedio mensual repartido en el dia 15 de cada mes
-  const refLine = [];
-  for (let m=1; m<=12; m++) {
-    if (data.promedio_mensual[String(m)] !== undefined) {
-      const refDay = dayOfYear(`2024-${String(m).padStart(2,'0')}-15`);
-      refLine.push({ x: refDay, y: data.promedio_mensual[String(m)] });
+  const anios = Object.keys(porAnio).map(Number).sort((a,b)=>a-b);
+  anios.forEach(y => porAnio[y].sort((a,b)=>a.x-b.x));
+  const ptsActual = porAnio[anioActual] || [];
+  if (ptsActual.length) ptsActual[ptsActual.length-1].ultimo = true;
+  const aniosHist = anios.filter(y => y < anioActual);
+  const rangoTxt = aniosHist.length >= 2 ? aniosHist[0] + '–' + aniosHist[aniosHist.length-1] : (aniosHist.length ? String(aniosHist[0]) : 'años anteriores');
+
+  // ---- Banda mín–máx de los años anteriores (grilla semanal, interpolando cada año) ----
+  const bandaAlta = [], bandaBaja = [];
+  if (aniosHist.length >= 2) {
+    for (let x = 7; x <= 358; x += 7) {
+      const vals = aniosHist.map(y => interpEn(porAnio[y], x)).filter(v => v !== null);
+      if (vals.length >= 2) {
+        bandaAlta.push({ x: x, y: Math.max.apply(null, vals) });
+        bandaBaja.push({ x: x, y: Math.min.apply(null, vals) });
+      }
     }
   }
 
-  const colors = {
-    2023: 'rgba(160,174,192,0.55)',
-    2024: 'rgba(66,153,225,0.7)',
-    2025: 'rgba(214,158,46,0.8)',
-    2026: '#c53030'
-  };
+  // ---- Promedio 4 años: promedio mensual ubicado el día 15, extendido a los bordes ----
+  const refLine = [];
+  for (let m = 1; m <= 12; m++) {
+    const v = data.promedio_mensual[String(m)];
+    if (v === undefined) continue;
+    if (m === 1) refLine.push({ x: 1, y: v });
+    refLine.push({ x: dayOfYear('2024-' + String(m).padStart(2,'0') + '-15'), y: v });
+    if (m === 12) refLine.push({ x: 366, y: v });
+  }
 
+  // ---- Datasets (order bajo = se dibuja arriba; la leyenda respeta el mismo orden) ----
   const datasets = [];
-  [2023, 2024, 2025, 2026].forEach(y => {
-    if (byYear[y]) {
-      datasets.push({
-        label: y,
-        data: byYear[y].sort((a,b)=>a.x-b.x),
-        borderColor: colors[y],
-        backgroundColor: 'rgba(0,0,0,0)',
-        borderWidth: y === 2026 ? 3.5 : 1.6,
-        tension: 0.25,
-        pointRadius: y === 2026 ? 4 : 1.5,
-        pointHoverRadius: 6
-      });
-    }
+  anios.slice().reverse().forEach(y => {
+    const rol = Math.min(anioActual - y, COLOR_POR_ROL.length - 1);
+    const color = COLOR_POR_ROL[rol];
+    const esActual = (y === anioActual);
+    datasets.push({
+      label: String(y),
+      anio: y,
+      esAnio: true,
+      hidden: rol >= 2,                    // 2023 y 2024 arrancan ocultos (clic en leyenda)
+      order: 1 + rol,
+      data: porAnio[y],
+      borderColor: color,
+      backgroundColor: color,
+      borderWidth: esActual ? 3 : (rol === 1 ? 2 : 1.75),
+      tension: 0.25,
+      pointRadius: function(c) { const r = c.raw; if (!r) return 0; if (r.ultimo) return 6; if (r.frio) return 4.5; return esActual ? 3 : 0; },
+      pointHoverRadius: 7,
+      pointHitRadius: 12,
+      pointBackgroundColor: function(c) { return (c.raw && c.raw.frio) ? COLOR_FRIO : color; },
+      pointBorderColor: function(c) { if (!c.raw) return color; if (c.raw.frio) return COLOR_FRIO_BORDE; if (c.raw.ultimo) return '#ffffff'; return color; },
+      pointBorderWidth: function(c) { return (c.raw && (c.raw.frio || c.raw.ultimo)) ? 2 : 1; }
+    });
   });
   datasets.push({
-    label: 'Promedio 4 años',
-    data: refLine,
-    borderColor: '#2f855a',
-    borderDash: [6,4],
-    borderWidth: 2,
-    pointRadius: 0,
-    tension: 0.4,
-    fill: false
+    label: 'Promedio 4 años', esPromedio: true, order: 8,
+    data: refLine, borderColor: '#4a5568', borderDash: [6,4], borderWidth: 2,
+    pointRadius: 0, pointHitRadius: 0, tension: 0.4, fill: false
   });
-
-  // ===== Construir bandas de frío (tmin < 15°C) cruzando regiones BR =====
-  // Primaria: clima.correlacion.regiones[*].serie_semanal (multi-año, NASA POWER cacheado)
-  // Fallback: clima.regiones[*].historico_semanal (solo año actual, forecast API past_days)
-  // Promedio tmin entre Luiz Alves + Guaramirim por semana.
-  const coldBandsByYear = {};
-  function pushBand(year, fecha, tminAvg) {
-    if (!coldBandsByYear[year]) coldBandsByYear[year] = [];
-    const dy = dayOfYear(fecha);
-    coldBandsByYear[year].push({ start: dy - 3, end: dy + 3, tmin: tminAvg });
+  if (bandaAlta.length) {
+    datasets.push({ label: 'Rango ' + rangoTxt, esBanda: true, order: 9, data: bandaAlta,
+      borderColor: 'rgba(0,0,0,0)', backgroundColor: 'rgba(113,128,150,0.16)', fill: '+1',
+      pointRadius: 0, pointHitRadius: 0, tension: 0.3 });
+    datasets.push({ label: 'Rango ' + rangoTxt + ' (mín)', esBanda: true, esBandaBaja: true, order: 9, data: bandaBaja,
+      borderColor: 'rgba(0,0,0,0)', backgroundColor: 'rgba(0,0,0,0)', fill: false,
+      pointRadius: 0, pointHitRadius: 0, tension: 0.3 });
   }
 
-  let usedMultiYear = false;
-  if (data.clima && data.clima.correlacion && data.clima.correlacion.regiones) {
-    const brMulti = data.clima.correlacion.regiones.filter(r => r.serie_semanal && r.serie_semanal.length > 0);
-    if (brMulti.length > 0) {
-      usedMultiYear = true;
-      const byFecha = {};
-      brMulti.forEach(reg => {
-        reg.serie_semanal.forEach(s => {
-          if (typeof s.tmin === 'number') {
-            if (!byFecha[s.fecha]) byFecha[s.fecha] = [];
-            byFecha[s.fecha].push(s.tmin);
-          }
-        });
+  // ---- Modo de interacción "semana": la semana más cercana en X, un punto por cada año visible ----
+  if (Chart.Interaction && Chart.Interaction.modes && !Chart.Interaction.modes.semana) {
+    Chart.Interaction.modes.semana = function(chart, e) {
+      if (!chart.chartArea || typeof e.x !== 'number') return [];
+      const px = e.x;
+      const tol = (chart.chartArea.right - chart.chartArea.left) / 366 * 3.5;   // ~media semana
+      const metas = chart.getSortedVisibleDatasetMetas().filter(m => chart.data.datasets[m.index].esAnio);
+      let mejor = Infinity;
+      metas.forEach(m => m.data.forEach(el => { const d = Math.abs(el.x - px); if (d < mejor) mejor = d; }));
+      if (mejor > tol * 2) return [];
+      const items = [];
+      metas.forEach(m => {
+        let bi = -1, bd = Infinity;
+        m.data.forEach((el, i) => { const d = Math.abs(el.x - px); if (d < bd) { bd = d; bi = i; } });
+        if (bi >= 0 && bd <= mejor + tol) items.push({ element: m.data[bi], datasetIndex: m.index, index: bi });
       });
-      Object.keys(byFecha).sort().forEach(fecha => {
-        const yr = parseInt(fecha.substring(0,4), 10);
-        const tmins = byFecha[fecha];
-        const tminAvg = tmins.reduce((a,b)=>a+b,0) / tmins.length;
-        if (tminAvg < 15) pushBand(yr, fecha, tminAvg);
-      });
-    }
-  }
-  if (!usedMultiYear && data.clima && data.clima.regiones) {
-    const brRegs = data.clima.regiones.filter(r => r.bandera === 'BR');
-    const byFecha = {};
-    brRegs.forEach(reg => {
-      if (reg.historico_semanal) {
-        reg.historico_semanal.forEach(s => {
-          if (typeof s.tmin_avg === 'number') {
-            if (!byFecha[s.fecha]) byFecha[s.fecha] = [];
-            byFecha[s.fecha].push(s.tmin_avg);
-          }
-        });
-      }
-      if (reg.forecast_7d) {
-        reg.forecast_7d.forEach(d => {
-          if (typeof d.tmin === 'number') {
-            const dt = new Date(d.fecha + 'T12:00:00');
-            const daysToFri = (5 - dt.getDay() + 7) % 7;
-            const friDt = new Date(dt.getTime() + daysToFri * 86400000);
-            const friStr = friDt.toISOString().substring(0,10);
-            if (!byFecha[friStr]) byFecha[friStr] = [];
-            byFecha[friStr].push(d.tmin);
-          }
-        });
-      }
-    });
-    const curYearF = new Date().getFullYear();
-    Object.keys(byFecha).sort().forEach(fecha => {
-      const yr = parseInt(fecha.substring(0,4), 10);
-      if (yr !== curYearF) return;
-      const tmins = byFecha[fecha];
-      const tminAvg = tmins.reduce((a,b)=>a+b,0) / tmins.length;
-      if (tminAvg < 15) pushBand(yr, fecha, tminAvg);
-    });
+      return items;
+    };
   }
 
-  // Opacidades por año — actual más fuerte, anteriores más sutiles
-  const curYr = new Date().getFullYear();
-  const bandOpacity = {};
-  Object.keys(coldBandsByYear).forEach(y => {
-    bandOpacity[y] = (parseInt(y,10) === curYr) ? 0.22 : 0.10;
-  });
-
-  // Plugin para pintar fondo celeste en semanas frías (multi-año si hay data)
-  const coldShadePlugin = {
-    id: 'coldShade',
+  // ---- Plugin: fondo por nivel de precio (bajo / medio / alto) ----
+  const pluginFondoZonas = {
+    id: 'fondoZonas',
     beforeDatasetsDraw(chart) {
-      const totalBands = Object.values(coldBandsByYear).reduce((a, arr) => a + arr.length, 0);
-      if (totalBands === 0) return;
-      const { ctx: c, chartArea, scales } = chart;
+      const c = chart.ctx, a = chart.chartArea, scales = chart.scales;
+      if (!a || !scales.y) return;
+      const yPx = v => Math.max(a.top, Math.min(a.bottom, scales.y.getPixelForValue(v)));
+      const zonas = [
+        { desde: 0,            hasta: UMBRAL_BAJA,  color: 'rgba(47,133,90,0.08)',  txt: 'PRECIO BAJO · menos de R$ ' + fmt(UMBRAL_BAJA) },
+        { desde: UMBRAL_BAJA,  hasta: UMBRAL_MEDIA, color: 'rgba(214,158,46,0.10)', txt: 'PRECIO MEDIO' },
+        { desde: UMBRAL_MEDIA, hasta: scales.y.max, color: 'rgba(197,48,48,0.06)',  txt: 'PRECIO ALTO · más de R$ ' + fmt(UMBRAL_MEDIA) }
+      ];
       c.save();
-      Object.keys(coldBandsByYear).forEach(y => {
-        c.fillStyle = `rgba(120,180,255,${bandOpacity[y]})`;
-        coldBandsByYear[y].forEach(b => {
-          const x1 = scales.x.getPixelForValue(b.start);
-          const x2 = scales.x.getPixelForValue(b.end);
-          c.fillRect(x1, chartArea.top, x2 - x1, chartArea.bottom - chartArea.top);
-        });
+      zonas.forEach(z => {
+        const y1 = yPx(z.hasta), y2 = yPx(z.desde);
+        if (y2 - y1 <= 0) return;
+        c.fillStyle = z.color;
+        c.fillRect(a.left, y1, a.right - a.left, y2 - y1);
+      });
+      // Nombre de cada zona, a la derecha: "alto" arriba de todo (esquina libre), "medio" y "bajo" centradas en su banda
+      c.font = '600 10px ' + FUENTE;
+      c.textBaseline = 'middle'; c.textAlign = 'right';
+      zonas.forEach(z => {
+        const y1 = yPx(z.hasta), y2 = yPx(z.desde);
+        if (y2 - y1 < 18) return;
+        const ty = (z.hasta === scales.y.max) ? y1 + 10 : (y1 + y2) / 2;
+        const w = c.measureText(z.txt).width;
+        c.fillStyle = 'rgba(255,255,255,0.7)';
+        c.fillRect(a.right - 6 - w - 5, ty - 8, w + 10, 16);
+        c.fillStyle = '#718096';
+        c.fillText(z.txt, a.right - 6, ty);
       });
       c.restore();
     }
   };
 
+  // ---- Plugin: marca de última semana, etiquetas al final de cada línea y crosshair ----
+  const pluginMarcas = {
+    id: 'marcasCepea',
+    afterDatasetsDraw(chart) {
+      const c = chart.ctx, a = chart.chartArea, scales = chart.scales;
+      if (!a || !scales.x) return;
+      const angosto = (a.right - a.left) < 480;
+      c.save();
+      c.textBaseline = 'middle';
+      // 1) Línea vertical "última semana" sobre el último dato del año actual
+      const idxActual = chart.data.datasets.findIndex(d => d.anio === anioActual);
+      if (idxActual >= 0 && chart.isDatasetVisible(idxActual) && ptsActual.length) {
+        const ult = ptsActual[ptsActual.length-1];
+        const x = scales.x.getPixelForValue(ult.x);
+        c.strokeStyle = 'rgba(74,85,104,0.45)'; c.lineWidth = 1; c.setLineDash([4,4]);
+        c.beginPath(); c.moveTo(x, a.top); c.lineTo(x, a.bottom); c.stroke(); c.setLineDash([]);
+        c.font = '600 11px ' + FUENTE; c.textAlign = 'center';
+        const t = 'Última semana · ' + fmtFecha(ult.fecha).substring(0,5);
+        const tw = c.measureText(t).width / 2 + 4;
+        const tx = Math.min(Math.max(x, a.left + tw), a.right - tw), ty = a.top + 10;
+        c.fillStyle = 'rgba(255,255,255,0.85)'; c.fillRect(tx - tw, ty - 8, tw * 2, 16);
+        c.fillStyle = '#4a5568'; c.fillText(t, tx, ty);
+      }
+      // 2) Etiqueta al final de cada línea visible (con línea guía si hubo que correrla)
+      const etiquetas = [];
+      chart.data.datasets.forEach((ds, i) => {
+        if (!(ds.esAnio || ds.esPromedio) || !chart.isDatasetVisible(i) || !ds.data.length) return;
+        const p = ds.data[ds.data.length-1];
+        const px = scales.x.getPixelForValue(p.x), py = scales.y.getPixelForValue(p.y);
+        let txt = ds.esPromedio ? (angosto ? 'Prom.' : 'Prom. 4 años') : String(ds.anio);
+        if (ds.anio === anioActual) txt += ' · R$ ' + fmt(p.y);
+        etiquetas.push({ x: px, y: py, yObj: py, txt: txt, bold: ds.anio === anioActual });
+      });
+      etiquetas.sort((p, q) => p.x - q.x || p.y - q.y);
+      const grupos = [];
+      etiquetas.forEach(e => { const g = grupos.find(g => Math.abs(g[0].x - e.x) < 40); if (g) g.push(e); else grupos.push([e]); });
+      grupos.forEach(g => {
+        g.sort((p, q) => p.y - q.y);
+        for (let i = 1; i < g.length; i++) if (g[i].y - g[i-1].y < 15) g[i].y = g[i-1].y + 15;
+        const sobra = g[g.length-1].y - (a.bottom - 6);
+        if (sobra > 0) g.forEach(e => { e.y -= sobra; });
+      });
+      etiquetas.forEach(e => {
+        c.font = (e.bold ? '700 12px ' : '600 11px ') + FUENTE;
+        c.textAlign = 'left';
+        const lx = e.x + 9;
+        if (Math.abs(e.y - e.yObj) > 2) {
+          c.strokeStyle = 'rgba(74,85,104,0.5)'; c.lineWidth = 1;
+          c.beginPath(); c.moveTo(e.x + 4, e.yObj); c.lineTo(lx - 2, e.y); c.stroke();
+        }
+        const w = c.measureText(e.txt).width;
+        c.fillStyle = 'rgba(255,255,255,0.88)';
+        c.fillRect(lx - 3, e.y - 8, w + 6, 16);
+        c.fillStyle = e.bold ? '#1a202c' : '#4a5568';
+        c.fillText(e.txt, lx, e.y);
+      });
+      // 3) Crosshair sobre la semana activa del tooltip
+      const act = (chart.tooltip && chart.tooltip.getActiveElements) ? chart.tooltip.getActiveElements() : [];
+      if (act.length) {
+        const x = act[0].element.x;
+        c.strokeStyle = 'rgba(26,32,44,0.35)'; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(x, a.top); c.lineTo(x, a.bottom); c.stroke();
+      }
+      c.restore();
+    }
+  };
+
   const monthTicks = [1,32,60,91,121,152,182,213,244,274,305,335];
+  const angostoInicial = window.innerWidth < 640;
   const ctx = document.getElementById('cepeaChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
     data: { datasets: datasets },
-    plugins: [coldShadePlugin],
+    plugins: [pluginFondoZonas, pluginMarcas],
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: { mode: 'nearest', intersect: false },
+      layout: { padding: { top: 24, right: angostoInicial ? 56 : 96 } },
+      interaction: { mode: 'semana', intersect: false },
       plugins: {
         legend: {
           position: 'top',
+          onClick: function(e, item, legend) {
+            if (item.datasetIndex === undefined) return;          // el ítem "semana fría" no es un dataset
+            const ci = legend.chart;
+            if (ci.isDatasetVisible(item.datasetIndex)) ci.hide(item.datasetIndex); else ci.show(item.datasetIndex);
+          },
           labels: {
+            usePointStyle: true,
+            pointStyleWidth: 26,
+            boxHeight: 8,
+            padding: 14,
+            color: '#4a5568',
+            font: { size: 12 },
+            filter: function(item, cd) { return item.datasetIndex === undefined || !cd.datasets[item.datasetIndex].esBandaBaja; },
             generateLabels: function(chart) {
               const items = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-              const totalB = Object.values(coldBandsByYear).reduce((a,arr)=>a+arr.length,0);
-              if (totalB > 0) {
-                const yrs = Object.keys(coldBandsByYear).sort();
-                const txt = yrs.length > 1
-                  ? `❄️ Frío (tmin <15°C) — ${yrs.join(', ')}`
-                  : `❄️ Frío ${yrs[0]} (tmin <15°C, frena crecimiento)`;
-                items.push({
-                  text: txt,
-                  fillStyle: 'rgba(120,180,255,0.45)',
-                  strokeStyle: 'rgba(120,180,255,0.45)',
-                  lineWidth: 0,
-                  hidden: false,
-                  index: items.length
-                });
+              items.forEach(it => {
+                const ds = chart.data.datasets[it.datasetIndex];
+                if (!ds) return;
+                if (ds.esBanda) {
+                  it.pointStyle = 'rect'; it.fillStyle = 'rgba(113,128,150,0.35)'; it.strokeStyle = 'rgba(113,128,150,0.35)'; it.lineWidth = 0;
+                } else {
+                  it.pointStyle = 'line'; it.lineWidth = Math.min(ds.borderWidth || 2, 3); it.strokeStyle = ds.borderColor; it.lineDash = ds.borderDash || [];
+                }
+                if (ds.esAnio && ds.anio === anioActual) it.text = ds.label + ' (este año)';
+              });
+              if (Object.keys(frioPorAnio).length) {
+                items.push({ text: '❄ Semana fría (mín. <15 °C)', fillStyle: COLOR_FRIO, strokeStyle: COLOR_FRIO_BORDE, lineWidth: 0, pointStyle: swatchFrio, hidden: false, index: items.length });
               }
               return items;
             }
           }
         },
         tooltip: {
+          usePointStyle: true,
+          backgroundColor: 'rgba(26,32,44,0.94)',
+          titleFont: { size: 12, weight: '600' },
+          bodyFont: { size: 12 },
+          bodySpacing: 5,
+          padding: 10,
+          itemSort: function(p, q) { return (q.dataset.anio || 0) - (p.dataset.anio || 0); },
           callbacks: {
-            title: function(items) {
-              if (!items.length) return '';
-              const dy = items[0].parsed.x;
-              const year = items[0].dataset.label;
-              const d = new Date(2024, 0, dy);
-              return year + ' · ' + d.toLocaleDateString('es-UY', { day: '2-digit', month: 'short' });
-            },
+            title: function(items) { return items.length ? 'Semana del ' + fechaDesdeDia(items[0].parsed.x) : ''; },
             label: function(item) {
-              return 'R$ ' + fmt(item.parsed.y) + '/kg';
+              const r = item.raw || {};
+              let s = item.dataset.label + ':  R$ ' + fmt(item.parsed.y) + '/kg';
+              if (r.frio) s += '   ❄ fría' + (typeof r.tmin === 'number' ? ' (mín. ' + fmt(r.tmin, 1) + ' °C)' : '');
+              return s;
+            },
+            afterBody: function(items) {
+              if (!items.length) return [];
+              const x = items[0].parsed.x;
+              const prom = interpEn(refLine, x);
+              const lines = [];
+              if (prom !== null) lines.push('Promedio 4 años:  R$ ' + fmt(prom) + '/kg');
+              const act = items.find(i => i.dataset.anio === anioActual);
+              const ant = items.find(i => i.dataset.anio === anioActual - 1);
+              if (act && prom) lines.push(anioActual + ' está ' + pct((act.parsed.y - prom) / prom * 100) + ' respecto al promedio');
+              if (act && ant) lines.push(anioActual + ' vs ' + (anioActual - 1) + ' misma semana: ' + pct((act.parsed.y - ant.parsed.y) / ant.parsed.y * 100));
+              return lines.length ? [''].concat(lines) : [];
             }
           }
         }
@@ -1803,28 +1992,48 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
           type: 'linear',
           min: 1,
           max: 366,
+          afterBuildTicks: function(sc) { sc.ticks = monthTicks.map(v => ({ value: v })); },
           ticks: {
-            callback: function(v) {
-              const idx = monthTicks.indexOf(v);
-              return idx >= 0 ? MESES[idx+1] : '';
-            },
-            stepSize: 1,
-            autoSkip: false,
-            maxRotation: 0
+            callback: function(v) { const i = monthTicks.indexOf(v); return i >= 0 ? MESES[i+1] : ''; },
+            align: 'start',
+            maxRotation: 0,
+            color: '#718096',
+            font: { size: 11 }
           },
-          grid: {
-            color: function(ctx) {
-              return monthTicks.indexOf(ctx.tick.value) >= 0 ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0)';
-            }
-          }
+          grid: { color: 'rgba(0,0,0,0.06)', drawTicks: false },
+          border: { display: false }
         },
         y: {
-          beginAtZero: true,
-          title: { display: true, text: 'R$/kg' }
+          min: 0,
+          suggestedMax: 2.8,
+          ticks: { stepSize: 0.5, callback: function(v) { return 'R$ ' + fmt(v); }, color: '#718096', font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.06)', drawTicks: false },
+          border: { display: false }
         }
       }
     }
   });
+
+  // ---- Textos de apoyo (año y rango) y tabla de las últimas 8 semanas ----
+  document.getElementById('cepea-lead-anio').textContent = anioActual;
+  document.getElementById('cepea-lead-rango').textContent = rangoTxt;
+  (function tabla(){
+    const ult8 = ptsActual.slice(-8).reverse();
+    const ant = porAnio[anioActual - 1] || [];
+    let h = '<div style="overflow-x:auto"><table><thead><tr><th>Semana</th><th>' + anioActual + '</th><th>' + (anioActual - 1) + ' misma semana</th><th>Prom. 4 años</th><th>' + anioActual + ' vs prom.</th><th>Frío</th></tr></thead><tbody>';
+    ult8.forEach(p => {
+      const a = interpEn(ant, p.x), pr = interpEn(refLine, p.x);
+      const d = pr ? (p.y - pr) / pr * 100 : null;
+      h += '<tr><td>' + fmtFecha(p.fecha) + '</td>' +
+           '<td><strong>R$ ' + fmt(p.y) + '</strong></td>' +
+           '<td>' + (a !== null ? 'R$ ' + fmt(a) : '—') + '</td>' +
+           '<td>' + (pr !== null ? 'R$ ' + fmt(pr) : '—') + '</td>' +
+           '<td style="color:' + (d !== null && d < 0 ? '#2f855a' : '#c53030') + ';font-weight:600">' + (d !== null ? pct(d) : '—') + '</td>' +
+           '<td>' + (p.frio ? '❄ ' + (typeof p.tmin === 'number' ? fmt(p.tmin, 1) + ' °C' : '') : '') + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    document.getElementById('cepea-table').innerHTML = h;
+  })();
 })();
 </script>
 
