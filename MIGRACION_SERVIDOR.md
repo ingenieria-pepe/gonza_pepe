@@ -295,20 +295,30 @@ Todo lo demás (lógica de score, alertas, dashboards, fuentes, config, datos) e
 (`ingenieria-pepe/gonza_pepe`); el servidor lo toma solo en la próxima corrida.
 La laptop **no corre nada**: se apaga, no puede tener tareas ni servicios.
 
-### 13.1 Cómo funciona
+### 13.1 Cómo funciona (v2)
 La tarea programada ya no ejecuta `actualizar_precios.ps1` directo sino
-**`correr_servidor.ps1`**, que en cada disparo:
+**`correr_servidor.ps1`**, que en cada disparo deja al servidor **igual que GitHub**:
 
-1. Si la carpeta es un **clon git** y hay git instalado → descarta **solo** los
-   archivos que el pipeline regenera (`index*.html`, `fuentes/precios_*.json`,
-   `portada/proyeccion/calidad/mercado_uy.json`, el xlsx de Cepea, `last_run.log`)
-   y hace `git pull --ff-only`.
-2. **Nunca toca** `config/whatsapp.json`, `fuentes/state_*.json`, los caches,
-   `alertas.log` ni las planillas de entrada. Si un pull los borrara, los restaura.
-3. Si el pull falla (sin internet, conflicto, sin credenciales) → lo anota en
-   `last_run.log` y **corre igual** con el código que hay. Nunca deja de correr.
-4. Corre el pipeline y guarda la salida en `last_run.log` (la primera línea dice
-   qué pasó con el pull: `[sync] git pull OK: a1b2c3d -> e4f5g6h`).
+1. `git fetch` + **`git reset --hard origin/main`**. No hay `pull` ni merge: el servidor
+   nunca commitea, así que "espejo de GitHub" es exactamente lo que se quiere. Aguanta
+   force-push, historia divergida y archivos regenerados sucios — todo eso a
+   `git pull --ff-only` (la v1) lo trababa **para siempre y en silencio**: el 04/09 quedaban
+   `inicio.html` y `fuentes/ecuador.json` modificados tras cada corrida, y el primer commit
+   que los tocara iba a dejar al servidor corriendo código viejo sin que nadie se enterara.
+2. Tres clases de archivos:
+   - **Del servidor** (`$preservar`: `config/whatsapp.json`, `fuentes/state_*.json`, caches,
+     `clima_archive_cache/`, `alertas.log`): se respaldan antes del reset y se restauran
+     después, **siempre**, creando las carpetas que falten. Su versión manda. Ya no están
+     en el repo (`.gitignore`).
+   - **De la laptop** (`$entradas`: `cargas 2026.xlsx`, `productores.xlsx`,
+     `calidad_lotes.xlsx`): viajan por git. Si alguien las editó en el servidor, se guardan
+     en `respaldos_servidor\<fecha>\` y queda un `AVISO` en el log antes de pisarlas.
+   - **El resto** (código, dashboards regenerados): lo que diga GitHub.
+3. Si el `fetch` falla (sin internet, sin credenciales) → lo anota y **corre igual** con el
+   código que hay. Nunca deja de correr.
+4. Corre el pipeline y guarda la salida en `last_run.log`. La **primera línea** dice qué pasó:
+   `[sync] sync OK: 4af3a15 -> 1386e8b (origin/main)`, `sync OK: sin cambios (...)`,
+   `git fetch FALLO ...` o `AVISO: planilla(s) editadas en el servidor ...`.
 
 ### 13.2 Activar la sincronización en el servidor (una vez)
 **Verificado el 04/09/2026 desde el servidor:** `C:\Users\User\Desktop\poronga_servidor`
@@ -317,45 +327,53 @@ La tarea programada ya no ejecuta `actualizar_precios.ps1` directo sino
 placeholder (`https://TU_OTRO_USUARIO@github.com/...`) y bajo S4U habría colgado el pull
 pidiendo usuario; ya quedó en `https://github.com/ingenieria-pepe/gonza_pepe`.
 
-Pasos (PowerShell en el servidor, con el usuario `User`):
+**Poner el servidor al día a mano** — sirve para la primera vez y para cualquier momento en
+que el clon haya quedado atrás o divergido (por ejemplo, tras un force-push). Es lo mismo
+que hace `correr_servidor.ps1` en cada corrida, hecho a mano una vez. PowerShell en el
+servidor, con el usuario `User`:
 
 ```powershell
 cd C:\Users\User\Desktop\poronga_servidor
 git remote -v            # https://github.com/ingenieria-pepe/gonza_pepe  (sin usuario@)
 
-# 1. RESPALDO antes del primer pull. config\whatsapp.json y last_run.log dejaron de
-#    estar trackeados (tenían el token y los teléfonos): un pull que los ve borrados
-#    en GitHub LOS BORRA del árbol local si están limpios. Se respaldan y se restauran.
+# 1. RESPALDO de lo que es del servidor. Estos archivos ya NO están en el repo: un reset
+#    que los ve borrados en GitHub LOS BORRA del árbol local (el 04/09 borró config\ entera).
 $bk = "$env:TEMP\poronga_estado_$(Get-Date -Format yyyyMMdd_HHmmss)"
-New-Item -ItemType Directory $bk -Force | Out-Null
-Copy-Item config\whatsapp.json $bk\ ; Copy-Item fuentes\state_*.json $bk\
+New-Item -ItemType Directory "$bk\config", "$bk\fuentes" -Force | Out-Null
+Copy-Item config\whatsapp.json  "$bk\config\"
+Copy-Item fuentes\state_*.json, fuentes\*cache*.json "$bk\fuentes\"
+Copy-Item fuentes\clima_archive_cache "$bk\fuentes\" -Recurse
 Copy-Item alertas.log $bk\ -ErrorAction SilentlyContinue
 
-# 2. Pull
-git pull --ff-only
+# 2. Espejo de GitHub (NO `git pull`: si el clon divergió, el pull falla para siempre)
+git fetch origin
+git reset --hard origin/main
 
-# 3. Restaurar lo que el pull haya borrado
-if (-not (Test-Path config\whatsapp.json)) { Copy-Item $bk\whatsapp.json config\ }
-Get-ChildItem $bk\state_*.json | ForEach-Object {
-    if (-not (Test-Path "fuentes\$($_.Name)")) { Copy-Item $_.FullName fuentes\ } }
+# 3. Restaurar, creando las carpetas (Copy-Item -Force no las crea)
+New-Item -ItemType Directory config, fuentes\clima_archive_cache -Force | Out-Null
+Copy-Item "$bk\config\whatsapp.json" config\ -Force
+Copy-Item "$bk\fuentes\*.json" fuentes\ -Force
+Copy-Item "$bk\fuentes\clima_archive_cache\*" fuentes\clima_archive_cache\ -Force
+Copy-Item "$bk\alertas.log" . -Force -ErrorAction SilentlyContinue
+git status --short       # solo debe listar respaldos_servidor\ o nada: el estado está ignorado
 
-# 4. Verificar que llegó el wrapper
-Test-Path correr_servidor.ps1     # True. Si es False, falta pushear desde la laptop.
+# 4. Verificar que llegó el wrapper v2
+Select-String -Path correr_servidor.ps1 -Pattern 'reset --hard' -Quiet   # True
 
-# 5. Re-registrar la tarea apuntando al wrapper (PowerShell COMO ADMINISTRADOR)
+# 5. Re-registrar la tarea apuntando al wrapper (PowerShell COMO ADMINISTRADOR).
+#    Idempotente: si ya apunta a correr_servidor.ps1 no hace falta repetirlo.
 Set-ExecutionPolicy -Scope Process Bypass -Force
 & "C:\Users\User\Desktop\poronga_servidor\setup_servidor.ps1"
 (Get-ScheduledTask 'Cepea_ActualizarPrecios_Almar').Actions[0].Arguments   # ...correr_servidor.ps1
 
 # 6. Probar SIN mandar WhatsApp: poner "enabled": false en config\whatsapp.json, después
 Start-ScheduledTask -TaskName 'Cepea_ActualizarPrecios_Almar'
-Get-Content last_run.log -TotalCount 3    # primera línea: [sync] git pull OK: ...
+Get-Content last_run.log -TotalCount 3    # primera línea: [sync] sync OK: ...
 
 # 7. Volver a "enabled": true
 ```
 
-Desde el paso 5 en adelante, `correr_servidor.ps1` hace ese respaldo/restauración solo
-en cada corrida, así que el paso 1-3 es solo para la primera vez.
+A partir de ahí, `correr_servidor.ps1` hace los pasos 1-3 solo en cada corrida.
 
 **Credenciales.** Hoy el repo es **público**, así que el pull no pide nada. Si se pasa a
 privado (recomendado, §13.4): la tarea corre S4U —sesión sin contraseña, sin DPAPI— y el

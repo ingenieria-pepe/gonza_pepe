@@ -1,19 +1,28 @@
 ﻿# ==========================================================================
 #  correr_servidor.ps1  -  Lo que ejecuta la tarea programada en el servidor
 # ==========================================================================
-#  Flujo (agregado 04/09/2026):
-#    1. Si la carpeta es un clon git y hay git instalado: descarta SOLO los
-#       archivos que el pipeline regenera en cada corrida y hace
-#       git pull --ff-only. Con eso alcanza pushear a GitHub desde la laptop:
-#       la proxima corrida del servidor ya usa el codigo nuevo.
-#       Si el pull falla (conflicto, sin internet, sin git, sin credenciales)
-#       lo escribe en last_run.log y corre igual con el codigo que hay.
-#    2. Corre actualizar_precios.ps1 y guarda toda la salida en last_run.log.
+#  v2 (04/09/2026, reescrito tras la primera instalacion en el servidor).
 #
-#  NUNCA toca: config/whatsapp.json, fuentes/state_*.json, los caches,
-#  alertas.log ni las planillas de entrada (cargas 2026.xlsx, etc.). Si un
-#  pull los borrara (porque dejaron de estar trackeados), los restaura desde
-#  un respaldo hecho justo antes.
+#  El servidor se pone IGUAL que origin/main:  git fetch  +  git reset --hard.
+#  No hay pull ni merge: el servidor nunca commitea, asi que "espejo de GitHub"
+#  es exactamente lo que se quiere. Esto aguanta force-push, historia divergida
+#  y archivos regenerados sucios -- todo eso a `git pull --ff-only` lo trababa
+#  PARA SIEMPRE y en silencio (paso el 04/09: inicio.html y fuentes/ecuador.json
+#  quedaban modificados tras cada corrida y el primer commit que los tocara
+#  iba a dejar al servidor corriendo codigo viejo sin que nadie se enterara).
+#
+#  Tres clases de archivos:
+#    $preservar   DEL SERVIDOR (config, estado anti-spam, caches, logs). Se
+#                 respaldan antes del reset y se restauran despues, SIEMPRE,
+#                 creando las carpetas que falten (el primer pull borro config\
+#                 entera y la restauracion v1 fallaba por eso). Su version manda.
+#    $entradas    DE LA LAPTOP (planillas). Viajan por git. Si alguien las edito
+#                 en el servidor, se guardan en respaldos_servidor\<fecha>\ y se
+#                 avisa en el log ANTES de pisarlas. Nunca se pierden en silencio.
+#    el resto     codigo y dashboards regenerados: lo que diga GitHub.
+#
+#  Si el fetch falla (sin internet, sin credenciales) corre igual con el codigo
+#  local y lo deja anotado en la PRIMERA linea de last_run.log.
 #
 #  Se registra desde setup_servidor.ps1. Tambien se puede correr a mano:
 #     & "<esta-carpeta>\correr_servidor.ps1"
@@ -23,22 +32,6 @@ $base       = $PSScriptRoot
 $logRun     = Join-Path $base 'last_run.log'
 $scriptMain = Join-Path $base 'actualizar_precios.ps1'
 
-# Archivos que el pipeline REGENERA en cada corrida: seguro descartarlos antes
-# del pull (se vuelven a escribir enseguida). Lista explicita a proposito:
-# "todo lo modificado" podria descartar una planilla editada en el servidor.
-$regenerados = @(
-    'index*.html',
-    'fuentes/precios_cepea.json',
-    'fuentes/precios_ecuador.json',
-    'fuentes/precios_banana_SC_2023-2026.xlsx',
-    'fuentes/portada.json',
-    'fuentes/proyeccion.json',
-    'fuentes/calidad.json',
-    'fuentes/mercado_uy.json',
-    'last_run.log'
-)
-# Archivos con ESTADO propio del servidor: no se descartan nunca y, si el
-# pull los borra, se restauran.
 $preservar = @(
     'config/whatsapp.json',
     'fuentes/state_alertas.json',
@@ -49,60 +42,82 @@ $preservar = @(
 )
 $preservarDirs = @('fuentes/clima_archive_cache')
 
+$entradas = @(
+    'fuentes/cargas 2026.xlsx',
+    'fuentes/productores.xlsx',
+    'fuentes/calidad_lotes.xlsx'
+)
+
 $script:lineasSync = @()
 function Log { param([string]$t) $script:lineasSync += "[$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss'))] [sync] $t" }
+function Copiar-Seguro {
+    # Copy-Item -Force NO crea la carpeta destino: si falta, revienta. Aca se crea.
+    param([string]$desde, [string]$hacia)
+    $dir = Split-Path $hacia -Parent
+    if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    Copy-Item -LiteralPath $desde -Destination $hacia -Force
+}
 
 $git = Get-Command git -ErrorAction SilentlyContinue
 if (-not $git) {
     Log "git no esta instalado: corro con el codigo local. Para sincronizar con GitHub instalar Git for Windows."
 } elseif (-not (Test-Path (Join-Path $base '.git'))) {
-    Log "la carpeta no es un clon git: corro con el codigo local. Para sincronizar, clonar el repo en vez de copiar la carpeta (ver MIGRACION_SERVIDOR.md, seccion 13)."
+    Log "la carpeta no es un clon git: corro con el codigo local (ver MIGRACION_SERVIDOR.md, seccion 13)."
 } else {
     Push-Location $base
     try {
-        # 1) respaldo del estado
-        $bk = Join-Path $env:TEMP ('poronga_estado_' + (Get-Date).ToString('yyyyMMdd_HHmmss'))
-        New-Item -ItemType Directory -Path $bk -Force | Out-Null
-        foreach ($p in $preservar) {
-            if (Test-Path $p) {
-                $dest = Join-Path $bk $p
-                New-Item -ItemType Directory -Path (Split-Path $dest -Parent) -Force | Out-Null
-                Copy-Item $p $dest -Force
-            }
-        }
-        foreach ($d in $preservarDirs) {
-            if (Test-Path $d) {
-                $dest = Join-Path $bk $d
-                New-Item -ItemType Directory -Path (Split-Path $dest -Parent) -Force | Out-Null
-                Copy-Item $d $dest -Recurse -Force
-            }
-        }
-
-        # 2) descartar solo lo regenerado (si esta trackeado)
-        $tracked = @(git ls-files -- $regenerados 2>$null | Where-Object { $_ })
-        if ($tracked.Count -gt 0) { git checkout -- $tracked 2>&1 | Out-Null }
-
-        # 3) pull
+        $baseAbs = (Resolve-Path $base).Path
         $antes   = (git rev-parse --short HEAD 2>$null)
-        $salida  = (git pull --ff-only 2>&1 | Out-String).Trim() -replace '\s+', ' '
-        $rc      = $LASTEXITCODE
-        $despues = (git rev-parse --short HEAD 2>$null)
-        if ($rc -eq 0) {
-            if ($antes -ne $despues) { Log "git pull OK: $antes -> $despues" } else { Log "git pull OK: sin cambios ($antes)" }
+        $fetchOut = (git fetch origin 2>&1 | Out-String).Trim() -replace '\s+', ' '
+        if ($LASTEXITCODE -ne 0) {
+            Log "git fetch FALLO, corro con el codigo local ($antes): $fetchOut"
         } else {
-            Log "git pull FALLO (rc=$rc), corro con el codigo local ($antes): $salida"
-        }
+            $upstream = (git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>$null)
+            if (-not $upstream) { $upstream = 'origin/main' }
 
-        # 4) restaurar estado si el pull lo borro
-        foreach ($p in $preservar) {
-            $src = Join-Path $bk $p
-            if ((Test-Path $src) -and -not (Test-Path $p)) { Copy-Item $src $p -Force; Log "restaurado $p" }
+            # 1) respaldo de lo que es del servidor
+            $bk = Join-Path $env:TEMP ('poronga_estado_' + (Get-Date).ToString('yyyyMMdd_HHmmss'))
+            foreach ($p in $preservar) { if (Test-Path -LiteralPath $p) { Copiar-Seguro $p (Join-Path $bk $p) } }
+            foreach ($d in $preservarDirs) {
+                if (Test-Path -LiteralPath $d) {
+                    Get-ChildItem -LiteralPath $d -File -Recurse | ForEach-Object {
+                        $rel = $_.FullName.Substring($baseAbs.Length + 1)
+                        Copiar-Seguro $_.FullName (Join-Path $bk $rel)
+                    }
+                }
+            }
+
+            # 2) planillas editadas en el servidor (no deberian): respaldo + aviso
+            $sucias = @(git status --porcelain -- $entradas 2>$null | Where-Object { $_ })
+            if ($sucias.Count -gt 0) {
+                $rs = Join-Path $base ('respaldos_servidor\' + (Get-Date).ToString('yyyyMMdd_HHmmss'))
+                $nombres = @()
+                foreach ($l in $sucias) {
+                    $f = $l.Substring(3).Trim().Trim('"')
+                    $nombres += $f
+                    if (Test-Path -LiteralPath $f) { Copiar-Seguro $f (Join-Path $rs $f) }
+                }
+                Log "AVISO: planilla(s) editadas en el servidor, respaldadas en $rs y pisadas por la version de GitHub: $($nombres -join ', ')"
+            }
+
+            # 3) espejo de GitHub
+            $resetOut = (git reset --hard $upstream 2>&1 | Out-String).Trim() -replace '\s+', ' '
+            if ($LASTEXITCODE -ne 0) {
+                Log "git reset --hard $upstream FALLO, corro con el codigo local ($antes): $resetOut"
+            } else {
+                $despues = (git rev-parse --short HEAD 2>$null)
+                if ($antes -ne $despues) { Log "sync OK: $antes -> $despues ($upstream)" } else { Log "sync OK: sin cambios ($despues)" }
+            }
+
+            # 4) restaurar lo que es del servidor, siempre: su version manda
+            if (Test-Path -LiteralPath $bk) {
+                Get-ChildItem -LiteralPath $bk -File -Recurse | ForEach-Object {
+                    $rel = $_.FullName.Substring($bk.Length + 1)
+                    Copiar-Seguro $_.FullName (Join-Path $base $rel)
+                }
+                Remove-Item -LiteralPath $bk -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
-        foreach ($d in $preservarDirs) {
-            $src = Join-Path $bk $d
-            if ((Test-Path $src) -and -not (Test-Path $d)) { Copy-Item $src $d -Recurse -Force; Log "restaurado $d/" }
-        }
-        Remove-Item $bk -Recurse -Force -ErrorAction SilentlyContinue
     } finally {
         Pop-Location
     }
