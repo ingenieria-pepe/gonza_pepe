@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "url": "https://aloha.somospepe.com/api",
+  "username": "",
+  "password": "",
+  "fuente": "BR",
+  "INSTRUCCIONES": [
+    "Copiar este archivo a config\u0007loha.json (ese NO va al repo: esta en .gitignore y correr_servidor.ps1 lo preserva).",
+    "Aloha NO se modifica: poronga entra con un usuario comun y lee GET /plan-cargas.",
+    "1. En Aloha (Admin > Usuarios) crear un usuario solo para poronga con un rol que tenga el permiso 'plan_cargas' y nada mas.",
+    "2. Entrar UNA vez a Aloha con ese usuario y cambiar la clave inicial (sin eso el login no emite token).",
+    "3. Poner username y password aca.",
+    "4. fuente: 'BR' = planilla Brasil/Paraguay (la del resumen). 'OTROS' = demas paises. Vacio = todas.",
+    "5. Para apagar: enabled=false. Sin esto el resto del pipeline corre igual; solo no sale el bloque Plan de Cargas."
+  ]
+}

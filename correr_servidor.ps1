@@ -34,6 +34,8 @@ $scriptMain = Join-Path $base 'actualizar_precios.ps1'
 
 $preservar = @(
     'config/whatsapp.json',
+    'config/aloha.json',
+    'fuentes/plan_cargas_aloha.json',
     'fuentes/state_alertas.json',
     'fuentes/state_whatsapp.json',
     'fuentes/precios_py_cache.json',

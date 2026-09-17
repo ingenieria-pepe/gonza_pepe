@@ -22,6 +22,18 @@ public static extern uint SetThreadExecutionState(uint esFlags);
 } catch {}
 
 $base = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
+
+# --- Lector de .xlsx SIN Excel (headless) ----------------------------------
+# El servidor NO tiene Office instalado. Excel via COM obliga a Office + una
+# sesion de escritorio abierta; ImportExcel (EPPlus) lee y escribe el xlsx directo.
+# Instalar una sola vez si falta:  Install-Module ImportExcel -Scope CurrentUser
+try {
+    Import-Module ImportExcel -ErrorAction Stop
+} catch {
+    Write-Host "ERROR: falta el modulo ImportExcel (necesario para leer los .xlsx)." -ForegroundColor Red
+    Write-Host "       Instalalo con:  Install-Module ImportExcel -Scope CurrentUser -Force" -ForegroundColor Red
+    exit 1
+}
 $fuentes = Join-Path $base "fuentes"
 $indexHtml = Join-Path $base "index.html"
 # Lista de archivos HTML a actualizar (todos los que tengan los marcadores Cepea)
@@ -41,6 +53,8 @@ $anoInicial = $anoFinal - 3
 
 # ==========================================================================
 # Helpers Excel COM
+# (17/09/2026: los lectores de xlsx pasaron a ImportExcel/EPPlus, ver mas arriba. Esto
+#  queda solo para limpiar instancias huerfanas de Excel en la laptop; en el servidor no hay Excel.)
 # --------------------------------------------------------------------------
 # Motivo (02/09/2026): Quit() + ReleaseComObject solo sobre la Application NO
 # mata el proceso EXCEL.EXE. Quedaban zombies acumulandose (uno del 19/08 vivio
@@ -156,7 +170,7 @@ $cepeaDesactualizado = $false
 try {
     $hdrCepea = $HDR_BROWSER.Clone()
     $hdrCepea['Referer'] = 'https://www.hfbrasil.org.br/'
-    Invoke-WebRequest -Uri $url -OutFile $xlsxPath -UserAgent $UA_BROWSER -Headers $hdrCepea -TimeoutSec 60 -ErrorAction Stop
+    Invoke-WebRequest -Uri $url -OutFile $xlsxPath -UserAgent $UA_BROWSER -Headers $hdrCepea -TimeoutSec 60 -UseBasicParsing -ErrorAction Stop
     $tam = (Get-Item $xlsxPath).Length
     Write-Host "    OK ($tam bytes)" -ForegroundColor Green
 } catch {
@@ -177,22 +191,22 @@ try {
 
 # 2) Extraer datos del Excel a objeto PSCustom
 Write-Host "[2/6] Leyendo Excel Cepea y construyendo dataset..." -ForegroundColor Cyan
-$xlCepea = New-ExcelCOM
-$excel = $xlCepea.App
 $nanica = @()
 $promedioMes = [ordered]@{}
-$wb = $null; $ws = $null
+$pkg = $null
 try {
-    $wb = $excel.Workbooks.Open($xlsxPath)
-    $ws = $wb.Worksheets.Item(1)
-    $total = $ws.UsedRange.Rows.Count
+    # Sin Excel COM: ImportExcel (EPPlus). La ultima fila del export de Cepea es el
+    # pie "Fonte: Hortifruti/Cepea", por eso el loop llega hasta $total-1.
+    $pkg = Open-ExcelPackage -Path $xlsxPath
+    $ws  = $pkg.Workbook.Worksheets | Select-Object -First 1
+    $total = $ws.Dimension.End.Row
     for ($r = 2; $r -lt $total; $r++) {
-        $prod = $ws.Cells.Item($r,1).Text
+        $prod = $ws.Cells[$r,1].Text
         if ($prod -like "Nanica primeira - produtor*") {   # antes "Nanica*": entraba tambien "Nanica primeira - atacado" y duplicaba semanas (09/09/2026)
-            $dia = [int]$ws.Cells.Item($r,3).Text
-            $mes = [int]$ws.Cells.Item($r,4).Text
-            $ano = [int]$ws.Cells.Item($r,5).Text
-            $precio = [double]($ws.Cells.Item($r,8).Text -replace ',','.')
+            $dia = [int]$ws.Cells[$r,3].Text
+            $mes = [int]$ws.Cells[$r,4].Text
+            $ano = [int]$ws.Cells[$r,5].Text
+            $precio = [double]($ws.Cells[$r,8].Text -replace ',','.')
             $nanica += [PSCustomObject]@{
                 fecha  = ("{0:0000}-{1:00}-{2:00}" -f $ano,$mes,$dia)
                 anio   = $ano
@@ -203,8 +217,8 @@ try {
     }
 }
 finally {
-    Close-ExcelCOM -Handle $xlCepea -Workbook $wb -Extra @($ws)
-    $wb = $null; $ws = $null; $excel = $null
+    if ($pkg) { Close-ExcelPackage $pkg -NoSave }
+    $ws = $null; $pkg = $null
 }
 $nanica = @($nanica | Sort-Object fecha -Unique)   # -Unique: una sola fila por semana (09/09/2026)
 Write-Host "    Semanas obtenidas: $($nanica.Count)" -ForegroundColor Green
@@ -408,10 +422,8 @@ function Get-TransportistaCanon { param([string]$s)
 
 $almarRecords = @()
 if (Test-Path $cargasFile) {
-    $xlCargas = New-ExcelCOM
-    $excelC = $xlCargas.App
     $YEAR_CARGAS = 2026
-    $wbc = $null
+    $pkgC = $null
     $edAplicadasHasta = ''
     try {
         # ---- 3a) Ediciones hechas desde la ficha del dashboard: fuentes\productores_ediciones.json  [10/09/2026] ----
@@ -423,71 +435,71 @@ if (Test-Path $cargasFile) {
         $edStatePath = Join-Path $fuentes 'state_ediciones.json'
         try { if (Test-Path $edStatePath) { $edAplicadasHasta = [string](Get-Content $edStatePath -Raw -Encoding UTF8 | ConvertFrom-Json).aplicadas_hasta } } catch {}
         if (Test-Path $edPath) {
-            $wbE = $null
+            $pkgE = $null
             try {
                 $edObj = Get-Content $edPath -Raw -Encoding UTF8 | ConvertFrom-Json
                 $edItems = @($edObj.psobject.properties | ForEach-Object { $_.Value } | Where-Object { $_ -and $_.campos -and $_.productor })
                 if ($edItems.Count -eq 0) { throw 'el archivo no trae ediciones' }
                 if (Test-Path (Join-Path $fuentes '~$productores.xlsx')) { throw 'productores.xlsx esta abierto en Excel' }
-                $wbE = $excelC.Workbooks.Open($fichasFile)
-                $wsE = $wbE.Worksheets.Item('productores')
-                $ncE = $wsE.UsedRange.Columns.Count; $nrE = $wsE.UsedRange.Rows.Count
-                $hdrE = @{}; for ($c = 1; $c -le $ncE; $c++) { $h = [string]$wsE.Cells.Item(1, $c).Value2; if ($h) { $hdrE[$h.Trim().ToLower()] = $c } }
+                $pkgE = Open-ExcelPackage -Path $fichasFile
+                $wsE = $pkgE.Workbook.Worksheets['productores']
+                if ($null -eq $wsE -or $null -eq $wsE.Dimension) { throw 'productores.xlsx no tiene la hoja productores (o esta vacia)' }
+                $ncE = $wsE.Dimension.End.Column; $nrE = $wsE.Dimension.End.Row
+                $hdrE = @{}; for ($c = 1; $c -le $ncE; $c++) { $h = [string]$wsE.Cells[1, $c].Value; if ($h) { $hdrE[$h.Trim().ToLower()] = $c } }
                 if (-not $hdrE.ContainsKey('productor')) { throw 'la hoja productores no tiene columna Productor' }
-                $rowE = @{}; for ($r = 2; $r -le $nrE; $r++) { $n = ([string]$wsE.Cells.Item($r, $hdrE['productor']).Value2).Trim().ToLower(); if ($n) { $rowE[$n] = $r } }
+                $rowE = @{}; for ($r = 2; $r -le $nrE; $r++) { $n = ([string]$wsE.Cells[$r, $hdrE['productor']].Value).Trim().ToLower(); if ($n) { $rowE[$n] = $r } }
                 $nAp = 0; $maxTs = $edAplicadasHasta; $detalle = @()
                 foreach ($it in $edItems) {
                     $nom = ([string]$it.productor).Trim(); $key = $nom.ToLower()
                     if (-not $rowE.ContainsKey($key)) {
-                        $nrE++; $wsE.Cells.Item($nrE, $hdrE['productor']).Value2 = $nom; $rowE[$key] = $nrE
+                        $nrE++; $wsE.Cells[$nrE, $hdrE['productor']].Value = $nom; $rowE[$key] = $nrE
                         Write-Host "    (ficha nueva) $nom agregado a productores.xlsx" -ForegroundColor DarkYellow
                     }
                     $r = $rowE[$key]; $cambios = @()
                     foreach ($prop in $it.campos.psobject.properties) {
                         $k = $prop.Name.ToLower(); $v = $prop.Value
                         if ($k -eq 'productor' -or $k -eq '_pendiente') { continue }
-                        if (-not $hdrE.ContainsKey($k)) { $ncE++; $wsE.Cells.Item(1, $ncE).Value2 = $prop.Name; $hdrE[$k] = $ncE }
-                        $cel = $wsE.Cells.Item($r, $hdrE[$k])
+                        if (-not $hdrE.ContainsKey($k)) { $ncE++; $wsE.Cells[1, $ncE].Value = $prop.Name; $hdrE[$k] = $ncE }
+                        $cel = $wsE.Cells[$r, $hdrE[$k]]
                         if ($k -eq 'notas') {
-                            $prev = [string]$cel.Value2; $sv = [string]$v
-                            if ($sv -and $prev.IndexOf($sv) -lt 0) { $cel.Value2 = $(if ($prev) { "$prev | $sv" } else { $sv }); $cambios += 'notas' }
+                            $prev = [string]$cel.Value; $sv = [string]$v
+                            if ($sv -and $prev.IndexOf($sv) -lt 0) { $cel.Value = $(if ($prev) { "$prev | $sv" } else { $sv }); $cambios += 'notas' }
                         } elseif ($v -is [double] -or $v -is [int] -or $v -is [long] -or $v -is [decimal] -or $v -is [single]) {
-                            $cel.Value2 = [double]$v; $cambios += $k
+                            $cel.Value = [double]$v; $cambios += $k
                         } else {
-                            if ($k -eq 'contacto') { $cel.NumberFormat = '@' }
-                            $cel.Value2 = [string]$v; $cambios += $k
+                            if ($k -eq 'contacto') { $cel.Style.Numberformat.Format = '@' }
+                            $cel.Value = [string]$v; $cambios += $k
                         }
                     }
                     if ([string]$it.ts -gt $maxTs) { $maxTs = [string]$it.ts }
                     $nAp++; $detalle += "$nom ($($cambios -join ', '))"
                 }
-                $wbE.Save(); $wbE.Close($false); $wbE = $null
+                Close-ExcelPackage $pkgE; $pkgE = $null   # Close-ExcelPackage sin -NoSave = guardar
                 $edAplicadasHasta = $maxTs
                 $arch = Join-Path $base ("archivo\productores_ediciones_" + (Get-Date -Format 'yyyyMMdd_HHmmss') + ".json")
                 Move-Item -LiteralPath $edPath -Destination $arch -Force
                 (@{ aplicadas_hasta = $edAplicadasHasta; ultima = (Get-Date -Format 'yyyy-MM-dd HH:mm'); n = $nAp } | ConvertTo-Json -Compress) | Out-File $edStatePath -Encoding UTF8
                 Write-Host "    Ediciones desde el dashboard volcadas a productores.xlsx: $($detalle -join ' | ')" -ForegroundColor Green
             } catch {
-                if ($wbE) { try { $wbE.Close($false) | Out-Null } catch {}; $wbE = $null }
+                if ($pkgE) { try { Close-ExcelPackage $pkgE -NoSave } catch {}; $pkgE = $null }
                 Add-Falla -Paso 'Fichas (ediciones desde el dashboard)' -Detalle "$($_.Exception.Message) - quedan en productores_ediciones.json para la proxima corrida"
             }
         }
         # ---- Fichas de productores: fuentes\productores.xlsx, hoja 'productores' (encabezados = claves) ----
         if (Test-Path $fichasFile) {
-            $wbF = $null
+            $pkgF = $null
             try {
-                $wbF = $excelC.Workbooks.Open($fichasFile, $false, $true)
-                $wsF = $wbF.Worksheets.Item('productores')
-                $vals = $wsF.UsedRange.Value2
-                if ($vals -is [array] -and $vals.Rank -eq 2) {
-                    $nR = $vals.GetLength(0); $nC = $vals.GetLength(1)
-                    $hdrF = @(); for ($c = 1; $c -le $nC; $c++) { $hdrF += (([string]$vals[1,$c]).Trim().ToLower()) }
+                $pkgF = Open-ExcelPackage -Path $fichasFile
+                $wsF = $pkgF.Workbook.Worksheets['productores']
+                if ($null -ne $wsF -and $null -ne $wsF.Dimension) {
+                    $nR = $wsF.Dimension.End.Row; $nC = $wsF.Dimension.End.Column
+                    $hdrF = @(); for ($c = 1; $c -le $nC; $c++) { $hdrF += (([string]$wsF.Cells[1,$c].Value).Trim().ToLower()) }
                     for ($r = 2; $r -le $nR; $r++) {
                         $ficha = [ordered]@{}
                         for ($c = 1; $c -le $nC; $c++) {
                             if (-not $hdrF[$c-1]) { continue }
-                            $v = $vals[$r,$c]
-                            $ficha[$hdrF[$c-1]] = if ($null -eq $v) { '' } elseif ($v -is [double]) { $v } else { ([string]$v).Trim() }
+                            $v = $wsF.Cells[$r,$c].Value
+                            $ficha[$hdrF[$c-1]] = if ($null -eq $v) { '' } elseif ($v -is [double]) { $v } elseif ($v -is [DateTime]) { $v.ToString('yyyy-MM-dd') } else { ([string]$v).Trim() }
                         }
                         $canon = ([string]$ficha['productor']).Trim()
                         if (-not $canon) { continue }
@@ -497,31 +509,31 @@ if (Test-Path $cargasFile) {
                         foreach ($al in (([string]$ficha['alias']) -split ';')) { $al = $al.Trim().ToLower(); if ($al) { $almarAliases[$al] = $canon } }
                     }
                 }
-                try { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($wsF) } catch {}
                 Write-Host "    Fichas de productores: $($almarFichas.Count) | alias reconocidos: $($almarAliases.Count)" -ForegroundColor Green
             } catch {
                 Write-Host "    (aviso) no pude leer productores.xlsx: $($_.Exception.Message)" -ForegroundColor DarkYellow
             } finally {
-                if ($wbF) { try { $wbF.Close($false) | Out-Null } catch {}; try { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($wbF) } catch {}; $wbF = $null }
+                if ($pkgF) { try { Close-ExcelPackage $pkgF -NoSave } catch {} }; $pkgF = $null
             }
         } else {
             Write-Host "    (sin fichas) falta fuentes\productores.xlsx" -ForegroundColor DarkYellow
         }
 
-        $wbc = $excelC.Workbooks.Open($cargasFile, $false, $true)
+        $pkgC = Open-ExcelPackage -Path $cargasFile
         $hojaIdx = 0
-        foreach ($wsC in $wbc.Worksheets) {
+        foreach ($wsC in $pkgC.Workbook.Worksheets) {
           try {
             if ($wsC.Name -eq 'madre') { continue }
             $hojaIdx++
-            $rowsC = $wsC.UsedRange.Rows.Count
+            if ($null -eq $wsC.Dimension) { continue }   # hoja vacia
+            $rowsC = $wsC.Dimension.End.Row
             $semana = $null; $fechaFin = $null
             for ($r = 1; $r -le $rowsC; $r++) {
-                $colB = ([string]$wsC.Cells.Item($r,2).Text).Trim()
-                $colC = ([string]$wsC.Cells.Item($r,3).Text).Trim()
-                $colD = ([string]$wsC.Cells.Item($r,4).Text).Trim()
-                $colE = ([string]$wsC.Cells.Item($r,5).Text).Trim()
-                $colF = ([string]$wsC.Cells.Item($r,6).Text).Trim()
+                $colB = ([string]$wsC.Cells[$r,2].Text).Trim()
+                $colC = ([string]$wsC.Cells[$r,3].Text).Trim()
+                $colD = ([string]$wsC.Cells[$r,4].Text).Trim()
+                $colE = ([string]$wsC.Cells[$r,5].Text).Trim()
+                $colF = ([string]$wsC.Cells[$r,6].Text).Trim()
                 if ($colC -match '^Semana\s+(\d+)') { $semana = [int]$Matches[1]; continue }
                 if ($colC -match '(\d{1,2})/(\d{1,2})\s*al\s*(\d{1,2})/(\d{1,2})') {
                     $dia = [int]$Matches[3]; $mes = [int]$Matches[4]
@@ -552,14 +564,13 @@ if (Test-Path $cargasFile) {
             }
           }
           finally {
-            # cada hoja es una referencia COM: soltarla o el proceso no muere
-            try { [void][Runtime.InteropServices.Marshal]::ReleaseComObject($wsC) } catch {}
+            # EPPlus: no hay referencias COM que soltar por hoja.
           }
         }
     }
     finally {
-        Close-ExcelCOM -Handle $xlCargas -Workbook $wbc
-        $wbc = $null; $excelC = $null
+        if ($pkgC) { Close-ExcelPackage $pkgC -NoSave }
+        $pkgC = $null
     }
     Write-Host "    Operaciones parseadas: $($almarRecords.Count)" -ForegroundColor Green
 } else {
@@ -686,6 +697,162 @@ $data | Add-Member -MemberType NoteProperty -Name 'almar' -Value ([PSCustomObjec
 })
 
 Write-Host "    Semanas con datos: $($almarSemanas.Count) | Productores: $($almarProductores.Count) | Cargas YTD: $($data.almar.total_cargas)" -ForegroundColor Green
+
+# ==========================================================================
+# 3b) Plan de Cargas desde Aloha (API del ERP)  [agregado 17/09/2026]
+# --------------------------------------------------------------------------
+# La planilla cargas 2026.xlsx tiene el PRECIO por carga pero se carga a mano
+# y quedo vieja (el resumen del 16/09 decia "hace 6 sem sin cargas nuevas").
+# El plan de cargas REAL (que camion viene, cuando, cuantas cajas, en que
+# estado) vive en Aloha, asi que se lee de ahi: login con un usuario de solo
+# lectura (config\aloha.json, NO va al repo) + GET /plan-cargas. Aloha no se
+# toca: solo se le piden datos. La respuesta se cachea en
+# fuentes\plan_cargas_aloha.json para que una caida de la API no deje el
+# resumen sin el bloque. SIN precio: eso sigue saliendo de la planilla (3).
+# ==========================================================================
+Write-Host "[3b] Plan de Cargas (Aloha)..." -ForegroundColor Cyan
+$alohaCfgPath  = Join-Path $base "config\aloha.json"
+$planCachePath = Join-Path $fuentes "plan_cargas_aloha.json"
+$planCargas    = $null     # { generado_en; origen='aloha'|'cache'; fuente; cargas=@() }
+$alohaCfg      = $null
+if (Test-Path $alohaCfgPath) {
+    try { $alohaCfg = Get-Content $alohaCfgPath -Raw -Encoding UTF8 | ConvertFrom-Json }
+    catch { Add-Falla -Paso 'Plan de Cargas (config)' -Detalle "config\aloha.json ilegible: $($_.Exception.Message)" }
+}
+
+function Get-PlanCargasAloha {
+    # Login -> token JWT -> lista del plan -> logout. Tira si algo falla; el que
+    # llama decide si cae al cache.
+    param($cfg)
+    $apiBase = ([string]$cfg.url).TrimEnd('/')
+    if ([string]::IsNullOrWhiteSpace($apiBase)) { throw "falta 'url' en config\aloha.json" }
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
+    $loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
+    $login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent "poronga/1.0"
+    if ($login.debe_cambiar_password) {
+        throw "el usuario '$($cfg.username)' todavia tiene la clave inicial del admin: entrar una vez a Aloha con ese usuario y cambiarla"
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
+    $hdr = @{ Authorization = "Bearer $($login.token)" }
+    $qs = @('limit=5000')
+    if (-not [string]::IsNullOrWhiteSpace([string]$cfg.fuente)) { $qs += "fuente=$([uri]::EscapeDataString([string]$cfg.fuente))" }
+    try {
+        $rows = Invoke-RestMethod -Uri "$apiBase/plan-cargas?$($qs -join '&')" -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0"
+    } finally {
+        try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent "poronga/1.0" | Out-Null } catch {}
+    }
+    return @($rows)
+}
+
+if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
+    Write-Host "    Plan de Cargas deshabilitado (config/aloha.json)" -ForegroundColor DarkYellow
+} elseif ([string]::IsNullOrWhiteSpace([string]$alohaCfg.username) -or [string]::IsNullOrWhiteSpace([string]$alohaCfg.password)) {
+    Write-Host "    Falta username/password en config/aloha.json - completar para activar" -ForegroundColor DarkYellow
+} else {
+    try {
+        $filasPlan = Get-PlanCargasAloha -cfg $alohaCfg
+        $planCargas = [PSCustomObject]@{
+            generado_en = (Get-Date).ToString('yyyy-MM-dd HH:mm')
+            origen      = 'aloha'
+            fuente      = [string]$alohaCfg.fuente
+            cargas      = $filasPlan
+        }
+        $planCargas | ConvertTo-Json -Depth 6 -Compress | Out-File -FilePath $planCachePath -Encoding UTF8
+        Write-Host "    OK: $($filasPlan.Count) cargas del plan (fuente '$($alohaCfg.fuente)')" -ForegroundColor Green
+    } catch {
+        $detPlan = $_.Exception.Message
+        if (Test-Path $planCachePath) {
+            try {
+                $planCargas = Get-Content $planCachePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $planCargas.origen = 'cache'
+                $edadPlan = [math]::Round(((Get-Date) - [DateTime]::Parse($planCargas.generado_en)).TotalDays, 1)
+                Add-Falla -Paso 'Plan de Cargas (Aloha)' -Detalle "$detPlan - sigo con el cache de hace $edadPlan dias"
+                Write-Host "    FALLO ($detPlan) - uso cache de hace $edadPlan dias" -ForegroundColor Yellow
+            } catch {
+                $planCargas = $null
+                Add-Falla -Paso 'Plan de Cargas (Aloha)' -Detalle "$detPlan - y el cache no se pudo leer"
+            }
+        } else {
+            Add-Falla -Paso 'Plan de Cargas (Aloha)' -Detalle "$detPlan - y no hay cache local"
+            Write-Host "    FALLO ($detPlan) - sin cache" -ForegroundColor Red
+        }
+    }
+}
+
+# Agregados del plan. Estados de Aloha:
+#   Solicitado, Confirmado, Cargado, Mar, Puerto  -> todavia no llego a frontera
+#   Frontera, Liberado                             -> en camino (llega en dias)
+#   Arribado                                       -> en el deposito sin descargar
+#   Descargado, Cancelado, Destruida               -> terminados
+$PLAN_PENDIENTES = @('Solicitado','Confirmado','Cargado','Mar','Puerto','Frontera','Liberado','Arribado')
+$PLAN_EN_CAMINO  = @('Frontera','Liberado')
+$PLAN_POR_VENIR  = @('Solicitado','Confirmado','Cargado','Mar','Puerto')
+function Get-CajasPlan { param($rows) [int](($rows | ForEach-Object { if ($_.cajas_mic) { [int]$_.cajas_mic } else { 0 } } | Measure-Object -Sum).Sum) }
+function Get-ProductoresPlan { param($rows) @($rows | ForEach-Object { ([string]$_.productor).Trim() } | Where-Object { $_ } | Sort-Object -Unique) }
+function Get-ConteoStatus { param($rows) $h = [ordered]@{}; foreach ($r in $rows) { $s = [string]$r.status; if (-not $h.Contains($s)) { $h[$s] = 0 }; $h[$s]++ }; $h }
+
+$planSemanas = @(); $planResumen = $null
+if ($null -ne $planCargas -and @($planCargas.cargas).Count -gt 0) {
+    $cargasPlan = @($planCargas.cargas)
+    # Por semana de la FECHA DE CARGA (lunes como clave). carga_semana es texto
+    # libre de la planilla y no sirve para ordenar. Las canceladas/destruidas
+    # no cuentan: nunca fueron ni van a ser un camion.
+    $PLAN_ANULADAS = @('Cancelado','Destruida')
+    $porSemana = @{}
+    foreach ($c in $cargasPlan) {
+        if ($PLAN_ANULADAS -contains [string]$c.status) { continue }
+        if ([string]::IsNullOrWhiteSpace([string]$c.fecha_carga)) { continue }
+        try { $fc = [DateTime]::Parse([string]$c.fecha_carga) } catch { continue }
+        $lunes = $fc.Date.AddDays(-((([int]$fc.DayOfWeek) + 6) % 7))
+        $k = $lunes.ToString('yyyy-MM-dd')
+        if (-not $porSemana.ContainsKey($k)) { $porSemana[$k] = @() }
+        $porSemana[$k] += $c
+    }
+    foreach ($k in ($porSemana.Keys | Sort-Object)) {
+        $g = @($porSemana[$k])
+        $planSemanas += [PSCustomObject]@{
+            semana_lunes = $k
+            camiones     = $g.Count
+            cajas        = Get-CajasPlan $g
+            cajas_desc   = [int](($g | ForEach-Object { if ($_.cajas_desc) { [int]$_.cajas_desc } else { 0 } } | Measure-Object -Sum).Sum)
+            pallets      = [int](($g | ForEach-Object { if ($_.cant_pallet) { [int]$_.cant_pallet } else { 0 } } | Measure-Object -Sum).Sum)
+            productores  = Get-ProductoresPlan $g
+            por_status   = Get-ConteoStatus $g
+            pendientes   = @($g | Where-Object { $PLAN_PENDIENTES -contains [string]$_.status }).Count
+        }
+    }
+    $hoyPlan   = (Get-Date).Date
+    $lunesHoy  = $hoyPlan.AddDays(-((([int]$hoyPlan.DayOfWeek) + 6) % 7)).ToString('yyyy-MM-dd')
+    $enCamino  = @($cargasPlan | Where-Object { $PLAN_EN_CAMINO -contains [string]$_.status })
+    $porVenir  = @($cargasPlan | Where-Object { $PLAN_POR_VENIR -contains [string]$_.status })
+    $arribados = @($cargasPlan | Where-Object { [string]$_.status -eq 'Arribado' })
+    $descargadas = @($cargasPlan | Where-Object { [string]$_.status -eq 'Descargado' -and -not [string]::IsNullOrWhiteSpace([string]$_.fecha_descarga) })
+    $ultimaDesc = $null
+    if ($descargadas.Count -gt 0) { $ultimaDesc = $descargadas | Sort-Object { [DateTime]::Parse([string]$_.fecha_descarga) } | Select-Object -Last 1 }
+    $ultimaDescObj = $null
+    if ($ultimaDesc) {
+        $udCajas = 0
+        if ($ultimaDesc.cajas_desc) { $udCajas = [int]$ultimaDesc.cajas_desc } elseif ($ultimaDesc.cajas_mic) { $udCajas = [int]$ultimaDesc.cajas_mic }
+        $ultimaDescObj = [PSCustomObject]@{ fecha = [string]$ultimaDesc.fecha_descarga; productor = ([string]$ultimaDesc.productor).Trim(); cajas = $udCajas }
+    }
+    $semActual = $planSemanas | Where-Object { $_.semana_lunes -eq $lunesHoy } | Select-Object -First 1
+    $planResumen = [PSCustomObject]@{
+        origen          = $planCargas.origen
+        generado_en     = $planCargas.generado_en
+        fuente          = $planCargas.fuente
+        total           = $cargasPlan.Count
+        por_status      = Get-ConteoStatus $cargasPlan
+        semana_actual   = $semActual
+        en_camino       = [PSCustomObject]@{ camiones = $enCamino.Count;  cajas = (Get-CajasPlan $enCamino);  por_status = (Get-ConteoStatus $enCamino);  productores = (Get-ProductoresPlan $enCamino) }
+        por_venir       = [PSCustomObject]@{ camiones = $porVenir.Count;  cajas = (Get-CajasPlan $porVenir);  por_status = (Get-ConteoStatus $porVenir);  productores = (Get-ProductoresPlan $porVenir) }
+        arribados       = [PSCustomObject]@{ camiones = $arribados.Count; cajas = (Get-CajasPlan $arribados) }
+        ultima_descarga = $ultimaDescObj
+        semanas         = $planSemanas
+    }
+    $data | Add-Member -MemberType NoteProperty -Name 'plan_cargas' -Value $planResumen
+    Write-Host "    Plan: $($cargasPlan.Count) cargas | en camino $($enCamino.Count) | por venir $($porVenir.Count) | arribados $($arribados.Count) | semanas $($planSemanas.Count)" -ForegroundColor Green
+}
 
 # ==========================================================================
 # 3.5) Bajar clima de zonas productoras (Open-Meteo, API gratuita sin key)
@@ -3692,6 +3859,7 @@ if ($nanica.Count -ge 2) {
 
 # Minimo/maximo ultimos 6 meses
 $umbralFecha = (Get-Date).AddMonths(-6).ToString("yyyy-MM-dd")
+$mesUmbral6m = $MESES_NOM[[int](Get-Date).AddMonths(-6).Month]   # mes de hace 6 meses, para las alertas de extremo (antes decia "noviembre" fijo)
 $ult6m = $nanica | Where-Object { $_.fecha -ge $umbralFecha }
 $minimo6m = if ($ult6m) { ($ult6m | Measure-Object -Property precio -Minimum).Minimum } else { $null }
 $maximo6m = if ($ult6m) { ($ult6m | Measure-Object -Property precio -Maximum).Maximum } else { $null }
@@ -3735,13 +3903,13 @@ else {
     # 3) Nuevo minimo / maximo 6 meses
     if ($minimo6m -ne $null -and $ultimoPrec -le $minimo6m -and ($ult6m | Where-Object { $_.precio -eq $minimo6m } | Measure-Object).Count -eq 1) {
         $titulo = "Nuevo MINIMO de 6 meses"
-        $msg = "Precio R$ $ultimoPrec/kg es el mas bajo desde noviembre."
+        $msg = "Precio R$ $ultimoPrec/kg es el mas bajo desde $mesUmbral6m."
         Write-Alert -titulo $titulo -mensaje $msg -nivel "EXTREMO"
         $nuevasAlertas++
     }
     if ($maximo6m -ne $null -and $ultimoPrec -ge $maximo6m -and ($ult6m | Where-Object { $_.precio -eq $maximo6m } | Measure-Object).Count -eq 1) {
         $titulo = "Nuevo MAXIMO de 6 meses"
-        $msg = "Precio R$ $ultimoPrec/kg es el mas alto desde noviembre."
+        $msg = "Precio R$ $ultimoPrec/kg es el mas alto desde $mesUmbral6m."
         Write-Alert -titulo $titulo -mensaje $msg -nivel "EXTREMO"
         $nuevasAlertas++
     }
@@ -3954,7 +4122,7 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
             $msg = "🍌 *ALMAR — Oportunidad*`n$oppLevel (score +$oppScore)`n`n"
             $msg += "Cepea: R$ $($oppLast.ToString('F2'))/kg ($($pctChg3w.ToString('F1'))% 3sem)`n"
             $msg += "Zona: $zonaAct (prom mes R$ $($oppPM.ToString('F2')))`n"
-            if ($spreadAvg -ne 0) { $msg += "Spread Almar: " + (if ($spreadAvg -ge 0) {"+"} else {""}) + "$($spreadAvg.ToString('F1'))/caja`n" }
+            if ($spreadAvg -ne 0) { $sgnSpr = if ($spreadAvg -ge 0) {"+"} else {""}; $msg += "Spread Almar: $sgnSpr$($spreadAvg.ToString('F1'))/caja`n" }
             $msg += "`n👉 Cerrá contratos largos esta semana"
             $alertasFire += @{ tipo='criticas'; msg=$msg }
         }
@@ -4248,6 +4416,48 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $ecSpread = (($ecP - $script:EC_PMS_USD_CAJA) / $script:EC_PMS_USD_CAJA) * 100
                 $msg += "*🇪🇨 Ecuador FOB* (Tridge, dato $(Get-FechaCorta $script:ecLastPoint.date))`n"
                 $msg += "USD $($ecP.ToString('F2'))/caja · $(Get-PctTxt $ecSpread) vs PMS USD $($script:EC_PMS_USD_CAJA.ToString('F2'))`n`n"
+            }
+
+            # --- Plan de Cargas (Aloha): lo que VIENE, no lo que se pago. Se lee
+            #     de la API del ERP en el paso 3b; si fallo, se dice que es cache y
+            #     de cuando. Solo aparecen las lineas con algo que contar.
+            if ($null -ne $planResumen) {
+                $pcTag = if ($planResumen.origen -eq 'cache') { "cache del $(Get-FechaCorta $planResumen.generado_en)" } else { "Aloha $(Get-FechaCorta $planResumen.generado_en)" }
+                function Get-ProdTxt { param($lista, [int]$max = 4)
+                    $l = @($lista); if ($l.Count -eq 0) { return '' }
+                    if ($l.Count -le $max) { return ' · ' + ($l -join ', ') }
+                    return ' · ' + (($l | Select-Object -First $max) -join ', ') + " +$($l.Count - $max)"
+                }
+                function Get-CamTxt { param([int]$n) if ($n -eq 1) { "1 camión" } else { "$n camiones" } }
+                function Get-StatusTxt { param($h)
+                    if ($null -eq $h -or $h.Count -eq 0) { return '' }
+                    $partes = @(); foreach ($k in $h.Keys) { $partes += "$(([string]$k).ToLower()) $($h[$k])" }
+                    return ' (' + ($partes -join ' · ') + ')'
+                }
+                $msg += "*🚛 Plan de Cargas* ($pcTag)`n"
+                if ($planResumen.semana_actual) {
+                    $sa = $planResumen.semana_actual
+                    $msg += "Semana del $(Get-FechaCorta $sa.semana_lunes): $(Get-CamTxt $sa.camiones) · $(([int]$sa.cajas).ToString('N0')) cajas$(Get-ProdTxt $sa.productores)`n"
+                } else {
+                    $msg += "Esta semana: sin cargas en el plan`n"
+                }
+                if ($planResumen.en_camino.camiones -gt 0) {
+                    $msg += "En camino: $(Get-CamTxt $planResumen.en_camino.camiones) · $(([int]$planResumen.en_camino.cajas).ToString('N0')) cajas$(Get-StatusTxt $planResumen.en_camino.por_status)`n"
+                }
+                if ($planResumen.por_venir.camiones -gt 0) {
+                    $msg += "Por venir: $(Get-CamTxt $planResumen.por_venir.camiones) · $(([int]$planResumen.por_venir.cajas).ToString('N0')) cajas$(Get-StatusTxt $planResumen.por_venir.por_status)`n"
+                }
+                if ($planResumen.arribados.camiones -gt 0) {
+                    $msg += "En depósito sin descargar: $(Get-CamTxt $planResumen.arribados.camiones)`n"
+                }
+                if ($planResumen.ultima_descarga) {
+                    $ud = $planResumen.ultima_descarga
+                    $msg += "Última descarga $(Get-FechaCorta $ud.fecha)"
+                    if ($ud.productor) { $msg += " · $($ud.productor)" }
+                    if ($ud.cajas -gt 0) { $msg += " · $(([int]$ud.cajas).ToString('N0')) cajas" }
+                    $msg += "`n"
+                }
+                $msg += "`n"
             }
 
             # --- Almar: ultima semana con cargas en la planilla. Si la planilla no se

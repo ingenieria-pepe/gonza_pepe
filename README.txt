@@ -24,9 +24,12 @@ ARCHIVOS DE TRABAJO:
 CARPETAS:
   config/      whatsapp.json (Whapi token + números)
                cepea_regiones.json (regiones Cepea a comparar + fletes por camión a MVD; los fletes los cargás vos)
+               aloha.json (usuario/clave de Aloha para leer el Plan de Cargas;
+               plantilla en aloha.example.json)
   penta/       extractos de aduana Penta (detalle_UYimport_*.xlsx, todos los origenes juntos) → tirar el nuevo aca y correr el script
   fuentes/     datos VIVOS del pipeline
                - cargas 2026.xlsx (operaciones del año, vos editás)
+               - plan_cargas_aloha.json (cache del Plan de Cargas leído de Aloha)
                - precios_banana_SC_2023-2026.xlsx (cache Cepea Norte SC)
                - precios_banana_VRibeira/NMinas/BJLapa.xlsx (cache Cepea otras regiones, paso 2b)
                - precios_cepea.json (sidecar inyectado en HTMLs)
@@ -72,6 +75,31 @@ FUENTES DE PRECIO (resumen):
                  Rezago real: ~2 semanas. SIPA descartado por 6m de lag.
 
 LOG DE CAMBIOS:
+  17/09/2026 -> Plan de Cargas desde Aloha (paso [3b] del script). Gonzalo pidio
+               anexar el plan de cargas al resumen semanal: la planilla cargas
+               2026.xlsx quedo vieja ("hace 6 sem sin cargas nuevas"). Ahora el
+               script entra a la API del ERP (aloha.somospepe.com) con un usuario
+               de solo lectura (configloha.json) y lee GET /plan-cargas: camiones
+               por semana, en camino (frontera/liberado), por venir, arribados y
+               ultima descarga. Bloque nuevo "Plan de Cargas" en el WhatsApp
+               semanal y $data.plan_cargas en el JSON. Aloha NO se toca. Cache en
+               fuentes\plan_cargas_aloha.json (si la API falla, se usa y se avisa).
+               El bloque Almar (precio R$/caja) sigue saliendo de la planilla: el
+               plan de Aloha no tiene precio.
+  17/09/2026 -> sync laptop -> GitHub -> servidor (merge con el paso [3b] de
+               Aloha). Entraron los cambios hechos en la laptop del 05/09 al
+               16/09: Cepea por region (2b), fichas editables (3a), Plan de
+               Cargas desde xlsx (5h) e index_cargas / index_recepcion, guia de
+               corte v3.4, documentos/, pie-de-camion-importaciones/.
+               La copia de la laptop venia SIN BOM, SIN la reescritura del
+               resumen del 04/09 y con los lectores de xlsx otra vez en Excel
+               COM. Se restauro todo antes del merge; los lectores de Cepea,
+               cargas 2026 y fichas (lectura y volcado de ediciones) pasaron a
+               ImportExcel/EPPlus y se verificaron contra la salida COM del
+               16/09 (192 semanas Cepea, 451 operaciones, 25 fichas, mismos
+               agregados por productor/transportista). Tambien: -UseBasicParsing
+               en la descarga Cepea, fix del '"..." + (if' en la alerta
+               Oportunidad y "desde noviembre" -> mes real.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
@@ -82,6 +110,30 @@ LOG DE CAMBIOS:
                ubicación por Plus code o lat/lon, nota). Guarda en el navegador y en
                fuentes/productores_ediciones.json; el paso 3a del script lo pasa a
                productores.xlsx. Km por ruta a UAM y frigorífico CR en las fichas.
+  04/09/2026 -> se integro el paquete poronga_2026-09-04.zip (paneles nuevos:
+               inicio/mercado/proyeccion/comparativo/calidad, salud del pipeline,
+               alerta WhatsApp de fallas, Get-AccionZona, penta/).
+               El paquete venia armado en una PC CON Excel y SIN los fixes de
+               servidor del 04/08, asi que hubo que re-aplicarlos uno por uno:
+               * xlsx: volvia a Excel COM. Re-migrado a ImportExcel (EPPlus) en
+                 los dos lectores (Cepea y cargas 2026). Esta PC no tiene Office.
+               * $base: venia hardcodeado a C:\Users\Usuario\Desktop\poronga
+                 (ruta inexistente aca). Vuelto a $PSScriptRoot.
+               * BOM: el .ps1 venia UTF-8 SIN BOM -> PS 5.1 lo leia como ANSI y
+                 daba 48 errores de sintaxis. Reguardado UTF-8 CON BOM.
+               * -UseBasicParsing: se habia perdido en el scraping de Paraguay
+                 (y faltaba en el de IndexMundi, que es codigo nuevo).
+               * config\whatsapp.json: NO se piso, el zip lo trae sin token a
+                 proposito. Solo se le agrego la clave alerts.fallas_pipeline.
+               * Bug propio del paquete: "..." + (if ...) + "..." no es una
+                 expresion valida en PowerShell (revienta en runtime, no al
+                 parsear). Estaba en la alerta de Oportunidad. Pasado a variable.
+               * Cosmetico: el resumen semanal decia "prom mayo" y las alertas de
+                 extremo "desde noviembre", ambos fijos. Ahora salen del mes real.
+
+  ATENCION PARA LA PROXIMA ACTUALIZACION: esta PC-servidor no tiene Excel, no
+  tiene Internet Explorer y corre la tarea con powershell.exe (PS 5.1). Los
+  cuatro fixes de arriba hay que conservarlos en cualquier paquete que llegue.
   14/06/2026 → nueva carpeta guia_corte/ : control de calidad por corte
                transversal del dedo en verde. Guía A4 (enfermedades + mediciones,
                con investigación deep-research verificada), calculadora del
