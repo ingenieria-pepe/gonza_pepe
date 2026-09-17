@@ -3,6 +3,8 @@
 # (gitignore no admite comentarios al final de la linea: van arriba de cada patron)
 # token Whapi + telefonos destino:
 config/whatsapp.json
+# usuario/clave de Aloha para leer el Plan de Cargas:
+config/aloha.json
 # la salida del pipeline lista los telefonos destino:
 last_run.log
 
@@ -14,6 +16,7 @@ fuentes/state_alertas.json
 fuentes/state_whatsapp.json
 fuentes/precios_py_cache.json
 fuentes/indexmundi_cache.json
+fuentes/plan_cargas_aloha.json
 fuentes/clima_archive_cache/
 alertas.log
 # planillas que alguien edito en el servidor y el espejo iba a pisar:

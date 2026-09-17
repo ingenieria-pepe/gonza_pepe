@@ -24,8 +24,11 @@ ARCHIVOS DE TRABAJO (referencia, en la raíz):
 
 CARPETAS:
   config/      whatsapp.json (Whapi token + números)
+               aloha.json (usuario/clave de Aloha para leer el Plan de Cargas;
+               plantilla en aloha.example.json)
   fuentes/     datos VIVOS del pipeline
                - cargas 2026.xlsx (operaciones del año, vos editás)
+               - plan_cargas_aloha.json (cache del Plan de Cargas leído de Aloha)
                - precios_banana_SC_2023-2026.xlsx (cache Cepea)
                - precios_cepea.json (sidecar inyectado en HTMLs)
                - precios_py_cache.json (Carape PY)
@@ -62,6 +65,17 @@ FUENTES DE PRECIO (resumen):
                  Rezago real: ~2 semanas. SIPA descartado por 6m de lag.
 
 LOG DE CAMBIOS:
+  17/09/2026 -> Plan de Cargas desde Aloha (paso [3b] del script). Gonzalo pidio
+               anexar el plan de cargas al resumen semanal: la planilla cargas
+               2026.xlsx quedo vieja ("hace 6 sem sin cargas nuevas"). Ahora el
+               script entra a la API del ERP (aloha.somospepe.com) con un usuario
+               de solo lectura (configloha.json) y lee GET /plan-cargas: camiones
+               por semana, en camino (frontera/liberado), por venir, arribados y
+               ultima descarga. Bloque nuevo "Plan de Cargas" en el WhatsApp
+               semanal y $data.plan_cargas en el JSON. Aloha NO se toca. Cache en
+               fuentes\plan_cargas_aloha.json (si la API falla, se usa y se avisa).
+               El bloque Almar (precio R$/caja) sigue saliendo de la planilla: el
+               plan de Aloha no tiene precio.
   04/09/2026 -> se integro el paquete poronga_2026-09-04.zip (paneles nuevos:
                inicio/mercado/proyeccion/comparativo/calidad, salud del pipeline,
                alerta WhatsApp de fallas, Get-AccionZona, penta/).

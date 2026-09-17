@@ -359,6 +359,162 @@ $data | Add-Member -MemberType NoteProperty -Name 'almar' -Value ([PSCustomObjec
 Write-Host "    Semanas con datos: $($almarSemanas.Count) | Productores: $($almarProductores.Count) | Cargas YTD: $($data.almar.total_cargas)" -ForegroundColor Green
 
 # ==========================================================================
+# 3b) Plan de Cargas desde Aloha (API del ERP)  [agregado 17/09/2026]
+# --------------------------------------------------------------------------
+# La planilla cargas 2026.xlsx tiene el PRECIO por carga pero se carga a mano
+# y quedo vieja (el resumen del 16/09 decia "hace 6 sem sin cargas nuevas").
+# El plan de cargas REAL (que camion viene, cuando, cuantas cajas, en que
+# estado) vive en Aloha, asi que se lee de ahi: login con un usuario de solo
+# lectura (config\aloha.json, NO va al repo) + GET /plan-cargas. Aloha no se
+# toca: solo se le piden datos. La respuesta se cachea en
+# fuentes\plan_cargas_aloha.json para que una caida de la API no deje el
+# resumen sin el bloque. SIN precio: eso sigue saliendo de la planilla (3).
+# ==========================================================================
+Write-Host "[3b] Plan de Cargas (Aloha)..." -ForegroundColor Cyan
+$alohaCfgPath  = Join-Path $base "config\aloha.json"
+$planCachePath = Join-Path $fuentes "plan_cargas_aloha.json"
+$planCargas    = $null     # { generado_en; origen='aloha'|'cache'; fuente; cargas=@() }
+$alohaCfg      = $null
+if (Test-Path $alohaCfgPath) {
+    try { $alohaCfg = Get-Content $alohaCfgPath -Raw -Encoding UTF8 | ConvertFrom-Json }
+    catch { Add-Falla -Paso 'Plan de Cargas (config)' -Detalle "config\aloha.json ilegible: $($_.Exception.Message)" }
+}
+
+function Get-PlanCargasAloha {
+    # Login -> token JWT -> lista del plan -> logout. Tira si algo falla; el que
+    # llama decide si cae al cache.
+    param($cfg)
+    $apiBase = ([string]$cfg.url).TrimEnd('/')
+    if ([string]::IsNullOrWhiteSpace($apiBase)) { throw "falta 'url' en config\aloha.json" }
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
+    $loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
+    $login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent "poronga/1.0"
+    if ($login.debe_cambiar_password) {
+        throw "el usuario '$($cfg.username)' todavia tiene la clave inicial del admin: entrar una vez a Aloha con ese usuario y cambiarla"
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
+    $hdr = @{ Authorization = "Bearer $($login.token)" }
+    $qs = @('limit=5000')
+    if (-not [string]::IsNullOrWhiteSpace([string]$cfg.fuente)) { $qs += "fuente=$([uri]::EscapeDataString([string]$cfg.fuente))" }
+    try {
+        $rows = Invoke-RestMethod -Uri "$apiBase/plan-cargas?$($qs -join '&')" -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0"
+    } finally {
+        try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent "poronga/1.0" | Out-Null } catch {}
+    }
+    return @($rows)
+}
+
+if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
+    Write-Host "    Plan de Cargas deshabilitado (config/aloha.json)" -ForegroundColor DarkYellow
+} elseif ([string]::IsNullOrWhiteSpace([string]$alohaCfg.username) -or [string]::IsNullOrWhiteSpace([string]$alohaCfg.password)) {
+    Write-Host "    Falta username/password en config/aloha.json - completar para activar" -ForegroundColor DarkYellow
+} else {
+    try {
+        $filasPlan = Get-PlanCargasAloha -cfg $alohaCfg
+        $planCargas = [PSCustomObject]@{
+            generado_en = (Get-Date).ToString('yyyy-MM-dd HH:mm')
+            origen      = 'aloha'
+            fuente      = [string]$alohaCfg.fuente
+            cargas      = $filasPlan
+        }
+        $planCargas | ConvertTo-Json -Depth 6 -Compress | Out-File -FilePath $planCachePath -Encoding UTF8
+        Write-Host "    OK: $($filasPlan.Count) cargas del plan (fuente '$($alohaCfg.fuente)')" -ForegroundColor Green
+    } catch {
+        $detPlan = $_.Exception.Message
+        if (Test-Path $planCachePath) {
+            try {
+                $planCargas = Get-Content $planCachePath -Raw -Encoding UTF8 | ConvertFrom-Json
+                $planCargas.origen = 'cache'
+                $edadPlan = [math]::Round(((Get-Date) - [DateTime]::Parse($planCargas.generado_en)).TotalDays, 1)
+                Add-Falla -Paso 'Plan de Cargas (Aloha)' -Detalle "$detPlan - sigo con el cache de hace $edadPlan dias"
+                Write-Host "    FALLO ($detPlan) - uso cache de hace $edadPlan dias" -ForegroundColor Yellow
+            } catch {
+                $planCargas = $null
+                Add-Falla -Paso 'Plan de Cargas (Aloha)' -Detalle "$detPlan - y el cache no se pudo leer"
+            }
+        } else {
+            Add-Falla -Paso 'Plan de Cargas (Aloha)' -Detalle "$detPlan - y no hay cache local"
+            Write-Host "    FALLO ($detPlan) - sin cache" -ForegroundColor Red
+        }
+    }
+}
+
+# Agregados del plan. Estados de Aloha:
+#   Solicitado, Confirmado, Cargado, Mar, Puerto  -> todavia no llego a frontera
+#   Frontera, Liberado                             -> en camino (llega en dias)
+#   Arribado                                       -> en el deposito sin descargar
+#   Descargado, Cancelado, Destruida               -> terminados
+$PLAN_PENDIENTES = @('Solicitado','Confirmado','Cargado','Mar','Puerto','Frontera','Liberado','Arribado')
+$PLAN_EN_CAMINO  = @('Frontera','Liberado')
+$PLAN_POR_VENIR  = @('Solicitado','Confirmado','Cargado','Mar','Puerto')
+function Get-CajasPlan { param($rows) [int](($rows | ForEach-Object { if ($_.cajas_mic) { [int]$_.cajas_mic } else { 0 } } | Measure-Object -Sum).Sum) }
+function Get-ProductoresPlan { param($rows) @($rows | ForEach-Object { ([string]$_.productor).Trim() } | Where-Object { $_ } | Sort-Object -Unique) }
+function Get-ConteoStatus { param($rows) $h = [ordered]@{}; foreach ($r in $rows) { $s = [string]$r.status; if (-not $h.Contains($s)) { $h[$s] = 0 }; $h[$s]++ }; $h }
+
+$planSemanas = @(); $planResumen = $null
+if ($null -ne $planCargas -and @($planCargas.cargas).Count -gt 0) {
+    $cargasPlan = @($planCargas.cargas)
+    # Por semana de la FECHA DE CARGA (lunes como clave). carga_semana es texto
+    # libre de la planilla y no sirve para ordenar. Las canceladas/destruidas
+    # no cuentan: nunca fueron ni van a ser un camion.
+    $PLAN_ANULADAS = @('Cancelado','Destruida')
+    $porSemana = @{}
+    foreach ($c in $cargasPlan) {
+        if ($PLAN_ANULADAS -contains [string]$c.status) { continue }
+        if ([string]::IsNullOrWhiteSpace([string]$c.fecha_carga)) { continue }
+        try { $fc = [DateTime]::Parse([string]$c.fecha_carga) } catch { continue }
+        $lunes = $fc.Date.AddDays(-((([int]$fc.DayOfWeek) + 6) % 7))
+        $k = $lunes.ToString('yyyy-MM-dd')
+        if (-not $porSemana.ContainsKey($k)) { $porSemana[$k] = @() }
+        $porSemana[$k] += $c
+    }
+    foreach ($k in ($porSemana.Keys | Sort-Object)) {
+        $g = @($porSemana[$k])
+        $planSemanas += [PSCustomObject]@{
+            semana_lunes = $k
+            camiones     = $g.Count
+            cajas        = Get-CajasPlan $g
+            cajas_desc   = [int](($g | ForEach-Object { if ($_.cajas_desc) { [int]$_.cajas_desc } else { 0 } } | Measure-Object -Sum).Sum)
+            pallets      = [int](($g | ForEach-Object { if ($_.cant_pallet) { [int]$_.cant_pallet } else { 0 } } | Measure-Object -Sum).Sum)
+            productores  = Get-ProductoresPlan $g
+            por_status   = Get-ConteoStatus $g
+            pendientes   = @($g | Where-Object { $PLAN_PENDIENTES -contains [string]$_.status }).Count
+        }
+    }
+    $hoyPlan   = (Get-Date).Date
+    $lunesHoy  = $hoyPlan.AddDays(-((([int]$hoyPlan.DayOfWeek) + 6) % 7)).ToString('yyyy-MM-dd')
+    $enCamino  = @($cargasPlan | Where-Object { $PLAN_EN_CAMINO -contains [string]$_.status })
+    $porVenir  = @($cargasPlan | Where-Object { $PLAN_POR_VENIR -contains [string]$_.status })
+    $arribados = @($cargasPlan | Where-Object { [string]$_.status -eq 'Arribado' })
+    $descargadas = @($cargasPlan | Where-Object { [string]$_.status -eq 'Descargado' -and -not [string]::IsNullOrWhiteSpace([string]$_.fecha_descarga) })
+    $ultimaDesc = $null
+    if ($descargadas.Count -gt 0) { $ultimaDesc = $descargadas | Sort-Object { [DateTime]::Parse([string]$_.fecha_descarga) } | Select-Object -Last 1 }
+    $ultimaDescObj = $null
+    if ($ultimaDesc) {
+        $udCajas = 0
+        if ($ultimaDesc.cajas_desc) { $udCajas = [int]$ultimaDesc.cajas_desc } elseif ($ultimaDesc.cajas_mic) { $udCajas = [int]$ultimaDesc.cajas_mic }
+        $ultimaDescObj = [PSCustomObject]@{ fecha = [string]$ultimaDesc.fecha_descarga; productor = ([string]$ultimaDesc.productor).Trim(); cajas = $udCajas }
+    }
+    $semActual = $planSemanas | Where-Object { $_.semana_lunes -eq $lunesHoy } | Select-Object -First 1
+    $planResumen = [PSCustomObject]@{
+        origen          = $planCargas.origen
+        generado_en     = $planCargas.generado_en
+        fuente          = $planCargas.fuente
+        total           = $cargasPlan.Count
+        por_status      = Get-ConteoStatus $cargasPlan
+        semana_actual   = $semActual
+        en_camino       = [PSCustomObject]@{ camiones = $enCamino.Count;  cajas = (Get-CajasPlan $enCamino);  por_status = (Get-ConteoStatus $enCamino);  productores = (Get-ProductoresPlan $enCamino) }
+        por_venir       = [PSCustomObject]@{ camiones = $porVenir.Count;  cajas = (Get-CajasPlan $porVenir);  por_status = (Get-ConteoStatus $porVenir);  productores = (Get-ProductoresPlan $porVenir) }
+        arribados       = [PSCustomObject]@{ camiones = $arribados.Count; cajas = (Get-CajasPlan $arribados) }
+        ultima_descarga = $ultimaDescObj
+        semanas         = $planSemanas
+    }
+    $data | Add-Member -MemberType NoteProperty -Name 'plan_cargas' -Value $planResumen
+    Write-Host "    Plan: $($cargasPlan.Count) cargas | en camino $($enCamino.Count) | por venir $($porVenir.Count) | arribados $($arribados.Count) | semanas $($planSemanas.Count)" -ForegroundColor Green
+}
+
+# ==========================================================================
 # 3.5) Bajar clima de zonas productoras (Open-Meteo, API gratuita sin key)
 # ==========================================================================
 Write-Host "[clima] Bajando clima de zonas productoras..." -ForegroundColor Cyan
@@ -2677,6 +2833,48 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $ecSpread = (($ecP - $script:EC_PMS_USD_CAJA) / $script:EC_PMS_USD_CAJA) * 100
                 $msg += "*🇪🇨 Ecuador FOB* (Tridge, dato $(Get-FechaCorta $script:ecLastPoint.date))`n"
                 $msg += "USD $($ecP.ToString('F2'))/caja · $(Get-PctTxt $ecSpread) vs PMS USD $($script:EC_PMS_USD_CAJA.ToString('F2'))`n`n"
+            }
+
+            # --- Plan de Cargas (Aloha): lo que VIENE, no lo que se pago. Se lee
+            #     de la API del ERP en el paso 3b; si fallo, se dice que es cache y
+            #     de cuando. Solo aparecen las lineas con algo que contar.
+            if ($null -ne $planResumen) {
+                $pcTag = if ($planResumen.origen -eq 'cache') { "cache del $(Get-FechaCorta $planResumen.generado_en)" } else { "Aloha $(Get-FechaCorta $planResumen.generado_en)" }
+                function Get-ProdTxt { param($lista, [int]$max = 4)
+                    $l = @($lista); if ($l.Count -eq 0) { return '' }
+                    if ($l.Count -le $max) { return ' · ' + ($l -join ', ') }
+                    return ' · ' + (($l | Select-Object -First $max) -join ', ') + " +$($l.Count - $max)"
+                }
+                function Get-CamTxt { param([int]$n) if ($n -eq 1) { "1 camión" } else { "$n camiones" } }
+                function Get-StatusTxt { param($h)
+                    if ($null -eq $h -or $h.Count -eq 0) { return '' }
+                    $partes = @(); foreach ($k in $h.Keys) { $partes += "$(([string]$k).ToLower()) $($h[$k])" }
+                    return ' (' + ($partes -join ' · ') + ')'
+                }
+                $msg += "*🚛 Plan de Cargas* ($pcTag)`n"
+                if ($planResumen.semana_actual) {
+                    $sa = $planResumen.semana_actual
+                    $msg += "Semana del $(Get-FechaCorta $sa.semana_lunes): $(Get-CamTxt $sa.camiones) · $(([int]$sa.cajas).ToString('N0')) cajas$(Get-ProdTxt $sa.productores)`n"
+                } else {
+                    $msg += "Esta semana: sin cargas en el plan`n"
+                }
+                if ($planResumen.en_camino.camiones -gt 0) {
+                    $msg += "En camino: $(Get-CamTxt $planResumen.en_camino.camiones) · $(([int]$planResumen.en_camino.cajas).ToString('N0')) cajas$(Get-StatusTxt $planResumen.en_camino.por_status)`n"
+                }
+                if ($planResumen.por_venir.camiones -gt 0) {
+                    $msg += "Por venir: $(Get-CamTxt $planResumen.por_venir.camiones) · $(([int]$planResumen.por_venir.cajas).ToString('N0')) cajas$(Get-StatusTxt $planResumen.por_venir.por_status)`n"
+                }
+                if ($planResumen.arribados.camiones -gt 0) {
+                    $msg += "En depósito sin descargar: $(Get-CamTxt $planResumen.arribados.camiones)`n"
+                }
+                if ($planResumen.ultima_descarga) {
+                    $ud = $planResumen.ultima_descarga
+                    $msg += "Última descarga $(Get-FechaCorta $ud.fecha)"
+                    if ($ud.productor) { $msg += " · $($ud.productor)" }
+                    if ($ud.cajas -gt 0) { $msg += " · $(([int]$ud.cajas).ToString('N0')) cajas" }
+                    $msg += "`n"
+                }
+                $msg += "`n"
             }
 
             # --- Almar: ultima semana con cargas en la planilla. Si la planilla no se
