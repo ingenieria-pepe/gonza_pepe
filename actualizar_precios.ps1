@@ -1,4 +1,4 @@
-# ==========================================================================
+﻿# ==========================================================================
 # actualizar_precios.ps1
 # Baja la serie semanal Cepea (Nanica primeira - produtor - Norte SC)
 # y la inyecta en index.html (entre /*__CEPEA_JSON__*/ y /*__END__*/).
