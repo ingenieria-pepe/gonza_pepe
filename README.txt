@@ -100,6 +100,17 @@ LOG DE CAMBIOS:
                agregados por productor/transportista). Tambien: -UseBasicParsing
                en la descarga Cepea, fix del '"..." + (if' en la alerta
                Oportunidad y "desde noviembre" -> mes real.
+  17/09/2026 -> Barra de navegacion comun (NAV_PANELES) arriba de inicio.html y
+               de los 10 index_*.html: botones con el nombre de cada panel, el
+               actual resaltado. Es el mismo bloque en todas las paginas: si se
+               cambia, cambiarlo en todas (index_cargas tenia una nav.top propia,
+               reemplazada). Y tabla "Plan de Cargas - camion por camion" en el
+               Resumen ejecutivo de index_brasil.html (status, productor,
+               carpeta, factura, carga, frontera, descarga, cajas, transportista,
+               placa): sale de Aloha si el paso [3b] esta configurado
+               (CEPEA_DATA.plan_cargas.cargas: pendientes + ultimos 60 dias) y,
+               si no, de la planilla del paso 5h (CARGAS_DATA.porOrigen.BR.lista,
+               que ahora tambien lee las columnas Factura y Placa).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

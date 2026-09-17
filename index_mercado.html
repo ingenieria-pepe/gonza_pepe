@@ -59,6 +59,31 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
 </style>
 </head>
 <body>
+<!-- NAV_PANELES: barra comun para saltar entre paneles. Es la misma en inicio.html y en todos los index_*.html: si se cambia, cambiarla en todos. -->
+<style>
+.nav-paneles{position:sticky;top:0;z-index:1000;background:#0f172a;border-bottom:1px solid #334155;box-shadow:0 2px 6px rgba(0,0,0,.25);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.nav-paneles .np-in{max-width:1400px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.nav-paneles .np-t{color:#94a3b8;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:6px;white-space:nowrap}
+.nav-paneles a{display:inline-block;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.08);color:#e2e8f0;text-decoration:none;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;border:1px solid transparent}
+.nav-paneles a:hover{background:rgba(255,255,255,.18);color:#fff}
+.nav-paneles a.on{background:#f6ad55;color:#1a202c;border-color:#ed8936}
+@media print{.nav-paneles{display:none}}
+</style>
+<nav class="nav-paneles" aria-label="Paneles"><div class="np-in"><span class="np-t">🍌 Almar</span>
+<a href="inicio.html">🏠 Inicio</a>
+<a href="index.html">🍌 Plan de compras</a>
+<a href="index_brasil.html">🇧🇷 Brasil</a>
+<a href="index_paraguay_bolivia.html">🇵🇾🇧🇴 Paraguay · Bolivia</a>
+<a href="index_ecuador.html">🇪🇨 Ecuador</a>
+<a href="index_mercado.html">🌎 Mercado UY</a>
+<a href="index_proyeccion.html">🔭 Proyección</a>
+<a href="index_comparativo_anual.html">📅 Comparativo anual</a>
+<a href="index_cargas.html">🚚 Cargas y saldo</a>
+<a href="index_recepcion.html">📋 Recepción</a>
+<a href="index_calidad.html">🌱 Calidad</a>
+</div></nav>
+<script>(function(){var p=(location.pathname.split('/').pop()||'inicio.html').toLowerCase();try{p=decodeURIComponent(p)}catch(e){}var as=document.querySelectorAll('.nav-paneles a[href]');for(var i=0;i<as.length;i++){if(as[i].getAttribute('href').toLowerCase()===p){as[i].className+=' on';as[i].setAttribute('aria-current','page');}}})();</script>
+<!-- /NAV_PANELES -->
 <div class="wrap">
 
 <header>

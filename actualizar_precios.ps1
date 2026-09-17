@@ -836,6 +836,35 @@ if ($null -ne $planCargas -and @($planCargas.cargas).Count -gt 0) {
         if ($ultimaDesc.cajas_desc) { $udCajas = [int]$ultimaDesc.cajas_desc } elseif ($ultimaDesc.cajas_mic) { $udCajas = [int]$ultimaDesc.cajas_mic }
         $ultimaDescObj = [PSCustomObject]@{ fecha = [string]$ultimaDesc.fecha_descarga; productor = ([string]$ultimaDesc.productor).Trim(); cajas = $udCajas }
     }
+    # Lista camion por camion para la tabla "Plan de Cargas" del resumen ejecutivo de
+    # index_brasil.html [17/09/2026]: todo lo pendiente + lo cargado en los ultimos 60
+    # dias (descargas recientes, y anuladas recientes tachadas). Tope 150 filas.
+    function Get-FechaIsoPlan { param($v)
+        if ($null -eq $v) { return $null }
+        if ($v -is [DateTime]) { return $v.ToString('yyyy-MM-dd') }
+        $sv = [string]$v
+        if ($sv -match '^\d{4}-\d{2}-\d{2}') { return $sv.Substring(0, 10) }
+        try { return ([DateTime]::Parse($sv)).ToString('yyyy-MM-dd') } catch { return $null }
+    }
+    $desdeLista = $hoyPlan.AddDays(-60)
+    $planLista = @()
+    foreach ($c in ($cargasPlan | Sort-Object { $fx = Get-FechaIsoPlan $_.fecha_carga; if ($fx) { $fx } else { '0000-00-00' } } -Descending)) {
+        $stL = [string]$c.status
+        $fcI = Get-FechaIsoPlan $c.fecha_carga
+        $reciente = $false
+        if ($fcI) { try { $reciente = ([DateTime]::Parse($fcI) -ge $desdeLista) } catch {} }
+        if (-not ($PLAN_PENDIENTES -contains $stL) -and -not $reciente) { continue }
+        $planLista += [PSCustomObject]@{
+            id = $c.id; status = $stL; productor = ([string]$c.productor).Trim()
+            carpeta = [string]$c.carpeta_import; factura = [string]$c.factura
+            fecha_carga = $fcI; frontera = [string]$c.frontera
+            fecha_frontera = (Get-FechaIsoPlan $c.fecha_frontera); fecha_descarga = (Get-FechaIsoPlan $c.fecha_descarga)
+            cajas_mic = $(if ($c.cajas_mic) { [int]$c.cajas_mic } else { $null }); cajas_desc = $(if ($c.cajas_desc) { [int]$c.cajas_desc } else { $null })
+            transportista = [string]$c.transportista; placa = [string]$c.placa_camion; placa_remolque = [string]$c.placa_remolque
+            chofer = [string]$c.chofer; tt = $c.tt; semana = [string]$c.carga_semana
+        }
+        if ($planLista.Count -ge 150) { break }
+    }
     $semActual = $planSemanas | Where-Object { $_.semana_lunes -eq $lunesHoy } | Select-Object -First 1
     $planResumen = [PSCustomObject]@{
         origen          = $planCargas.origen
@@ -849,6 +878,7 @@ if ($null -ne $planCargas -and @($planCargas.cargas).Count -gt 0) {
         arribados       = [PSCustomObject]@{ camiones = $arribados.Count; cajas = (Get-CajasPlan $arribados) }
         ultima_descarga = $ultimaDescObj
         semanas         = $planSemanas
+        cargas          = $planLista
     }
     $data | Add-Member -MemberType NoteProperty -Name 'plan_cargas' -Value $planResumen
     Write-Host "    Plan: $($cargasPlan.Count) cargas | en camino $($enCamino.Count) | por venir $($porVenir.Count) | arribados $($arribados.Count) | semanas $($planSemanas.Count)" -ForegroundColor Green
@@ -2942,6 +2972,7 @@ if ($pcXlsx.Count -eq 0) {
     function PC-Col { param($rx) for ($k = 0; $k -lt $hdr.Count; $k++) { if (([string]$hdr[$k]) -match $rx) { return $k } }; return -1 }
     $cSt = PC-Col '^\s*Status';        $cPr  = PC-Col '^\s*Productor';   $cFc  = PC-Col 'Fecha\s*de\s*Carga'
     $cCa = PC-Col 'Carpeta';           $cTr  = PC-Col 'Transportista';   $cFr  = PC-Col '^\s*Frontera'
+    $cFa = PC-Col '^\s*Factura';      $cPl = PC-Col '^\s*Placa'    # opcionales (17/09/2026): para la tabla camion por camion; si no estan, quedan vacios
     $cFd = PC-Col 'Fecha\s*Desc';      $cTT  = PC-Col '^\s*TT';          $cMic = PC-Col 'Cajas\s*MIC'
     $cDes = PC-Col 'Cajas\s*Desc';     $cOb  = PC-Col 'Observ';          $cProd = PC-Col '^\s*Productos'
     foreach ($need in @(@('Status',$cSt),@('Productor',$cPr),@('Fecha de Carga',$cFc),@('Cajas MIC',$cMic),@('Cajas Desc',$cDes),@('TT',$cTT))) {
@@ -2990,7 +3021,7 @@ if ($pcXlsx.Count -eq 0) {
             status = $st; key = $key; origen = $orig
             fecha = $fc; anio = $fc.Year; mes = $fc.Month; doy = $fc.DayOfYear
             viernes = (PC-Viernes $fc).ToString('yyyy-MM-dd')
-            carpeta = (PC-Cel $f $cCa); frontera = $fr; transportista = $tr
+            carpeta = (PC-Cel $f $cCa); frontera = $fr; transportista = $tr; factura = (PC-Cel $f $cFa); placa = (PC-Cel $f $cPl)
             fechaDesc = $fd
             tt = $(if ($ttOk) { $tt } else { $null })
             mic = $mic
@@ -3194,6 +3225,16 @@ if ($pcXlsx.Count -eq 0) {
                         descPrevista = $(if ($_.fechaDesc) { $_.fechaDesc.ToString('yyyy-MM-dd') } else { $null }) } })
         $programados = @($lista | Where-Object { $_.status -match '^Solicitado' } | Sort-Object fecha | ForEach-Object {
             [ordered]@{ productor = $nombre[$_.key]; fecha = $_.fecha.ToString('yyyy-MM-dd'); cajas = $_.mic } })
+        # Lista camion por camion para la tabla "Plan de Cargas" del resumen ejecutivo de index_brasil.html
+        # [17/09/2026]: todo lo pendiente + lo cargado en los ultimos 60 dias, tope 150. Si Aloha esta
+        # configurado, el dashboard prefiere CEPEA_DATA.plan_cargas.cargas (paso 3b) y esto queda de respaldo.
+        function PC-Limpio { param([string]$s) if ($null -eq $s -or $PC_SIN -contains $s.Trim().ToLower()) { return '' }; return $s.Trim() }   # 'xx', '-', '0', vacio -> ''
+        $pcDesdeLista = (Get-Date).Date.AddDays(-60)
+        $listaCamiones = @($lista | Where-Object { ($_.status -notmatch '^Descargado') -or ($_.fecha -ge $pcDesdeLista) } | Sort-Object fecha -Descending | Select-Object -First 150 | ForEach-Object {
+            [ordered]@{ status = $_.status; productor = $nombre[$_.key]; carpeta = (PC-Limpio $_.carpeta); factura = (PC-Limpio $_.factura)
+                        fecha = $_.fecha.ToString('yyyy-MM-dd'); frontera = $_.frontera
+                        fechaDesc = $(if ($_.fechaDesc) { $_.fechaDesc.ToString('yyyy-MM-dd') } else { $null })
+                        mic = $_.mic; desc = $_.desc; transportista = $_.transportista; placa = (PC-Limpio $_.placa) } })
         $conP = @($desc | Where-Object { $null -ne $_.precio })
         $anioP = $null; if ($conP.Count) { $anioP = ($conP | Measure-Object anio -Maximum).Maximum }
         $precioResumen = PC-PrecioInfo $desc
@@ -3214,7 +3255,7 @@ if ($pcXlsx.Count -eq 0) {
             ttDescartados = @($desc | Where-Object { $null -eq $_.tt }).Count
             anios = @($anios | ForEach-Object { "$_" }); porAnio = $porAnio; ytd = $ytd; semanal = $semanal
             productores = $productores; fronteras = $fronteras; transportistas = $transportistas
-            enCamino = $enCamino; programados = $programados; precioResumen = $precioResumen
+            enCamino = $enCamino; programados = $programados; lista = $listaCamiones; precioResumen = $precioResumen
         }
     }
 
