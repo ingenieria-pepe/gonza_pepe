@@ -1,0 +1,10 @@
+{
+  "_nota": "Opcional. Con los fletes en null el dashboard compara sólo precio en origen y no muestra columnas de flete (decisión de Gonzalo, 10/09/2026). Si algún día querés ver el costo puesto en Montevideo, cargá flete_camion_brl (camión completo, R$) en Norte SC; el resto se estima proporcional a km_ruta_mvd. Después de editar, corré actualizar_precios.ps1.",
+  "cajas_por_camion": 1008,
+  "regiones": [
+    { "id": 25, "nombre": "Norte de Santa Catarina", "corto": "Norte SC",          "uf": "SC", "ciudad_ref": "Corupá / Luiz Alves",    "km_ruta_mvd": 1500, "flete_camion_brl": null, "flete_caja_brl": null, "base": true },
+    { "id": 52, "nombre": "Vale do Ribeira",         "corto": "Vale do Ribeira",   "uf": "SP", "ciudad_ref": "Registro / Sete Barras", "km_ruta_mvd": 1800, "flete_camion_brl": null, "flete_caja_brl": null, "base": false },
+    { "id": 24, "nombre": "Norte de Minas Gerais",   "corto": "Norte de Minas",    "uf": "MG", "ciudad_ref": "Janaúba / Jaíba",        "km_ruta_mvd": 3150, "flete_camion_brl": null, "flete_caja_brl": null, "base": false },
+    { "id": 6,  "nombre": "Bom Jesus da Lapa",       "corto": "Bom Jesus da Lapa", "uf": "BA", "ciudad_ref": "Bom Jesus da Lapa",      "km_ruta_mvd": 3600, "flete_camion_brl": null, "flete_caja_brl": null, "base": false }
+  ]
+}

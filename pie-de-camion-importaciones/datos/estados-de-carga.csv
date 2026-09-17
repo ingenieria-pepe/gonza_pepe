@@ -1,0 +1,12 @@
+﻿status;planilla;significado;sale_en_el_monitor
+Solicitado;BR + OTROS;pedida al productor, sin confirmar carga;no
+Confirmado;BR + OTROS;el productor confirmó que va a salir;no
+Cargado;OTROS;cargó en origen;no
+Mar;OTROS (ultramar);navegando;no
+Puerto;OTROS (ultramar);llegó a puerto;no
+Frontera;BR + OTROS;llegó a la frontera, en trámite;SÍ
+Liberado;BR + OTROS;salió de la frontera, en camino al depósito;SÍ
+Arribado;BR + OTROS;llegó al depósito, esperando descarga;no
+Descargado;BR + OTROS;ya se descargó (lo setea el Pie de Camión);no · terminal
+Cancelado;BR + OTROS;se canceló, no llega;no · terminal
+Destruida;OTROS;la carga se destruyó;no · terminal

@@ -30,9 +30,19 @@ Duración: __ min
 🌡️ Temp. pulpa: ____ °C   ← promedio de 3 cajas, de distintas partes del camión
 📏 Calibre: ____ mm
 📐 Largo: ____ cm
+🔪 Corte transversal: ____ (1-5)   ← cortá un dedo al medio y mirá la sección
 🗓️ Fecha de corte del cacho: __/__/____   ← pedírsela al productor
 🌦️ Temp. del día de corte: ____ °C
 🌧️ Lluvia de esa semana: ____ mm
+
+  Escala Almar del corte (a ojo, sobre el corte crudo; guía pág. 5):
+   1 = sobremadura: pálida-amarilla, blanda, harinosa o angular → NO viaja
+   2 = adelantada: franja ámbar por el centro, látex escaso → ya arrancó
+   3 = intermedia: crema-amarillenta, centro apenas más claro → sólo viaje corto
+   4 = punto ideal flete 5-7 días: crema pareja, firme, redondeada, con látex
+   5 = muy verde: blanco marfil opaco, llena, látex abundante → aguanta mucho
+   Cargá 4-5.
+   Sacá la foto del corte con la tira del atlas al lado.
 
 ✅ *Estado general:* ____
 
@@ -67,6 +77,7 @@ Duración: 30 min
 🌡️ Temp. pulpa: 14,5 °C
 📏 Calibre: 39 mm
 📐 Largo: 21 cm
+🔪 Corte transversal: 4 (firme, color parejo, buen almidón)
 🗓️ Fecha de corte del cacho: 28/05/2026
 🌦️ Temp. del día de corte: 24 °C
 🌧️ Lluvia de esa semana: 12 mm

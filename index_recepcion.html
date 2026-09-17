@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ficha de recepción — Almar</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
+  --border:rgba(11,11,11,0.12); --good:#006300; --bad:#c0392b;
+  --s1:#2a78d6; --chip:#eef4fb; --chipsel:#2a78d6;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
+         --border:rgba(255,255,255,0.14); --good:#0ca30c; --bad:#e05c4a;
+         --s1:#3987e5; --chip:#2f3d4e; --chipsel:#3987e5; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+header h1{font-size:21px;margin:0 0 3px}
+header .sub{color:var(--muted);font-size:13px;margin:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 16px 18px;margin:16px 0}
+.card h2{font-size:13px;margin:0 0 14px;color:var(--s1);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.f label{font-size:12.5px;color:var(--muted);font-weight:600}
+.f .hint{font-size:11.5px;color:var(--faint)}
+input,select,textarea{font:inherit;font-size:16px;padding:10px 11px;border:1px solid var(--border);
+  border-radius:9px;background:var(--bg);color:var(--ink);width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--s1);border-color:var(--s1)}
+textarea{resize:vertical;min-height:52px}
+.med3{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:8px;align-items:center;margin-bottom:8px}
+.med3 .lbl{font-size:12.5px;color:var(--muted);font-weight:600}
+.med3 input{padding:8px 9px;text-align:center}
+.med3 .pos{font-size:10.5px;color:var(--faint);text-align:center;font-weight:600;text-transform:uppercase}
+.corte{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 6px}
+.corte button{flex:1;min-width:56px;border:1.5px solid var(--border);background:var(--chip);color:var(--ink);
+  border-radius:10px;padding:9px 4px;cursor:pointer;font:inherit;font-weight:700;font-size:18px;transition:.12s}
+.corte button .d{display:block;font-size:9.5px;font-weight:600;color:var(--muted);margin-top:3px;line-height:1.2}
+.corte button[aria-pressed="true"]{background:var(--chipsel);color:#fff;border-color:var(--chipsel)}
+.corte button[aria-pressed="true"] .d{color:rgba(255,255,255,.9)}
+.escala{font-size:11.5px;color:var(--muted);background:var(--chip);border-radius:9px;padding:9px 11px;margin-top:4px;line-height:1.5}
+.out{position:sticky;bottom:0;background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:14px 16px;margin-top:18px;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.out .btns{display:flex;gap:9px;flex-wrap:wrap}
+.out button{flex:1;min-width:130px;border:0;border-radius:10px;padding:13px;font:inherit;font-weight:700;
+  font-size:15px;cursor:pointer;background:var(--s1);color:#fff}
+.out button.sec{background:var(--chip);color:var(--ink);border:1px solid var(--border)}
+.out .ok{font-size:12.5px;color:var(--good);margin:8px 0 0;min-height:16px;font-weight:600}
+details{margin-top:10px} details summary{font-size:12.5px;color:var(--muted);cursor:pointer}
+details pre{background:var(--chip);border-radius:9px;padding:11px;font-size:11.5px;overflow-x:auto;white-space:pre-wrap;margin:8px 0 0}
+.nota{font-size:12px;color:var(--muted);border-left:3px solid var(--s1);padding-left:11px;margin:16px 0 0;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🍌 Ficha de recepción a pie de camión</h1>
+  <p class="sub">Llenala parada al lado del camión. Abajo te arma el WhatsApp y la fila del Excel.</p>
+</header>
+
+<div class="card">
+  <h2>Identificación</h2>
+  <div class="row">
+    <div class="f"><label>Código (CK### o del productor)</label><input id="codigo" placeholder="CK079" autocomplete="off"></div>
+    <div class="f"><label>Fecha de recepción</label><input id="fecha_recepcion" type="date"></div>
+  </div>
+  <div class="row">
+    <div class="f"><label>Origen</label><select id="origen">
+      <option value="">—</option><option>Brasil</option><option>Paraguay</option><option>Bolivia</option><option>Ecuador</option>
+    </select></div>
+    <div class="f"><label>Productor</label><select id="productor"></select></div>
+  </div>
+  <div class="f"><label>Cajas (total)</label><input id="cajas" type="number" inputmode="numeric" placeholder="1008"></div>
+</div>
+
+<div class="card">
+  <h2>🔪 Corte transversal — lo más importante</h2>
+  <p class="hint" style="margin:-6px 0 8px">Cortá un dedo al medio y mirá la sección. ¿Cuánto almidón/verdor tiene la pulpa?</p>
+  <div class="corte" id="corte">
+    <button data-v="1" aria-pressed="false">1<span class="d">pálida<br>NO viaja</span></button>
+    <button data-v="2" aria-pressed="false">2<span class="d">algo<br>pálida</span></button>
+    <button data-v="3" aria-pressed="false">3<span class="d">inter-<br>media</span></button>
+    <button data-v="4" aria-pressed="false">4<span class="d">firme<br>IDEAL</span></button>
+    <button data-v="5" aria-pressed="false">5<span class="d">muy verde<br>aguanta</span></button>
+  </div>
+  <div class="escala">
+    Regla firme: <b>más oscuro = más almidón = mejor para viaje.</b>
+    El <b>4</b> es el punto ideal para el flete de 5-7 días. El <b>1</b> ya viene pasada.
+    📷 Sacá la foto del corte con la <b>tira del atlas al lado</b> para que sea comparable.
+  </div>
+</div>
+
+<div class="card">
+  <h2>Mediciones</h2>
+  <div class="med3"><span class="lbl">Temp. pulpa (°C)</span><input id="tp_p" inputmode="decimal" placeholder=""><input id="tp_m" inputmode="decimal"><input id="tp_a" inputmode="decimal"></div>
+  <div class="med3"><span></span><span class="pos">puerta</span><span class="pos">medio</span><span class="pos">atrás</span></div>
+  <p class="hint" style="margin:-2px 0 12px">Tres puntos del camión. Si la de atrás viene alta, el frío no llegó parejo.</p>
+  <div class="row3">
+    <div class="f"><label>Calibre (mm)</label><input id="calibre_mm" inputmode="decimal" placeholder="39"></div>
+    <div class="f"><label>Largo (cm)</label><input id="largo_cm" inputmode="decimal" placeholder="21"></div>
+    <div class="f"><label>Temp. día corte (°C)</label><input id="temp_corte" inputmode="decimal"></div>
+  </div>
+  <div class="row3">
+    <div class="f"><label>Lluvia semana (mm)</label><input id="lluvia_sem_mm" inputmode="decimal"></div>
+    <div class="f"><label>Fecha corte cacho</label><input id="fecha_corte" type="date"><span class="hint">pedírsela al productor</span></div>
+    <div class="f"><label>Cinta / semana</label><input id="semana_cinta" placeholder="(fase 2)"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Destino y observaciones</h2>
+  <div class="row">
+    <div class="f"><label>Destino</label><select id="destino">
+      <option value="">—</option><option>cámara</option><option>venta directa</option><option>descarte</option>
+    </select></div>
+    <div class="f"><label>Rompió verde (llenar después)</label><input id="fecha_rompio" type="date"><span class="hint">cuando empiece a virar sola</span></div>
+  </div>
+  <div class="f"><label>Observaciones</label><textarea id="obs" placeholder="8 cajas mal embaladas, fruta quemada por frío, etc."></textarea></div>
+</div>
+
+<div class="out">
+  <div class="btns">
+    <button onclick="copiarWA()">📱 Copiar WhatsApp</button>
+    <button class="sec" onclick="copiarFila()">📊 Copiar fila Excel</button>
+    <button class="sec" onclick="limpiar()">🗑️ Limpiar</button>
+  </div>
+  <p class="ok" id="okmsg"></p>
+  <details><summary>ver el texto que se va a copiar</summary><pre id="preview"></pre></details>
+</div>
+
+<div class="nota">
+  <b>Cómo se usa:</b> llenás, tocás <b>Copiar WhatsApp</b> y lo pegás en el grupo (como siempre).
+  Para que quede en el análisis, tocás <b>Copiar fila Excel</b> y la pegás como fila nueva en
+  <code>fuentes\calidad_lotes.xlsx</code>. Cuando el lote rompa verde, volvés, ponés la fecha y copiás la fila de nuevo.
+  <br><br>El día que esté la API del ERP, esto se llena solo y la ficha queda sólo para el corte.
+</div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var PRODUCTORES = ["A Confirmar","Abacaxi","Adriano","AgroBianvirc","Airton Curuca","Aldo Corupa","Alexandre Wilbert","BAHIA","Bahia + Exoticos","Banana Combinada","Banana MG","Banana SP","Benini","Bolivia Tuli","Boniato","Cassio Hauck","Cebolla","Chicolandia","Claudia","Cobalchini","Corupá","Exoticos PY","Fischer","Furlani","Gilson","Ivo Zimerman","Jaime","Jhony Viera","Jorge Marangoni","Josemar Provesi","João Claudio Winter","Junkes","Marconi Kons","Marnei Meurer","Muller","Nordeste","Osnildo Stein","Papa","Paraguay","Paraguay DF","Paraguay EC","Paraguay GM","Paraguay HF","Paraguay MS","Paraguay OP","Paraguay SF","Sergio","Sidnei","Tureck","Ulgo","Valdemar","Valdemar Ita","Varios","Vinicios Bonkoski","Vitor","Wagner Schveitzer","Zapellini"];
+  // columnas EXACTAS de calidad_lotes.xlsx, en orden
+  var COLS = ["codigo","fecha_recepcion","origen","productor","cajas","temp_pulpa","calibre_mm","largo_cm","temp_corte","lluvia_sem_mm","corte_color","fecha_corte","semana_cinta","fecha_rompio","destino","merma_pct","obs"];
+  var CORTE_TXT = {1:"pálida, NO viaja",2:"algo pálida",3:"intermedia",4:"firme, punto ideal",5:"muy verde, aguanta"};
+
+  function $(id){return document.getElementById(id);}
+  // poblar productores
+  var sel=$("productor"); sel.innerHTML='<option value="">—</option>';
+  PRODUCTORES.forEach(function(p){var o=document.createElement("option");o.textContent=p;sel.appendChild(o);});
+  // fecha de hoy por default
+  try{ $("fecha_recepcion").value=new Date().toISOString().slice(0,10); }catch(e){}
+
+  // corte: chips
+  var corteVal=null;
+  document.querySelectorAll("#corte button").forEach(function(b){
+    b.addEventListener("click",function(){
+      var v=b.getAttribute("data-v");
+      if(corteVal===v){corteVal=null;} else {corteVal=v;}
+      document.querySelectorAll("#corte button").forEach(function(x){x.setAttribute("aria-pressed", x.getAttribute("data-v")===corteVal?"true":"false");});
+      render();
+    });
+  });
+
+  // recordar origen/productor/destino entre cargas
+  ["origen","productor","destino"].forEach(function(k){
+    try{ var v=localStorage.getItem("recep_"+k); if(v)$(k).value=v; }catch(e){}
+    $(k).addEventListener("change",function(){ try{localStorage.setItem("recep_"+k,$(k).value);}catch(e){} });
+  });
+
+  function tempPulpaTxt(){
+    var a=[$("tp_p").value,$("tp_m").value,$("tp_a").value].filter(function(x){return x!=="";});
+    return a.length? a.join(" / ") : "";
+  }
+  function num(id){ var v=$(id).value.trim().replace(",","."); return v===""?"":v; }
+
+  function armarWA(){
+    var L=[];
+    L.push("🍌 *DESCARGA "+($("codigo").value||"___")+"* — "+($("fecha_recepcion").value||"__/__/____"));
+    L.push("");
+    L.push("📍 Origen: "+($("origen").value||"—")+"   👤 "+($("productor").value||"—"));
+    L.push("📦 Cajas: "+($("cajas").value||"—"));
+    L.push("");
+    L.push("🔬 *Mediciones*");
+    if(corteVal) L.push("🔪 Corte transversal: "+corteVal+" ("+CORTE_TXT[corteVal]+")");
+    if(tempPulpaTxt()) L.push("🌡️ Temp. pulpa: "+tempPulpaTxt()+" °C (puerta/medio/atrás)");
+    if(num("calibre_mm")) L.push("📏 Calibre: "+num("calibre_mm")+" mm");
+    if(num("largo_cm")) L.push("📐 Largo: "+num("largo_cm")+" cm");
+    if($("fecha_corte").value) L.push("🗓️ Corte del cacho: "+$("fecha_corte").value);
+    if(num("temp_corte")) L.push("🌦️ Temp. día corte: "+num("temp_corte")+" °C");
+    if(num("lluvia_sem_mm")) L.push("🌧️ Lluvia semana: "+num("lluvia_sem_mm")+" mm");
+    if($("destino").value) { L.push(""); L.push("➡️ Destino: "+$("destino").value); }
+    if($("obs").value.trim()){ L.push(""); L.push("⚠️ "+$("obs").value.trim()); }
+    return L.join("\n");
+  }
+  function armarFila(){
+    // promedio simple de temp pulpa para la columna unica del Excel
+    var tps=[$("tp_p").value,$("tp_m").value,$("tp_a").value].map(function(x){return parseFloat(x.replace(",","."));}).filter(function(x){return !isNaN(x);});
+    var tpAvg = tps.length? (tps.reduce(function(a,b){return a+b;},0)/tps.length).toFixed(1) : "";
+    var v={codigo:$("codigo").value,fecha_recepcion:$("fecha_recepcion").value,origen:$("origen").value,
+      productor:$("productor").value,cajas:$("cajas").value,temp_pulpa:tpAvg,calibre_mm:num("calibre_mm"),
+      largo_cm:num("largo_cm"),temp_corte:num("temp_corte"),lluvia_sem_mm:num("lluvia_sem_mm"),
+      corte_color:corteVal||"",fecha_corte:$("fecha_corte").value,semana_cinta:$("semana_cinta").value,
+      fecha_rompio:$("fecha_rompio").value,destino:$("destino").value,merma_pct:"",obs:$("obs").value.trim()};
+    return COLS.map(function(c){return v[c]||"";}).join("\t"); // TAB = pega directo en columnas de Excel
+  }
+  function render(){ $("preview").textContent = armarWA() + "\n\n--- fila Excel (TAB) ---\n" + armarFila(); }
+
+  window.render=render;
+  ["codigo","fecha_recepcion","origen","productor","cajas","tp_p","tp_m","tp_a","calibre_mm","largo_cm","temp_corte","lluvia_sem_mm","fecha_corte","semana_cinta","fecha_rompio","destino","obs"]
+    .forEach(function(id){ $(id).addEventListener("input",render); $(id).addEventListener("change",render); });
+
+  function copiar(txt,msg){
+    var done=function(){ var o=$("okmsg"); o.textContent=msg; setTimeout(function(){o.textContent="";},2500); };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done,function(){fallback(txt);done();}); }
+    else { fallback(txt); done(); }
+  }
+  function fallback(txt){ var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(ta); }
+  window.copiarWA=function(){ if(!$("codigo").value){ $("okmsg").textContent="Poné el código primero"; return; } copiar(armarWA(),"✅ WhatsApp copiado — pegalo en el grupo"); };
+  window.copiarFila=function(){ if(!$("codigo").value){ $("okmsg").textContent="Poné el código primero"; return; } copiar(armarFila(),"✅ Fila copiada — pegala en calidad_lotes.xlsx"); };
+  window.limpiar=function(){
+    ["codigo","cajas","tp_p","tp_m","tp_a","calibre_mm","largo_cm","temp_corte","lluvia_sem_mm","fecha_corte","semana_cinta","fecha_rompio","obs"].forEach(function(id){$(id).value="";});
+    corteVal=null; document.querySelectorAll("#corte button").forEach(function(x){x.setAttribute("aria-pressed","false");});
+    try{$("fecha_recepcion").value=new Date().toISOString().slice(0,10);}catch(e){}
+    render(); $("okmsg").textContent="Limpio, listo para el próximo camión";
+  };
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+﻿orden;slug;seccion;etiqueta_en_el_form;titulo_en_el_PDF
+1;temp_container;Temperatura container;Display del equipo;Temperatura container
+2;ticket_peaje;Ticket del peaje;Ticket;Ticket del peaje
+3;puerta_matricula;Puerta del camión (matrícula);Con la matrícula;Puerta del camión (matrícula)
+4;pulpa_adelante;Temperaturas pulpa;Adelante;Temperaturas pulpa · Adelante
+5;pulpa_medio;Temperaturas pulpa;Medio;Temperaturas pulpa · Medio
+6;pulpa_atras;Temperaturas pulpa;Atrás;Temperaturas pulpa · Atrás
+7;pallet;Estado del pallet;Pallet + sello;Estado del pallet (sello fumigación)
+8;balanza;Balanza;Balanza + peso;Balanza (mercadería + peso)
+9;fruta_adelante_caja;Estado de la fruta;Adelante · Caja abierta;Estado fruta · Adelante · Caja abierta
+10;fruta_adelante_corona;Estado de la fruta;Adelante · Corona;Estado fruta · Adelante · Corona
+11;fruta_adelante_calibre;Estado de la fruta;Adelante · Calibre;Estado fruta · Adelante · Calibre
+12;fruta_adelante_longitud;Estado de la fruta;Adelante · Longitud;Estado fruta · Adelante · Longitud
+13;fruta_medio_caja;Estado de la fruta;Medio · Caja abierta;Estado fruta · Medio · Caja abierta
+14;fruta_medio_corona;Estado de la fruta;Medio · Corona;Estado fruta · Medio · Corona
+15;fruta_medio_calibre;Estado de la fruta;Medio · Calibre;Estado fruta · Medio · Calibre
+16;fruta_medio_longitud;Estado de la fruta;Medio · Longitud;Estado fruta · Medio · Longitud
+17;fruta_atras_caja;Estado de la fruta;Atrás · Caja abierta;Estado fruta · Atrás · Caja abierta
+18;fruta_atras_corona;Estado de la fruta;Atrás · Corona;Estado fruta · Atrás · Corona
+19;fruta_atras_calibre;Estado de la fruta;Atrás · Calibre;Estado fruta · Atrás · Calibre
+20;fruta_atras_longitud;Estado de la fruta;Atrás · Longitud;Estado fruta · Atrás · Longitud
+21;fruta_codigo;Estado de la fruta;Código de producto en la caja;Estado fruta · Código en la caja

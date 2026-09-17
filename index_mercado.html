@@ -8,12 +8,12 @@
 :root{
   --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
   --border:rgba(11,11,11,0.10); --good:#006300; --bad:#c0392b; --deemph:#b8b7b0;
-  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#8e5bd6; --s6:#c2185b;
 }
 @media (prefers-color-scheme:dark){
   :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
          --border:rgba(255,255,255,0.10); --good:#0ca30c; --bad:#e05c4a; --deemph:#56554f;
-         --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; }
+         --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#a37ce6; --s6:#e0497f; }
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
@@ -43,10 +43,16 @@ td.pos{color:var(--good)} td.neg{color:var(--bad)} td.nil{color:var(--faint)}
 .legend{list-style:none;display:flex;flex-wrap:wrap;gap:14px;padding:0;margin:0 0 10px;font-size:12.5px;color:var(--muted)}
 .legend li{display:flex;align-items:center;gap:6px}
 .swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+.ln{width:22px;height:0;display:inline-block;border-top:2.5px solid var(--ink)}
+.ln.prev{border-top:2px solid var(--ink);opacity:.55}
+.ln.old{border-top:2px dashed var(--muted);opacity:.8}
 .plot{width:100%;overflow-x:auto}
 svg{display:block;max-width:100%;height:auto}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.panel{border:1px solid var(--border);border-radius:10px;padding:8px 8px 4px;background:var(--card)}
 .note{font-size:12.5px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 .note p{margin:0 0 8px} .note p:last-child{margin:0}
+.note ul{margin:0 0 8px;padding-left:18px} .note li{margin:0 0 3px}
 .flag{border-left:3px solid var(--s1);padding-left:11px;border-top:0;margin-top:14px}
 .warn{border-left-color:var(--bad)}
 code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
@@ -64,11 +70,18 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
 
 <div class="kpis" id="kpis"></div>
 
-<section class="card">
-  <h2 id="h2mensual">Volumen mensual por origen</h2>
-  <p class="sub">Toneladas netas importadas cada mes. <span id="subMensual"></span></p>
-  <ul class="legend" id="lgMensual"></ul>
-  <div class="plot" id="pMensual"></div>
+<section class="card" id="secAnualChart" hidden>
+  <h2 id="h2AnualChart">Volumen mensual por origen, año contra año</h2>
+  <p class="sub" id="subAnualChart"></p>
+  <ul class="legend" id="lgAnual"></ul>
+  <div class="grid2" id="gridAnual"></div>
+</section>
+
+<section class="card" id="secAnual" hidden>
+  <h2 id="h2Anual">Año contra año, misma ventana</h2>
+  <p class="sub" id="subAnual"></p>
+  <div class="tblwrap"><table id="tblAnual"></table></div>
+  <div class="note flag" id="notaAnual"></div>
 </section>
 
 <section class="card">
@@ -83,6 +96,13 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
   <p class="sub" id="subRedistrib"></p>
   <div class="tblwrap"><table id="tblInter"></table></div>
   <div class="note flag" id="notaInter"></div>
+</section>
+
+<section class="card">
+  <h2 id="h2mensual">Volumen mensual por origen</h2>
+  <p class="sub">Toneladas netas importadas cada mes. <span id="subMensual"></span></p>
+  <ul class="legend" id="lgMensual"></ul>
+  <div class="plot" id="pMensual"></div>
 </section>
 
 <section class="card">
@@ -102,6 +122,7 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
   <h2>Almar: cartera por origen</h2>
   <p class="sub" id="subAlmar"></p>
   <div class="tblwrap"><table id="tblAlmar"></table></div>
+  <div class="note flag" id="notaAlmar"></div>
 </section>
 
 <section class="card">
@@ -110,16 +131,17 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
   <div class="tblwrap"><table id="tblMatriz"></table></div>
 </section>
 
-<div class="note flag warn" style="max-width:1080px">
-  <p><strong>Sobre las otras páginas.</strong> Las secciones de mercado que están en
-  <code>index.html</code>, <code>index_brasil.html</code> y <code>index_paraguay_bolivia.html</code>
-  tienen los números escritos a mano con datos de enero a 11 de mayo de 2026 y quedaron
-  desactualizadas. Esta página se regenera sola en cada corrida del script: es la que vale.</p>
+<div class="note flag" style="max-width:1080px">
+  <p><strong>Sobre las otras páginas.</strong> El detalle de Brasil (importadores, cuotas y precio de origen)
+  está en <code>index_brasil.html</code>, y el de Paraguay y Bolivia en <code>index_paraguay_bolivia.html</code>.
+  Las tres salen de los mismos extractos de Penta y se regeneran solas en cada corrida del script.
+  Para sumar meses nuevos: guardar el <code>detalle_UYimport_*.xlsx</code> en la carpeta <code>penta</code>
+  y correr <code>actualizar_precios.ps1</code>.</p>
 </div>
 
 </div>
 
-<script id="datosMercado" type="application/json">/*__MERCADO_JSON__*/{"generado":"2026-09-04 19:00","fuente":"Penta Transaction · NCM 0803.90 · importaciones Uruguay","archivos":["detalle_UYimport_2026-8-5-10711.xlsx (237 filas)","detalle_UYimport_2026-8-5-92812.xlsx (400 filas)"],"anio":2026,"corte":"2026-08-31","registros":637,"meses":8,"corteVentana":4,"origenes":["Brasil","Ecuador","Paraguay","Bolivia"],"mensual":{"Brasil":[2523.5,2090.7,3661.4,1787.7,2021.8,1690.3,1529.6,1551.6],"Ecuador":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5],"Paraguay":[519.1,879.5,179.9,147.8,802.5,672,1119.1,1130.6],"Bolivia":[427.3,468.5,571.9,247.4,221.5,44.1,249.6,309]},"porOrigen":[{"origen":"Brasil","v1":2516,"v2":1698,"fobV1":0.532,"fobV2":0.525},{"origen":"Ecuador","v1":1693,"v2":1245,"fobV1":1.002,"fobV2":1.007},{"origen":"Paraguay","v1":432,"v2":931,"fobV1":0.525,"fobV2":0.52},{"origen":"Bolivia","v1":429,"v2":206,"fobV1":0.614,"fobV2":0.611}],"importadores":[{"nombre":"ALMAR S.R.L.","v1":2565,"v2":2023,"porOrigen":{"Brasil":[1337,962],"Ecuador":[819,549],"Paraguay":[183,438],"Bolivia":[225,74]}},{"nombre":"CIRO GENTILE S.A.","v1":1212,"v2":921,"porOrigen":{"Brasil":[581,269],"Ecuador":[295,201],"Paraguay":[162,323],"Bolivia":[174,128]}},{"nombre":"GARMIN S.R.L.","v1":466,"v2":424,"porOrigen":{"Brasil":[466,399],"Ecuador":[0,0],"Paraguay":[0,24],"Bolivia":[0,0]}},{"nombre":"PROEXUR S R L","v1":351,"v2":262,"porOrigen":{"Brasil":[0,0],"Ecuador":[351,262],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"LINA FRESH URUGUAY SAS","v1":144,"v2":164,"porOrigen":{"Brasil":[0,0],"Ecuador":[144,164],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"EXPERTEX SA","v1":89,"v2":100,"porOrigen":{"Brasil":[47,27],"Ecuador":[0,0],"Paraguay":[42,73],"Bolivia":[0,0]}},{"nombre":"HENDERSON Y CIA S.A.","v1":83,"v2":69,"porOrigen":{"Brasil":[0,0],"Ecuador":[83,69],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","v1":61,"v2":44,"porOrigen":{"Brasil":[44,0],"Ecuador":[0,0],"Paraguay":[17,44],"Bolivia":[0,0]}},{"nombre":"JEMI SAS","v1":65,"v2":35,"porOrigen":{"Brasil":[24,30],"Ecuador":[0,0],"Paraguay":[11,0],"Bolivia":[30,5]}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","v1":16,"v2":28,"porOrigen":{"Brasil":[5,0],"Ecuador":[0,0],"Paraguay":[11,28],"Bolivia":[0,0]}},{"nombre":"RINALIR SOCIEDAD ANONIMA","v1":16,"v2":11,"porOrigen":{"Brasil":[11,11],"Ecuador":[0,0],"Paraguay":[6,0],"Bolivia":[0,0]}}],"interanual":{"Brasil":{"2024":2142,"2025":2964,"2026":1698},"Ecuador":{"2024":1107,"2025":1008,"2026":1245},"Paraguay":{"2024":866,"2025":184,"2026":931},"Bolivia":{"2024":0,"2025":0,"2026":206}},"estacional":[{"anio":2024,"v1":4912,"v2":4114},{"anio":2025,"v1":4995,"v2":4156},{"anio":2026,"v1":5070,"v2":4080}]}/*__END_MERCADO__*/</script>
+<script id="datosMercado" type="application/json">/*__MERCADO_JSON__*/{"generado":"2026-09-16 14:08","fuente":"Penta Transaction · NCM 0803.90 · importaciones Uruguay","archivos":["detalle_UYimport_2026-8-5-10711.xlsx (237 filas)","detalle_UYimport_2026-8-5-92812.xlsx (400 filas)","detalle_UYimport_2026-4-2-133245.xlsx (417 filas)","detalle_UYimport_2026-4-2-133319.xlsx (296 filas)","detalle_UYimport_2026-4-2-135127.xlsx (761 filas)","detalle_UYimport_2026-4-2-135143.xlsx (580 filas)","detalle_UYimport_2026-4-2-13528.xlsx (226 filas)","detalle_UYimport_2026-4-2-143410.xlsx (382 filas)","detalle_UYimport_2026-4-2-143425.xlsx (348 filas)","detalle_UYimport_2026-4-2-143440.xlsx (143 filas)"],"anio":2026,"corte":"2026-08-31","registros":637,"meses":8,"corteVentana":4,"origenes":["Brasil","Ecuador","Paraguay","Bolivia"],"mensual":{"Brasil":[2523.5,2090.7,3661.4,1787.7,2021.8,1690.3,1529.6,1551.6],"Ecuador":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5],"Paraguay":[519.1,879.5,179.9,147.8,802.5,672,1119.1,1130.6],"Bolivia":[427.3,468.5,571.9,247.4,221.5,44.1,249.6,309]},"porOrigen":[{"origen":"Brasil","v1":2516,"v2":1698,"fobV1":0.532,"fobV2":0.525},{"origen":"Ecuador","v1":1693,"v2":1245,"fobV1":1.002,"fobV2":1.007},{"origen":"Paraguay","v1":432,"v2":931,"fobV1":0.525,"fobV2":0.52},{"origen":"Bolivia","v1":429,"v2":206,"fobV1":0.614,"fobV2":0.611}],"importadores":[{"nombre":"ALMAR S.R.L.","v1":2565,"v2":2023,"porOrigen":{"Brasil":[1337,962],"Ecuador":[819,549],"Paraguay":[183,438],"Bolivia":[225,74]}},{"nombre":"CIRO GENTILE S.A.","v1":1212,"v2":921,"porOrigen":{"Brasil":[581,269],"Ecuador":[295,201],"Paraguay":[162,323],"Bolivia":[174,128]}},{"nombre":"GARMIN S.R.L.","v1":466,"v2":424,"porOrigen":{"Brasil":[466,399],"Ecuador":[0,0],"Paraguay":[0,24],"Bolivia":[0,0]}},{"nombre":"PROEXUR S R L","v1":351,"v2":262,"porOrigen":{"Brasil":[0,0],"Ecuador":[351,262],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"LINA FRESH URUGUAY SAS","v1":144,"v2":164,"porOrigen":{"Brasil":[0,0],"Ecuador":[144,164],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"EXPERTEX SA","v1":89,"v2":100,"porOrigen":{"Brasil":[47,27],"Ecuador":[0,0],"Paraguay":[42,73],"Bolivia":[0,0]}},{"nombre":"HENDERSON Y CIA S.A.","v1":83,"v2":69,"porOrigen":{"Brasil":[0,0],"Ecuador":[83,69],"Paraguay":[0,0],"Bolivia":[0,0]}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","v1":61,"v2":44,"porOrigen":{"Brasil":[44,0],"Ecuador":[0,0],"Paraguay":[17,44],"Bolivia":[0,0]}},{"nombre":"JEMI SAS","v1":65,"v2":35,"porOrigen":{"Brasil":[24,30],"Ecuador":[0,0],"Paraguay":[11,0],"Bolivia":[30,5]}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","v1":16,"v2":28,"porOrigen":{"Brasil":[5,0],"Ecuador":[0,0],"Paraguay":[11,28],"Bolivia":[0,0]}},{"nombre":"RINALIR SOCIEDAD ANONIMA","v1":16,"v2":11,"porOrigen":{"Brasil":[11,11],"Ecuador":[0,0],"Paraguay":[6,0],"Bolivia":[0,0]}}],"interanual":{"Brasil":{"2024":2142,"2025":2964,"2026":1698},"Ecuador":{"2024":1107,"2025":1008,"2026":1245},"Paraguay":{"2024":866,"2025":184,"2026":931},"Bolivia":{"2024":0,"2025":0,"2026":206}},"estacional":[{"anio":2024,"v1":4912,"v2":4114},{"anio":2025,"v1":4995,"v2":4156},{"anio":2026,"v1":5070,"v2":4080}],"anual":{"ventana":{"mesHasta":8,"diaHasta":31,"mesCompleto":true},"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","registros":2708,"total":{"porAnio":{"2024":{"ultimoDato":"2024-12-30","completo":true,"cubreVentana":true,"mercado":{"t":55383.6,"usd":40514874,"ops":1143,"usdKg":0.732,"kgOp":48455,"cuota":100,"tV":36125.8,"usdV":25701285,"opsV":788,"usdKgV":0.711,"kgOpV":45845,"cuotaV":100,"mensualT":[4842.3,5467,4551.6,4782.8,4712.7,3578.6,4439.9,3750.8,3739.5,5255.7,5387.3,4875.3],"mensualOps":[117,145,105,100,91,65,88,77,71,94,85,105]}},"2025":{"ultimoDato":"2025-12-30","completo":true,"cubreVentana":true,"mercado":{"t":57922.8,"usd":41547241,"ops":928,"usdKg":0.717,"kgOp":62417,"cuota":100,"tV":36517.9,"usdV":25548689,"opsV":562,"usdKgV":0.7,"kgOpV":64978,"cuotaV":100,"mensualT":[4619.3,5118.5,4513.3,5646.9,4258.7,4472.6,4139.5,3749.1,5163.5,5293.6,5291.2,5656.5],"mensualOps":[95,88,64,71,59,66,65,54,89,92,92,93]}},"2026":{"ultimoDato":"2026-08-31","completo":false,"cubreVentana":true,"mercado":{"t":36598.7,"usd":25122810,"ops":637,"usdKg":0.686,"kgOp":57455,"cuota":100,"tV":36598.7,"usdV":25122810,"opsV":637,"usdKgV":0.686,"kgOpV":57455,"cuotaV":100,"mensualT":[4988.8,4967.7,6792.9,3526.9,4442.1,3684.1,4029.6,4166.6,0,0,0,0],"mensualOps":[89,87,99,70,80,67,69,76,0,0,0,0]}}},"importadores":[{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":25660.1,"usd":18962496,"ops":474,"usdKg":0.739,"kgOp":54135,"cuota":46.33,"tV":16421.8,"usdV":11947867,"opsV":308,"usdKgV":0.728,"kgOpV":53318,"cuotaV":45.46,"mensualT":[1387.2,1972.1,2039.9,2258.2,2328.3,2190.6,2404.7,1840.8,2087.8,2436.6,2448.7,2265],"mensualOps":[32,48,41,39,38,32,42,36,38,39,38,51]},"2025":{"t":27930.1,"usd":19914754,"ops":394,"usdKg":0.713,"kgOp":70889,"cuota":48.22,"tV":17550.2,"usdV":12043148,"opsV":231,"usdKgV":0.686,"kgOpV":75975,"cuotaV":48.06,"mensualT":[2004.3,2450.4,2386.3,2647.8,2068.6,2372.5,1770.5,1849.6,2440.4,2705.7,2558,2675.8],"mensualOps":[42,40,30,32,22,28,17,20,36,40,45,42]},"2026":{"t":18349.2,"usd":12277060,"ops":267,"usdKg":0.669,"kgOp":68724,"cuota":50.14,"tV":18349.2,"usdV":12277060,"opsV":267,"usdKgV":0.669,"kgOpV":68724,"cuotaV":50.14,"mensualT":[2425.8,2559.8,3589.2,1684,1915.4,2118.5,2071.9,1984.6,0,0,0,0],"mensualOps":[36,40,46,21,29,32,29,34,0,0,0,0]}}},{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":11229,"usd":8511975,"ops":187,"usdKg":0.758,"kgOp":60048,"cuota":20.28,"tV":6107.7,"usdV":4619549,"opsV":117,"usdKgV":0.756,"kgOpV":52203,"cuotaV":16.91,"mensualT":[765.2,909.7,847.1,653.3,862.7,376.6,890.3,802.9,862.3,1592.9,1589,1077],"mensualOps":[15,16,18,13,16,9,16,14,15,23,16,16]},"2025":{"t":15201,"usd":10608023,"ops":205,"usdKg":0.698,"kgOp":74151,"cuota":26.24,"tV":9269.5,"usdV":6506074,"opsV":122,"usdKgV":0.702,"kgOpV":75979,"cuotaV":25.38,"mensualT":[1218.4,1439.1,1124,1590.3,912.1,851.9,1042.7,1091,1285.9,1563.3,1423.7,1658.6],"mensualOps":[20,20,13,14,11,12,16,16,18,25,19,21]},"2026":{"t":8533,"usd":5645588,"ops":135,"usdKg":0.662,"kgOp":63208,"cuota":23.32,"tV":8533,"usdV":5645588,"opsV":135,"usdKgV":0.662,"kgOpV":63208,"cuotaV":23.32,"mensualT":[1206.7,1227.1,1845.4,570.8,1036,571.1,931.5,1144.4,0,0,0,0],"mensualOps":[18,19,21,16,17,12,14,18,0,0,0,0]}}},{"nombre":"GARMIN S.R.L.","porAnio":{"2024":{"t":5624.4,"usd":3616854,"ops":73,"usdKg":0.643,"kgOp":77047,"cuota":10.16,"tV":3719.8,"usdV":2331731,"opsV":49,"usdKgV":0.627,"kgOpV":75914,"cuotaV":10.3,"mensualT":[619.8,437.8,501.8,472.7,423.7,399.2,399.2,465.7,448.2,364.1,581.2,511.1],"mensualOps":[9,11,7,6,4,3,3,6,5,5,6,8]},"2025":{"t":5688.7,"usd":3417077,"ops":54,"usdKg":0.601,"kgOp":105346,"cuota":9.82,"tV":3956.6,"usdV":2302475,"opsV":32,"usdKgV":0.582,"kgOpV":123644,"cuotaV":10.83,"mensualT":[497.2,399.2,399.2,665.3,532.2,532.2,532.2,399.2,512.4,399.2,421.3,399.2],"mensualOps":[6,3,3,5,4,4,4,3,8,7,4,3]},"2026":{"t":3557.5,"usd":1889988,"ops":41,"usdKg":0.531,"kgOp":86767,"cuota":9.72,"tV":3557.5,"usdV":1889988,"opsV":41,"usdKgV":0.531,"kgOpV":86767,"cuotaV":9.72,"mensualT":[421.3,399.2,510,532.2,598.8,354.8,359.5,381.6,0,0,0,0],"mensualOps":[4,6,6,6,6,4,4,5,0,0,0,0]}}},{"nombre":"PROEXUR S R L","porAnio":{"2024":{"t":4138.9,"usd":4138952,"ops":99,"usdKg":1,"kgOp":41808,"cuota":7.47,"tV":2618.7,"usdV":2618667,"opsV":65,"usdKgV":1,"kgOpV":40287,"cuotaV":7.25,"mensualT":[374.8,456.1,331.6,396.4,291.3,124.5,354.5,289.4,209.3,396.4,438,476.5],"mensualOps":[8,9,7,10,9,4,10,8,5,9,10,10]},"2025":{"t":4103,"usd":4103348,"ops":71,"usdKg":1,"kgOp":57788,"cuota":7.08,"tV":2578.3,"usdV":2578286,"opsV":47,"usdKgV":1,"kgOpV":54857,"cuotaV":7.06,"mensualT":[495.5,411.7,349.8,349.4,269.4,310.5,247.8,144.2,411,268.7,471.4,373.6],"mensualOps":[10,9,7,4,4,5,5,3,5,5,7,7]},"2026":{"t":2452.7,"usd":2455564,"ops":60,"usdKg":1.001,"kgOp":40879,"cuota":6.7,"tV":2452.7,"usdV":2455564,"opsV":60,"usdKgV":1.001,"kgOpV":40879,"cuotaV":6.7,"mensualT":[374.8,368.5,370.4,290.3,330.8,247.8,245.2,224.9,0,0,0,0],"mensualOps":[9,6,9,9,8,7,7,5,0,0,0,0]}}},{"nombre":"LINA FRESH URUGUAY SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":656.1,"usd":656118,"ops":26,"usdKg":1,"kgOp":25235,"cuota":1.13,"tV":172.6,"usdV":172578,"opsV":8,"usdKgV":1,"kgOpV":21572,"cuotaV":0.47,"mensualT":[0,0,0,0,0,43.5,108.8,20.2,101.2,101.2,81,200.2],"mensualOps":[0,0,0,0,0,2,5,1,5,5,3,5]},"2026":{"t":1234.9,"usd":1237983,"ops":31,"usdKg":1.003,"kgOp":39834,"cuota":3.37,"tV":1234.9,"usdV":1237983,"opsV":31,"usdKgV":1.003,"kgOpV":39834,"cuotaV":3.37,"mensualT":[159.3,119.5,139.4,159.3,179.3,219.1,99.6,159.3,0,0,0,0],"mensualOps":[4,3,4,5,4,5,3,3,0,0,0,0]}}},{"nombre":"EXPERTEX SA","porAnio":{"2024":{"t":1421.9,"usd":814058,"ops":40,"usdKg":0.573,"kgOp":35546,"cuota":2.57,"tV":1062.1,"usdV":581976,"opsV":26,"usdKgV":0.548,"kgOpV":40848,"cuotaV":2.94,"mensualT":[235.8,169.3,121,227.6,143.1,72.6,44.3,48.4,24.2,121,93.7,121],"mensualOps":[5,4,3,5,3,2,2,2,1,5,4,4]},"2025":{"t":977.6,"usd":572184,"ops":41,"usdKg":0.585,"kgOp":23844,"cuota":1.69,"tV":694.1,"usdV":408619,"opsV":29,"usdKgV":0.589,"kgOpV":23935,"cuotaV":1.9,"mensualT":[96.8,87.5,84.5,105.6,108.6,84.5,63.3,63.3,72.6,20.6,83.9,106.4],"mensualOps":[4,4,4,5,4,2,3,3,3,1,4,4]},"2026":{"t":757.4,"usd":398745,"ops":25,"usdKg":0.526,"kgOp":30298,"cuota":2.07,"tV":757.4,"usdV":398745,"opsV":25,"usdKgV":0.526,"kgOpV":30298,"cuotaV":2.07,"mensualT":[89.6,93.2,89.6,85.5,88.7,69,145.2,96.8,0,0,0,0],"mensualOps":[4,4,3,4,3,2,3,2,0,0,0,0]}}},{"nombre":"HENDERSON Y CIA S.A.","porAnio":{"2024":{"t":822.8,"usd":822830,"ops":42,"usdKg":1,"kgOp":19591,"cuota":1.49,"tV":548.6,"usdV":548554,"opsV":28,"usdKgV":1,"kgOpV":19591,"cuotaV":1.52,"mensualT":[19.6,78.4,78.4,78.4,78.4,58.8,78.4,78.4,39.2,78.4,58.8,98],"mensualOps":[1,4,4,4,4,3,4,4,2,4,3,5]},"2025":{"t":744.5,"usd":744466,"ops":38,"usdKg":1,"kgOp":19591,"cuota":1.29,"tV":431,"usdV":431006,"opsV":22,"usdKgV":1,"kgOpV":19591,"cuotaV":1.18,"mensualT":[78.4,39.2,39.2,39.2,39.2,78.4,78.4,39.2,98,58.8,58.8,98],"mensualOps":[4,2,2,2,2,4,4,2,5,3,3,5]},"2026":{"t":607.3,"usd":629793,"ops":31,"usdKg":1.037,"kgOp":19591,"cuota":1.66,"tV":607.3,"usdV":629793,"opsV":31,"usdKgV":1.037,"kgOpV":19591,"cuotaV":1.66,"mensualT":[98,78.4,78.4,78.4,98,58.8,58.8,58.8,0,0,0,0],"mensualOps":[5,4,4,4,5,3,3,3,0,0,0,0]}}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","porAnio":{"2024":{"t":1259.9,"usd":706480,"ops":34,"usdKg":0.561,"kgOp":37055,"cuota":2.27,"tV":943.8,"usdV":500209,"opsV":26,"usdKgV":0.53,"kgOpV":36298,"cuotaV":2.61,"mensualT":[277.1,252,92.1,114.9,92.7,46.4,23.2,45.4,22.2,135.1,68.1,90.7],"mensualOps":[6,6,4,3,2,2,1,2,1,3,2,2]},"2025":{"t":1183.2,"usd":672497,"ops":29,"usdKg":0.568,"kgOp":40802,"cuota":2.04,"tV":850.6,"usdV":498057,"opsV":21,"usdKgV":0.586,"kgOpV":40505,"cuotaV":2.33,"mensualT":[155.2,88.7,84,144.1,167.9,41.2,125.1,44.4,110.9,88.7,88.7,44.4],"mensualOps":[4,2,2,4,4,1,3,1,3,2,2,1]},"2026":{"t":421.3,"usd":219099,"ops":12,"usdKg":0.52,"kgOp":35112,"cuota":1.15,"tV":421.3,"usdV":219099,"opsV":12,"usdKgV":0.52,"kgOpV":35112,"cuotaV":1.15,"mensualT":[66.5,44.4,88.7,44.4,44.4,22.2,44.4,66.5,0,0,0,0],"mensualOps":[2,1,2,1,1,1,2,2,0,0,0,0]}}},{"nombre":"JEMI SAS","porAnio":{"2024":{"t":21,"usd":14490,"ops":1,"usdKg":0.69,"kgOp":21000,"cuota":0.04,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,21],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":185.3,"usd":104601,"ops":9,"usdKg":0.565,"kgOp":20584,"cuota":0.32,"tV":64.3,"usdV":33411,"opsV":3,"usdKgV":0.52,"kgOpV":21417,"cuotaV":0.18,"mensualT":[0,0,0,0,22.2,20.9,0,21.2,0,21,40,60],"mensualOps":[0,0,0,0,1,1,0,1,0,1,2,3]},"2026":{"t":397.6,"usd":215900,"ops":22,"usdKg":0.543,"kgOp":18074,"cuota":1.09,"tV":397.6,"usdV":215900,"opsV":22,"usdKgV":0.543,"kgOpV":18074,"cuotaV":1.09,"mensualT":[82.3,34.7,59.7,82,60.7,0,50.7,27.6,0,0,0,0],"mensualOps":[4,2,3,4,3,0,3,3,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":1243.1,"usd":766886,"ops":58,"usdKg":0.617,"kgOp":21433,"cuota":2.24,"tV":985.6,"usdV":557421,"opsV":45,"usdKgV":0.566,"kgOpV":21902,"cuotaV":2.73,"mensualT":[212.3,205.9,111.2,151.8,128.1,88.4,65.1,22.9,22.7,86.9,65.2,82.8],"mensualOps":[10,9,5,7,6,4,3,1,2,4,3,4]},"2025":{"t":483.3,"usd":308247,"ops":26,"usdKg":0.638,"kgOp":18587,"cuota":0.83,"tV":416.7,"usdV":273616,"opsV":23,"usdKgV":0.657,"kgOpV":18119,"cuotaV":1.14,"mensualT":[48.9,87.9,46.4,83.6,96.1,22.2,0,31.7,44.4,22.2,0,0],"mensualOps":[3,5,3,4,5,1,0,2,2,1,0,0]},"2026":{"t":178.1,"usd":92678,"ops":8,"usdKg":0.52,"kgOp":22264,"cuota":0.49,"tV":178.1,"usdV":92678,"opsV":8,"usdKgV":0.52,"kgOpV":22264,"cuotaV":0.49,"mensualT":[21.1,21.1,22.2,0,45.8,22.9,22.9,22.2,0,0,0,0],"mensualOps":[1,1,1,0,2,1,1,1,0,0,0,0]}}},{"nombre":"RINALIR SOCIEDAD ANONIMA","porAnio":{"2024":{"t":595.6,"usd":297976,"ops":12,"usdKg":0.5,"kgOp":49632,"cuota":1.08,"tV":462.5,"usdV":210325,"opsV":8,"usdKgV":0.455,"kgOpV":57816,"cuotaV":1.28,"mensualT":[164.7,123.6,0,63.4,66.5,44.4,0,0,0,44.4,22.2,66.5],"mensualOps":[3,2,0,1,1,1,0,0,0,2,1,1]},"2025":{"t":393.5,"usd":228867,"ops":16,"usdKg":0.582,"kgOp":24596,"cuota":0.68,"tV":284.2,"usdV":159115,"opsV":11,"usdKgV":0.56,"kgOpV":25840,"cuotaV":0.78,"mensualT":[0,66.5,0,21.6,42.4,64.9,66.5,22.2,0,44.4,44.4,20.6],"mensualOps":[0,1,0,1,2,3,3,1,0,2,2,1]},"2026":{"t":109.6,"usd":60412,"ops":5,"usdKg":0.551,"kgOp":21910,"cuota":0.3,"tV":109.6,"usdV":60412,"opsV":5,"usdKgV":0.551,"kgOpV":21910,"cuotaV":0.3,"mensualT":[43.2,22,0,0,44.4,0,0,0,0,0,0,0],"mensualOps":[2,1,0,0,2,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":399.2,"usd":250309,"ops":23,"usdKg":0.627,"kgOp":17358,"cuota":0.72,"tV":331.4,"usdV":201437,"opsV":18,"usdKgV":0.608,"kgOpV":18411,"cuotaV":0.92,"mensualT":[25.8,151.1,64.9,44.4,0,0,45.3,0,1.2,0,22.3,44.4],"mensualOps":[3,8,3,2,0,0,2,0,1,0,2,2]},"2025":{"t":329.8,"usd":191627,"ops":16,"usdKg":0.581,"kgOp":20612,"cuota":0.57,"tV":247.4,"usdV":140664,"opsV":12,"usdKgV":0.568,"kgOpV":20620,"cuotaV":0.68,"mensualT":[22.2,48.4,0,0,0,49.9,104,23,42.4,0,20,20],"mensualOps":[1,2,0,0,0,3,5,1,2,0,1,1]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"BANPY SAS","porAnio":{"2024":{"t":21.4,"usd":14755,"ops":1,"usdKg":0.69,"kgOp":21384,"cuota":0.04,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,21.4],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":2.4,"usd":1639,"ops":1,"usdKg":0.69,"kgOp":2376,"cuota":0,"tV":2.4,"usdV":1639,"opsV":1,"usdKgV":0.69,"kgOpV":2376,"cuotaV":0.01,"mensualT":[2.4,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"TEDIBLER S A","porAnio":{"2024":{"t":619,"usd":325623,"ops":25,"usdKg":0.526,"kgOp":24760,"cuota":1.12,"tV":619,"usdV":325623,"opsV":25,"usdKgV":0.526,"kgOpV":24760,"cuotaV":1.71,"mensualT":[246.9,327.9,44.2,0,0,0,0,0,0,0,0,0],"mensualOps":[9,14,2,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":1679.2,"usd":969605,"ops":46,"usdKg":0.577,"kgOp":36504,"cuota":3.03,"tV":1656.7,"usdV":956343,"opsV":45,"usdKgV":0.577,"kgOpV":36817,"cuotaV":4.59,"mensualT":[217.7,239.2,228.7,250.3,251.6,177.2,135,157.1,22.4,0,0,0],"mensualOps":[4,8,7,6,6,5,5,4,1,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IDIL SAS","porAnio":{"2024":{"t":128.2,"usd":65251,"ops":6,"usdKg":0.509,"kgOp":21364,"cuota":0.23,"tV":128.2,"usdV":65251,"opsV":6,"usdKgV":0.509,"kgOpV":21364,"cuotaV":0.35,"mensualT":[105,0,0,0,23.2,0,0,0,0,0,0,0],"mensualOps":[5,0,0,0,1,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"GRINOLAND S.A.","porAnio":{"2024":{"t":90.5,"usd":46597,"ops":3,"usdKg":0.515,"kgOp":30181,"cuota":0.16,"tV":90.5,"usdV":46597,"opsV":3,"usdKgV":0.515,"kgOpV":30181,"cuotaV":0.25,"mensualT":[46.4,0,44.2,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,2,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IROLDI BERMUDEZ NATALIA GIMENA","porAnio":{"2024":{"t":429.4,"usd":189736,"ops":19,"usdKg":0.442,"kgOp":22598,"cuota":0.78,"tV":429.4,"usdV":189736,"opsV":19,"usdKgV":0.442,"kgOpV":22598,"cuotaV":1.19,"mensualT":[144,144,46.6,71.6,23.2,0,0,0,0,0,0,0],"mensualOps":[6,6,2,4,1,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"CRUFI S A","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0.1,"usd":729,"ops":1,"usdKg":12.144,"kgOp":60,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0.1,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"LA 5TA SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":44.4,"usd":23063,"ops":1,"usdKg":0.52,"kgOp":44352,"cuota":0.08,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,44.4,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]},"origenes":{"Brasil":{"registros":918,"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","porAnio":{"2024":{"ultimoDato":"2024-12-30","completo":true,"cubreVentana":true,"mercado":{"t":24322.6,"usd":16398945,"ops":296,"usdKg":0.674,"kgOp":82171,"cuota":100,"tV":14218.4,"usdV":9553434,"opsV":187,"usdKgV":0.672,"kgOpV":76034,"cuotaV":100,"mensualT":[1262.5,1103.3,1091,2172.9,2280.3,2084.9,2207.4,2016.1,2235.2,2869,3561.9,1438.1],"mensualOps":[22,19,17,29,28,21,27,24,27,29,36,17]}},"2025":{"ultimoDato":"2025-12-30","completo":true,"cubreVentana":true,"mercado":{"t":36222.2,"usd":21442987,"ops":417,"usdKg":0.592,"kgOp":86864,"cuota":100,"tV":23839.7,"usdV":13860402,"opsV":260,"usdKgV":0.581,"kgOpV":91691,"cuotaV":100,"mensualT":[1870.4,2850.7,3200.8,4063.6,3054.4,3162.5,3046.8,2590.5,3309.1,3388.3,2890.9,2794.2],"mensualOps":[23,31,34,41,32,35,37,27,43,42,37,35]}},"2026":{"ultimoDato":"2026-08-31","completo":false,"cubreVentana":true,"mercado":{"t":16856.7,"usd":8921008,"ops":205,"usdKg":0.529,"kgOp":82228,"cuota":100,"tV":16856.7,"usdV":8921008,"opsV":205,"usdKgV":0.529,"kgOpV":82228,"cuotaV":100,"mensualT":[2523.5,2090.7,3661.4,1787.7,2021.8,1690.3,1529.6,1551.6,0,0,0,0],"mensualOps":[28,23,36,26,26,21,19,26,0,0,0,0]}}},"importadores":[{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":13013.2,"usd":8947528,"ops":146,"usdKg":0.688,"kgOp":89131,"cuota":53.5,"tV":7802.2,"usdV":5330167,"opsV":90,"usdKgV":0.683,"kgOpV":86691,"cuotaV":54.87,"mensualT":[533.5,551.4,556.9,1104.8,1184.6,1529.3,1333.2,1008.4,1282.5,1524.9,1806,597.6],"mensualOps":[8,10,10,11,11,14,14,12,14,15,19,8]},"2025":{"t":17947.4,"usd":10753792,"ops":185,"usdKg":0.599,"kgOp":97013,"cuota":49.55,"tV":11899.7,"usdV":6872702,"opsV":109,"usdKgV":0.578,"kgOpV":109172,"cuotaV":49.92,"mensualT":[727.8,1437.8,1774.5,1806.6,1591.2,1881.2,1404.7,1275.9,1729.2,1735.3,1417.8,1165.5],"mensualOps":[11,12,17,16,13,18,12,10,22,19,18,17]},"2026":{"t":9196.9,"usd":4847017,"ops":97,"usdKg":0.527,"kgOp":94813,"cuota":54.56,"tV":9196.9,"usdV":4847017,"opsV":97,"usdKgV":0.527,"kgOpV":94813,"cuotaV":54.56,"mensualT":[1340.4,1166.2,1776.1,1067,853.5,1169.7,995.5,828.5,0,0,0,0],"mensualOps":[14,10,17,11,9,13,11,12,0,0,0,0]}}},{"nombre":"GARMIN S.R.L.","porAnio":{"2024":{"t":4213.4,"usd":2821035,"ops":34,"usdKg":0.67,"kgOp":123925,"cuota":17.32,"tV":2749.8,"usdV":1831688,"opsV":23,"usdKgV":0.666,"kgOpV":119558,"cuotaV":19.34,"mensualT":[221.8,177.4,354.8,399.2,399.2,399.2,399.2,399.2,399.2,266.1,532.2,266.1],"mensualOps":[3,2,3,3,3,3,3,3,3,2,4,2]},"2025":{"t":5566.2,"usd":3333450,"ops":50,"usdKg":0.599,"kgOp":111324,"cuota":15.37,"tV":3858.6,"usdV":2234855,"opsV":29,"usdKgV":0.579,"kgOpV":133056,"cuotaV":16.19,"mensualT":[399.2,399.2,399.2,665.3,532.2,532.2,532.2,399.2,487.9,399.2,421.3,399.2],"mensualOps":[3,3,3,5,4,4,4,3,7,7,4,3]},"2026":{"t":3459.5,"usd":1839028,"ops":39,"usdKg":0.532,"kgOp":88704,"cuota":20.52,"tV":3459.5,"usdV":1839028,"opsV":39,"usdKgV":0.532,"kgOpV":88704,"cuotaV":20.52,"mensualT":[421.3,399.2,510,532.2,598.8,354.8,310.5,332.6,0,0,0,0],"mensualOps":[4,6,6,6,6,4,3,4,0,0,0,0]}}},{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":5583,"usd":3636326,"ops":61,"usdKg":0.651,"kgOp":91524,"cuota":22.95,"tV":2286.4,"usdV":1489510,"opsV":28,"usdKgV":0.651,"kgOpV":81656,"cuotaV":16.08,"mensualT":[419.4,283.4,134.9,271,430.1,0,296,451.5,528.9,1078,1136.7,553],"mensualOps":[6,2,2,4,6,0,3,5,7,12,8,6]},"2025":{"t":10129.6,"usd":5925693,"ops":80,"usdKg":0.585,"kgOp":126619,"cuota":27.97,"tV":6286.3,"usdV":3760258,"opsV":48,"usdKgV":0.598,"kgOpV":130965,"cuotaV":26.37,"mensualT":[737.9,884.7,831.8,1256.2,649.7,465.5,750.9,709.7,872.3,1078,834.8,1058.2],"mensualOps":[7,9,6,7,5,2,7,5,6,10,7,9]},"2026":{"t":3401.2,"usd":1810231,"ops":34,"usdKg":0.532,"kgOp":100035,"cuota":20.18,"tV":3401.2,"usdV":1810231,"opsV":34,"usdKgV":0.532,"kgOpV":100035,"cuotaV":20.18,"mensualT":[611.9,425.7,1270,16.6,395.9,145.2,173,362.8,0,0,0,0],"mensualOps":[4,3,9,2,4,3,2,7,0,0,0,0]}}},{"nombre":"EXPERTEX SA","porAnio":{"2024":{"t":284.8,"usd":189571,"ops":8,"usdKg":0.666,"kgOp":35604,"cuota":1.17,"tV":263.7,"usdV":175002,"opsV":7,"usdKgV":0.664,"kgOpV":37674,"cuotaV":1.85,"mensualT":[42.2,0,0,130.8,46.4,0,44.3,0,0,0,21.1,0],"mensualOps":[1,0,0,3,1,0,2,0,0,0,1,0]},"2025":{"t":759.9,"usd":438402,"ops":32,"usdKg":0.577,"kgOp":23746,"cuota":2.1,"tV":549,"usdV":312577,"opsV":23,"usdKgV":0.569,"kgOpV":23868,"cuotaV":2.3,"mensualT":[0,63.3,84.5,105.6,84.5,84.5,63.3,63.3,0,20.6,83.9,106.4],"mensualOps":[0,3,4,5,3,2,3,3,0,1,4,4]},"2026":{"t":297.8,"usd":159728,"ops":13,"usdKg":0.536,"kgOp":22907,"cuota":1.77,"tV":297.8,"usdV":159728,"opsV":13,"usdKgV":0.536,"kgOpV":22907,"cuotaV":1.77,"mensualT":[41.2,20.6,41.2,85.5,88.7,20.6,0,0,0,0,0,0],"mensualOps":[2,1,2,4,3,1,0,0,0,0,0,0]}}},{"nombre":"JEMI SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":42.1,"usd":21880,"ops":2,"usdKg":0.52,"kgOp":21038,"cuota":0.12,"tV":42.1,"usdV":21880,"opsV":2,"usdKgV":0.52,"kgOpV":21038,"cuotaV":0.18,"mensualT":[0,0,0,0,0,20.9,0,21.2,0,0,0,0],"mensualOps":[0,0,0,0,0,1,0,1,0,0,0,0]},"2026":{"t":215.3,"usd":112738,"ops":13,"usdKg":0.524,"kgOp":16560,"cuota":1.28,"tV":215.3,"usdV":112738,"opsV":13,"usdKgV":0.524,"kgOpV":16560,"cuotaV":1.28,"mensualT":[0,34.7,19.7,42,40.7,0,50.7,27.6,0,0,0,0],"mensualOps":[0,2,1,2,2,0,3,3,0,0,0,0]}}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","porAnio":{"2024":{"t":21.8,"usd":15028,"ops":1,"usdKg":0.69,"kgOp":21780,"cuota":0.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,21.8,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,1,0]},"2025":{"t":872.8,"usd":468120,"ops":21,"usdKg":0.536,"kgOp":41561,"cuota":2.41,"tV":562.3,"usdV":306678,"opsV":14,"usdKgV":0.545,"kgOpV":40166,"cuotaV":2.36,"mensualT":[0,0,84,144.1,123.6,41.2,125.1,44.4,88.7,88.7,88.7,44.4],"mensualOps":[0,0,2,4,3,1,3,1,2,2,2,1]},"2026":{"t":177.4,"usd":92252,"ops":4,"usdKg":0.52,"kgOp":44352,"cuota":1.05,"tV":177.4,"usdV":92252,"opsV":4,"usdKgV":0.52,"kgOpV":44352,"cuotaV":1.05,"mensualT":[44.4,44.4,44.4,44.4,0,0,0,0,0,0,0,0],"mensualOps":[1,1,1,1,0,0,0,0,0,0,0,0]}}},{"nombre":"RINALIR SOCIEDAD ANONIMA","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":327,"usd":182962,"ops":15,"usdKg":0.56,"kgOp":21801,"cuota":0.9,"tV":217.7,"usdV":113210,"opsV":10,"usdKgV":0.52,"kgOpV":21771,"cuotaV":0.91,"mensualT":[0,0,0,21.6,42.4,64.9,66.5,22.2,0,44.4,44.4,20.6],"mensualOps":[0,0,0,1,2,3,3,1,0,2,2,1]},"2026":{"t":87.6,"usd":48972,"ops":4,"usdKg":0.559,"kgOp":21888,"cuota":0.52,"tV":87.6,"usdV":48972,"opsV":4,"usdKgV":0.559,"kgOpV":21888,"cuotaV":0.52,"mensualT":[43.2,0,0,0,44.4,0,0,0,0,0,0,0],"mensualOps":[2,0,0,0,2,0,0,0,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":234.7,"usd":157192,"ops":12,"usdKg":0.67,"kgOp":19556,"cuota":0.96,"tV":211.8,"usdV":141090,"opsV":10,"usdKgV":0.666,"kgOpV":21181,"cuotaV":1.49,"mensualT":[19.8,0,0,63.1,85.4,21.8,21.8,0,1.1,0,21.8,0],"mensualOps":[1,0,0,3,4,1,1,0,1,0,1,0]},"2025":{"t":311.3,"usd":179256,"ops":18,"usdKg":0.576,"kgOp":17292,"cuota":0.86,"tV":244.7,"usdV":144625,"opsV":15,"usdKgV":0.591,"kgOpV":16315,"cuotaV":1.03,"mensualT":[3.2,65.7,26.9,64.2,30.9,22.2,0,31.7,44.4,22.2,0,0],"mensualOps":[1,4,2,3,2,1,0,2,2,1,0,0]},"2026":{"t":21.1,"usd":11042,"ops":1,"usdKg":0.523,"kgOp":21120,"cuota":0.13,"tV":21.1,"usdV":11042,"opsV":1,"usdKgV":0.523,"kgOpV":21120,"cuotaV":0.13,"mensualT":[21.1,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":163.5,"usd":109732,"ops":12,"usdKg":0.671,"kgOp":13624,"cuota":0.67,"tV":140,"usdV":91462,"opsV":9,"usdKgV":0.653,"kgOpV":15556,"cuotaV":0.98,"mensualT":[25.8,91.1,0,0,0,0,23.1,0,1.2,0,22.3,0],"mensualOps":[3,5,0,0,0,0,1,0,1,0,2,0]},"2025":{"t":219.2,"usd":114001,"ops":11,"usdKg":0.52,"kgOp":19930,"cuota":0.61,"tV":176.9,"usdV":91978,"opsV":9,"usdKgV":0.52,"kgOpV":19653,"cuotaV":0.74,"mensualT":[0,0,0,0,0,49.9,104,23,42.4,0,0,0],"mensualOps":[0,0,0,0,0,3,5,1,2,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"BANPY SAS","porAnio":{"2024":{"t":21.4,"usd":14755,"ops":1,"usdKg":0.69,"kgOp":21384,"cuota":0.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,21.4],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":2.4,"usd":1639,"ops":1,"usdKg":0.69,"kgOp":2376,"cuota":0.01,"tV":2.4,"usdV":1639,"opsV":1,"usdKgV":0.69,"kgOpV":2376,"cuotaV":0.01,"mensualT":[2.4,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":740.5,"usd":476575,"ops":18,"usdKg":0.644,"kgOp":41140,"cuota":3.04,"tV":718.1,"usdV":463312,"opsV":17,"usdKgV":0.645,"kgOpV":42240,"cuotaV":5.05,"mensualT":[0,0,0,202,134.6,134.6,89.8,157.1,22.4,0,0,0],"mensualOps":[0,0,0,4,3,3,3,4,1,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"CRUFI S A","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0.1,"usd":729,"ops":1,"usdKg":12.144,"kgOp":60,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0.1,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"TEDIBLER S A","porAnio":{"2024":{"t":22.2,"usd":14414,"ops":1,"usdKg":0.65,"kgOp":22176,"cuota":0.09,"tV":22.2,"usdV":14414,"opsV":1,"usdKgV":0.65,"kgOpV":22176,"cuotaV":0.16,"mensualT":[0,0,22.2,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IROLDI BERMUDEZ NATALIA GIMENA","porAnio":{"2024":{"t":2,"usd":2375,"ops":1,"usdKg":1.187,"kgOp":2000,"cuota":0.01,"tV":2,"usdV":2375,"opsV":1,"usdKgV":1.187,"kgOpV":2000,"cuotaV":0.01,"mensualT":[0,0,0,2,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,1,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"LA 5TA SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":44.4,"usd":23063,"ops":1,"usdKg":0.52,"kgOp":44352,"cuota":0.12,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,44.4,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"GRINOLAND S.A.","porAnio":{"2024":{"t":22.2,"usd":14414,"ops":1,"usdKg":0.65,"kgOp":22176,"cuota":0.09,"tV":22.2,"usdV":14414,"opsV":1,"usdKgV":0.65,"kgOpV":22176,"cuotaV":0.16,"mensualT":[0,0,22.2,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]},"Ecuador":{"registros":967,"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","porAnio":{"2024":{"ultimoDato":"2024-12-30","completo":true,"cubreVentana":true,"mercado":{"t":15102.7,"usd":15121471,"ops":382,"usdKg":1.001,"kgOp":39536,"cuota":100,"tV":9657.4,"usdV":9671038,"opsV":245,"usdKgV":1.001,"kgOpV":39418,"cuotaV":100,"mensualT":[829.3,1619.5,1508.7,1269,1104.1,638.8,1599.7,1088.3,1104.1,1569.3,1387.3,1384.6],"mensualOps":[20,38,35,31,29,19,43,30,30,40,34,33]}},"2025":{"ultimoDato":"2025-12-30","completo":true,"cubreVentana":true,"mercado":{"t":16259.6,"usd":16496327,"ops":348,"usdKg":1.015,"kgOp":46723,"cuota":100,"tV":9350.3,"usdV":9491961,"opsV":208,"usdKgV":1.015,"kgOpV":44954,"cuotaV":100,"mensualT":[1135.4,1315,1288.9,1583.3,1046.7,1066.4,925,989.7,1400.1,1449.9,1904.1,2155.1],"mensualOps":[29,30,29,30,21,24,23,22,31,35,38,36]}},"2026":{"ultimoDato":"2026-08-28","completo":false,"cubreVentana":false,"mercado":{"t":11752.1,"usd":11799401,"ops":237,"usdKg":1.004,"kgOp":49587,"cuota":100,"tV":11752.1,"usdV":11799401,"opsV":237,"usdKgV":1.004,"kgOpV":49587,"cuotaV":100,"mensualT":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5,0,0,0,0],"mensualOps":[33,29,40,33,30,28,23,21,0,0,0,0]}}},"importadores":[{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":5942.7,"usd":5959882,"ops":141,"usdKg":1.003,"kgOp":42147,"cuota":39.35,"tV":3982.8,"usdV":3996366,"opsV":87,"usdKgV":1.003,"kgOpV":45779,"cuotaV":41.24,"mensualT":[223.1,664.6,524.5,635.2,460.6,215.5,754.3,505,522.9,605.4,438.1,393.6],"mensualOps":[5,14,9,13,9,5,19,13,15,16,13,10]},"2025":{"t":7148.3,"usd":7240208,"ops":126,"usdKg":1.013,"kgOp":56733,"cuota":43.96,"tV":3990.7,"usdV":4044607,"opsV":76,"usdKgV":1.014,"kgOpV":52510,"cuotaV":42.68,"mensualT":[291.4,499.9,588.2,841.2,477.4,395.3,344.7,552.6,506.9,694.1,866.3,1090.3],"mensualOps":[7,12,12,16,9,7,4,9,8,13,17,12]},"2026":{"t":5472.7,"usd":5490675,"ops":69,"usdKg":1.003,"kgOp":79314,"cuota":46.57,"tV":5472.7,"usdV":5490675,"opsV":69,"usdKgV":1.003,"kgOpV":79314,"cuotaV":46.57,"mensualT":[603.3,680.7,1420.1,571.9,559.7,538.2,517.1,581.7,0,0,0,0],"mensualOps":[8,10,16,8,7,7,6,7,0,0,0,0]}}},{"nombre":"PROEXUR S R L","porAnio":{"2024":{"t":4138.9,"usd":4138952,"ops":99,"usdKg":1,"kgOp":41808,"cuota":27.41,"tV":2618.7,"usdV":2618667,"opsV":65,"usdKgV":1,"kgOpV":40287,"cuotaV":27.12,"mensualT":[374.8,456.1,331.6,396.4,291.3,124.5,354.5,289.4,209.3,396.4,438,476.5],"mensualOps":[8,9,7,10,9,4,10,8,5,9,10,10]},"2025":{"t":4103,"usd":4103348,"ops":71,"usdKg":1,"kgOp":57788,"cuota":25.23,"tV":2578.3,"usdV":2578286,"opsV":47,"usdKgV":1,"kgOpV":54857,"cuotaV":27.57,"mensualT":[495.5,411.7,349.8,349.4,269.4,310.5,247.8,144.2,411,268.7,471.4,373.6],"mensualOps":[10,9,7,4,4,5,5,3,5,5,7,7]},"2026":{"t":2452.7,"usd":2455564,"ops":60,"usdKg":1.001,"kgOp":40879,"cuota":20.87,"tV":2452.7,"usdV":2455564,"opsV":60,"usdKgV":1.001,"kgOpV":40879,"cuotaV":20.87,"mensualT":[374.8,368.5,370.4,290.3,330.8,247.8,245.2,224.9,0,0,0,0],"mensualOps":[9,6,9,9,8,7,7,5,0,0,0,0]}}},{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":3866.6,"usd":3868224,"ops":84,"usdKg":1,"kgOp":46032,"cuota":25.6,"tV":2298,"usdV":2298000,"opsV":55,"usdKgV":1,"kgOpV":41782,"cuotaV":23.8,"mensualT":[211.9,399.4,489,159,254,198.1,371.1,215.6,311.1,448,431.8,377.7],"mensualOps":[6,10,11,4,6,5,8,5,7,9,7,6]},"2025":{"t":3549.4,"usd":3693868,"ops":84,"usdKg":1.041,"kgOp":42254,"cuota":21.83,"tV":2119.4,"usdV":2207163,"opsV":52,"usdKgV":1.041,"kgOpV":40758,"cuotaV":22.67,"mensualT":[270,364.3,292.2,334.1,241.3,238.8,145.4,233.4,283,327.2,426.7,393.1],"mensualOps":[8,7,7,7,5,6,5,7,8,9,8,7]},"2026":{"t":1984.5,"usd":1985387,"ops":46,"usdKg":1,"kgOp":43141,"cuota":16.89,"tV":1984.5,"usdV":1985387,"opsV":46,"usdKgV":1,"kgOpV":43141,"cuotaV":16.89,"mensualT":[283.4,281.9,371.5,244.1,228.5,213.8,210.5,150.7,0,0,0,0],"mensualOps":[7,6,7,7,6,6,4,3,0,0,0,0]}}},{"nombre":"LINA FRESH URUGUAY SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":656.1,"usd":656118,"ops":26,"usdKg":1,"kgOp":25235,"cuota":4.04,"tV":172.6,"usdV":172578,"opsV":8,"usdKgV":1,"kgOpV":21572,"cuotaV":1.85,"mensualT":[0,0,0,0,0,43.5,108.8,20.2,101.2,101.2,81,200.2],"mensualOps":[0,0,0,0,0,2,5,1,5,5,3,5]},"2026":{"t":1234.9,"usd":1237983,"ops":31,"usdKg":1.003,"kgOp":39834,"cuota":10.51,"tV":1234.9,"usdV":1237983,"opsV":31,"usdKgV":1.003,"kgOpV":39834,"cuotaV":10.51,"mensualT":[159.3,119.5,139.4,159.3,179.3,219.1,99.6,159.3,0,0,0,0],"mensualOps":[4,3,4,5,4,5,3,3,0,0,0,0]}}},{"nombre":"HENDERSON Y CIA S.A.","porAnio":{"2024":{"t":822.8,"usd":822830,"ops":42,"usdKg":1,"kgOp":19591,"cuota":5.45,"tV":548.6,"usdV":548554,"opsV":28,"usdKgV":1,"kgOpV":19591,"cuotaV":5.68,"mensualT":[19.6,78.4,78.4,78.4,78.4,58.8,78.4,78.4,39.2,78.4,58.8,98],"mensualOps":[1,4,4,4,4,3,4,4,2,4,3,5]},"2025":{"t":744.5,"usd":744466,"ops":38,"usdKg":1,"kgOp":19591,"cuota":4.58,"tV":431,"usdV":431006,"opsV":22,"usdKgV":1,"kgOpV":19591,"cuotaV":4.61,"mensualT":[78.4,39.2,39.2,39.2,39.2,78.4,78.4,39.2,98,58.8,58.8,98],"mensualOps":[4,2,2,2,2,4,4,2,5,3,3,5]},"2026":{"t":607.3,"usd":629793,"ops":31,"usdKg":1.037,"kgOp":19591,"cuota":5.17,"tV":607.3,"usdV":629793,"opsV":31,"usdKgV":1.037,"kgOpV":19591,"cuotaV":5.17,"mensualT":[98,78.4,78.4,78.4,98,58.8,58.8,58.8,0,0,0,0],"mensualOps":[5,4,4,4,5,3,3,3,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":205,"usd":205011,"ops":10,"usdKg":1,"kgOp":20501,"cuota":1.36,"tV":82.9,"usdV":82881,"opsV":4,"usdKgV":1,"kgOpV":20720,"cuotaV":0.86,"mensualT":[0,0,21.1,0,19.8,21.6,20.4,0,21.6,41.1,20.6,38.9],"mensualOps":[0,0,1,0,1,1,1,0,1,2,1,2]},"2025":{"t":58.3,"usd":58320,"ops":3,"usdKg":1,"kgOp":19440,"cuota":0.36,"tV":58.3,"usdV":58320,"opsV":3,"usdKgV":1,"kgOpV":19440,"cuotaV":0.62,"mensualT":[0,0,19.4,19.4,19.4,0,0,0,0,0,0,0],"mensualOps":[0,0,1,1,1,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","porAnio":{"2024":{"t":22.5,"usd":22534,"ops":1,"usdKg":1,"kgOp":22534,"cuota":0.15,"tV":22.5,"usdV":22534,"opsV":1,"usdKgV":1,"kgOpV":22534,"cuotaV":0.23,"mensualT":[0,0,22.5,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":83.5,"usd":83516,"ops":4,"usdKg":1,"kgOp":20879,"cuota":0.55,"tV":83.5,"usdV":83516,"opsV":4,"usdKgV":1,"kgOpV":20879,"cuotaV":0.86,"mensualT":[0,21.1,21.1,0,0,20.3,21.1,0,0,0,0,0],"mensualOps":[0,1,1,0,0,1,1,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":20.5,"usd":20520,"ops":1,"usdKg":1,"kgOp":20520,"cuota":0.14,"tV":20.5,"usdV":20520,"opsV":1,"usdKgV":1,"kgOpV":20520,"cuotaV":0.21,"mensualT":[0,0,20.5,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]},"Paraguay":{"registros":642,"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","porAnio":{"2024":{"ultimoDato":"2024-12-27","completo":true,"cubreVentana":true,"mercado":{"t":14786.1,"usd":8266329,"ops":424,"usdKg":0.559,"kgOp":34873,"cuota":100,"tV":11744.5,"usdV":6206478,"opsV":335,"usdKgV":0.528,"kgOpV":35058,"cuotaV":100,"mensualT":[2536.5,2452.7,1951.9,1340.9,1328.3,854.9,632.8,646.4,400.2,771.1,299,1571.4],"mensualOps":[66,76,53,40,34,25,18,23,14,24,12,39]}},"2025":{"ultimoDato":"2025-12-18","completo":true,"cubreVentana":true,"mercado":{"t":3446.8,"usd":2252688,"ops":99,"usdKg":0.654,"kgOp":34817,"cuota":100,"tV":2976.4,"usdV":1953798,"opsV":81,"usdKgV":0.656,"kgOpV":36746,"cuotaV":100,"mensualT":[1496.7,741.8,0,0,157.6,243.6,167.6,169,361.6,87.1,0,21.8],"mensualOps":[38,20,0,0,6,7,5,5,13,4,0,1]}},"2026":{"ultimoDato":"2026-08-31","completo":false,"cubreVentana":true,"mercado":{"t":5450.6,"usd":2845197,"ops":119,"usdKg":0.522,"kgOp":45804,"cuota":100,"tV":5450.6,"usdV":2845197,"opsV":119,"usdKgV":0.522,"kgOpV":45804,"cuotaV":100,"mensualT":[519.1,879.5,179.9,147.8,802.5,672,1119.1,1130.6,0,0,0,0],"mensualOps":[14,23,5,3,17,16,21,20,0,0,0,0]}}},"importadores":[{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":6079.5,"usd":3626271,"ops":169,"usdKg":0.596,"kgOp":35973,"cuota":41.12,"tV":4636.8,"usdV":2621334,"opsV":131,"usdKgV":0.565,"kgOpV":35396,"cuotaV":39.48,"mensualT":[630.6,756.1,958.5,518.1,683,445.9,317.2,327.5,282.5,260,65.5,834.6],"mensualOps":[19,24,22,15,18,13,9,11,9,7,3,19]},"2025":{"t":1441.7,"usd":971947,"ops":38,"usdKg":0.674,"kgOp":37938,"cuota":41.83,"tV":1308.3,"usdV":883311,"opsV":33,"usdKgV":0.675,"kgOpV":39644,"cuotaV":43.95,"mensualT":[868.2,301.8,0,0,0,96,21.1,21.1,111.6,21.8,0,0],"mensualOps":[19,9,0,0,0,3,1,1,4,1,0,0]},"2026":{"t":2486,"usd":1296463,"ops":59,"usdKg":0.522,"kgOp":42135,"cuota":45.61,"tV":2486,"usdV":1296463,"opsV":59,"usdKgV":0.522,"kgOpV":42135,"cuotaV":45.61,"mensualT":[280.3,429.8,23.4,0,416.7,366.5,518.4,450.8,0,0,0,0],"mensualOps":[6,12,1,0,10,10,10,10,0,0,0,0]}}},{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":1779.4,"usd":1007425,"ops":42,"usdKg":0.566,"kgOp":42367,"cuota":12.03,"tV":1523.4,"usdV":832039,"opsV":34,"usdKgV":0.546,"kgOpV":44805,"cuotaV":12.97,"mensualT":[133.9,226.9,223.2,223.2,178.6,178.6,223.2,135.8,22.3,67,20.5,146.3],"mensualOps":[3,4,5,5,4,4,5,4,1,2,1,4]},"2025":{"t":1081.5,"usd":682161,"ops":30,"usdKg":0.631,"kgOp":36051,"cuota":31.38,"tV":863.7,"usdV":538653,"opsV":22,"usdKgV":0.624,"kgOpV":39261,"cuotaV":29.02,"mensualT":[210.5,190.1,0,0,21.2,147.6,146.5,147.8,130.7,65.3,0,21.8],"mensualOps":[5,4,0,0,1,4,4,4,4,3,0,1]},"2026":{"t":1941.8,"usd":1016819,"ops":28,"usdKg":0.524,"kgOp":69349,"cuota":35.62,"tV":1941.8,"usdV":1016819,"opsV":28,"usdKgV":0.524,"kgOpV":69349,"cuotaV":35.62,"mensualT":[125.9,334,41.6,147.8,295.7,212.1,339.3,445.4,0,0,0,0],"mensualOps":[3,6,1,3,4,3,4,4,0,0,0,0]}}},{"nombre":"EXPERTEX SA","porAnio":{"2024":{"t":1137,"usd":624487,"ops":32,"usdKg":0.549,"kgOp":35532,"cuota":7.69,"tV":798.3,"usdV":406974,"opsV":19,"usdKgV":0.51,"kgOpV":42018,"cuotaV":6.8,"mensualT":[193.5,169.3,121,96.8,96.8,72.6,0,48.4,24.2,121,72.6,121],"mensualOps":[4,4,3,2,2,2,0,2,1,5,3,4]},"2025":{"t":217.7,"usd":133782,"ops":9,"usdKg":0.614,"kgOp":24192,"cuota":6.32,"tV":145.2,"usdV":96042,"opsV":6,"usdKgV":0.662,"kgOpV":24192,"cuotaV":4.88,"mensualT":[96.8,24.2,0,0,24.2,0,0,0,72.6,0,0,0],"mensualOps":[4,1,0,0,1,0,0,0,3,0,0,0]},"2026":{"t":459.6,"usd":239017,"ops":12,"usdKg":0.52,"kgOp":38304,"cuota":8.43,"tV":459.6,"usdV":239017,"opsV":12,"usdKgV":0.52,"kgOpV":38304,"cuotaV":8.43,"mensualT":[48.4,72.6,48.4,0,0,48.4,145.2,96.8,0,0,0,0],"mensualOps":[2,3,1,0,0,1,3,2,0,0,0,0]}}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","porAnio":{"2024":{"t":1215.6,"usd":668918,"ops":32,"usdKg":0.55,"kgOp":37986,"cuota":8.22,"tV":921.2,"usdV":477675,"opsV":25,"usdKgV":0.519,"kgOpV":36849,"cuotaV":7.84,"mensualT":[277.1,252,69.6,114.9,92.7,46.4,23.2,45.4,22.2,135.1,46.4,90.7],"mensualOps":[6,6,3,3,2,2,1,2,1,3,1,2]},"2025":{"t":310.5,"usd":204378,"ops":8,"usdKg":0.658,"kgOp":38808,"cuota":9.01,"tV":288.3,"usdV":191379,"opsV":7,"usdKgV":0.664,"kgOpV":41184,"cuotaV":9.69,"mensualT":[155.2,88.7,0,0,44.4,0,0,0,22.2,0,0,0],"mensualOps":[4,2,0,0,1,0,0,0,1,0,0,0]},"2026":{"t":243.9,"usd":126847,"ops":8,"usdKg":0.52,"kgOp":30492,"cuota":4.48,"tV":243.9,"usdV":126847,"opsV":8,"usdKgV":0.52,"kgOpV":30492,"cuotaV":4.48,"mensualT":[22.2,0,44.4,0,44.4,22.2,44.4,66.5,0,0,0,0],"mensualOps":[1,0,1,0,1,1,2,2,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":759.4,"usd":378693,"ops":34,"usdKg":0.499,"kgOp":22336,"cuota":5.14,"tV":667.9,"usdV":321950,"opsV":30,"usdKgV":0.482,"kgOpV":22264,"cuotaV":5.69,"mensualT":[169.5,205.9,90.1,88.7,22.9,45.1,22.9,22.9,0,45.8,22.9,22.9],"mensualOps":[8,9,4,4,1,2,1,1,0,2,1,1]},"2025":{"t":113.7,"usd":70671,"ops":5,"usdKg":0.622,"kgOp":22739,"cuota":3.3,"tV":113.7,"usdV":70671,"opsV":5,"usdKgV":0.622,"kgOpV":22739,"cuotaV":3.82,"mensualT":[45.8,22.2,0,0,45.8,0,0,0,0,0,0,0],"mensualOps":[2,1,0,0,2,0,0,0,0,0,0,0]},"2026":{"t":157,"usd":81636,"ops":7,"usdKg":0.52,"kgOp":22427,"cuota":2.88,"tV":157,"usdV":81636,"opsV":7,"usdKgV":0.52,"kgOpV":22427,"cuotaV":2.88,"mensualT":[0,21.1,22.2,0,45.8,22.9,22.9,22.2,0,0,0,0],"mensualOps":[0,1,1,0,2,1,1,1,0,0,0,0]}}},{"nombre":"GARMIN S.R.L.","porAnio":{"2024":{"t":1411,"usd":795818,"ops":39,"usdKg":0.564,"kgOp":36179,"cuota":9.54,"tV":970,"usdV":500044,"opsV":26,"usdKgV":0.516,"kgOpV":37307,"cuotaV":8.26,"mensualT":[398.1,260.4,147,73.5,24.5,0,0,66.5,49,98,49,245],"mensualOps":[6,9,4,3,1,0,0,3,2,3,2,6]},"2025":{"t":122.5,"usd":83627,"ops":4,"usdKg":0.683,"kgOp":30625,"cuota":3.55,"tV":98,"usdV":67620,"opsV":3,"usdKgV":0.69,"kgOpV":32667,"cuotaV":3.29,"mensualT":[98,0,0,0,0,0,0,0,24.5,0,0,0],"mensualOps":[3,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":98,"usd":50960,"ops":2,"usdKg":0.52,"kgOp":49000,"cuota":1.8,"tV":98,"usdV":50960,"opsV":2,"usdKgV":0.52,"kgOpV":49000,"cuotaV":1.8,"mensualT":[0,0,0,0,0,0,49,49,0,0,0,0],"mensualOps":[0,0,0,0,0,0,1,1,0,0,0,0]}}},{"nombre":"JEMI SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":22.2,"usd":11532,"ops":1,"usdKg":0.52,"kgOp":22176,"cuota":0.64,"tV":22.2,"usdV":11532,"opsV":1,"usdKgV":0.52,"kgOpV":22176,"cuotaV":0.75,"mensualT":[0,0,0,0,22.2,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,1,0,0,0,0,0,0,0]},"2026":{"t":42.3,"usd":22015,"ops":2,"usdKg":0.52,"kgOp":21168,"cuota":0.78,"tV":42.3,"usdV":22015,"opsV":2,"usdKgV":0.52,"kgOpV":21168,"cuotaV":0.78,"mensualT":[42.3,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[2,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"RINALIR SOCIEDAD ANONIMA","porAnio":{"2024":{"t":595.6,"usd":297976,"ops":12,"usdKg":0.5,"kgOp":49632,"cuota":4.03,"tV":462.5,"usdV":210325,"opsV":8,"usdKgV":0.455,"kgOpV":57816,"cuotaV":3.94,"mensualT":[164.7,123.6,0,63.4,66.5,44.4,0,0,0,44.4,22.2,66.5],"mensualOps":[3,2,0,1,1,1,0,0,0,2,1,1]},"2025":{"t":66.5,"usd":45904,"ops":1,"usdKg":0.69,"kgOp":66528,"cuota":1.93,"tV":66.5,"usdV":45904,"opsV":1,"usdKgV":0.69,"kgOpV":66528,"cuotaV":2.24,"mensualT":[0,66.5,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,1,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":22,"usd":11440,"ops":1,"usdKg":0.52,"kgOp":22000,"cuota":0.4,"tV":22,"usdV":11440,"opsV":1,"usdKgV":0.52,"kgOpV":22000,"cuotaV":0.4,"mensualT":[0,22,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,1,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":155.2,"usd":86432,"ops":7,"usdKg":0.557,"kgOp":22176,"cuota":1.05,"tV":110.9,"usdV":55830,"opsV":5,"usdKgV":0.504,"kgOpV":22176,"cuotaV":0.94,"mensualT":[0,0,44.4,44.4,0,0,22.2,0,0,0,0,44.4],"mensualOps":[0,0,2,2,0,0,1,0,0,0,0,2]},"2025":{"t":70.6,"usd":48686,"ops":3,"usdKg":0.69,"kgOp":23520,"cuota":2.05,"tV":70.6,"usdV":48686,"opsV":3,"usdKgV":0.69,"kgOpV":23520,"cuotaV":2.37,"mensualT":[22.2,48.4,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,2,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":793.2,"usd":378514,"ops":22,"usdKg":0.477,"kgOp":36052,"cuota":5.36,"tV":793.2,"usdV":378514,"opsV":22,"usdKgV":0.477,"kgOpV":36052,"cuotaV":6.75,"mensualT":[217.7,156.1,207.6,48.4,116.9,22.2,24.2,0,0,0,0,0],"mensualOps":[4,5,6,2,3,1,1,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"TEDIBLER S A","porAnio":{"2024":{"t":341.3,"usd":169498,"ops":14,"usdKg":0.497,"kgOp":24379,"cuota":2.31,"tV":341.3,"usdV":169498,"opsV":14,"usdKgV":0.497,"kgOpV":24379,"cuotaV":2.91,"mensualT":[160.9,158.4,22,0,0,0,0,0,0,0,0,0],"mensualOps":[6,7,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"GRINOLAND S.A.","porAnio":{"2024":{"t":68.4,"usd":32182,"ops":2,"usdKg":0.471,"kgOp":34184,"cuota":0.46,"tV":68.4,"usdV":32182,"opsV":2,"usdKgV":0.471,"kgOpV":34184,"cuotaV":0.58,"mensualT":[46.4,0,22,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IDIL SAS","porAnio":{"2024":{"t":23.2,"usd":12751,"ops":1,"usdKg":0.55,"kgOp":23184,"cuota":0.16,"tV":23.2,"usdV":12751,"opsV":1,"usdKgV":0.55,"kgOpV":23184,"cuotaV":0.2,"mensualT":[0,0,0,0,23.2,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,1,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IROLDI BERMUDEZ NATALIA GIMENA","porAnio":{"2024":{"t":427.4,"usd":187362,"ops":18,"usdKg":0.438,"kgOp":23743,"cuota":2.89,"tV":427.4,"usdV":187362,"opsV":18,"usdKgV":0.438,"kgOpV":23743,"cuotaV":3.64,"mensualT":[144,144,46.6,69.6,23.2,0,0,0,0,0,0,0],"mensualOps":[6,6,2,3,1,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]},"Bolivia":{"registros":181,"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","porAnio":{"2024":{"ultimoDato":"2024-12-30","completo":true,"cubreVentana":true,"mercado":{"t":1172.2,"usd":728129,"ops":41,"usdKg":0.621,"kgOp":28591,"cuota":100,"tV":505.5,"usdV":270335,"opsV":21,"usdKgV":0.535,"kgOpV":24071,"cuotaV":100,"mensualT":[214,291.5,0,0,0,0,0,0,0,46.4,139.1,481.2],"mensualOps":[9,12,0,0,0,0,0,0,0,1,3,16]}},"2025":{"ultimoDato":"2025-12-30","completo":true,"cubreVentana":true,"mercado":{"t":1994.2,"usd":1355238,"ops":64,"usdKg":0.68,"kgOp":31159,"cuota":100,"tV":351.5,"usdV":242528,"opsV":13,"usdKgV":0.69,"kgOpV":27038,"cuotaV":100,"mensualT":[116.9,211,23.6,0,0,0,0,0,92.7,368.3,496.3,685.4],"mensualOps":[5,7,1,0,0,0,0,0,2,11,17,21]}},"2026":{"ultimoDato":"2026-08-26","completo":false,"cubreVentana":false,"mercado":{"t":2539.3,"usd":1557204,"ops":76,"usdKg":0.613,"kgOp":33411,"cuota":100,"tV":2539.3,"usdV":1557204,"opsV":76,"usdKgV":0.613,"kgOpV":33411,"cuotaV":100,"mensualT":[427.3,468.5,571.9,247.4,221.5,44.1,249.6,309,0,0,0,0],"mensualOps":[14,12,18,8,7,2,6,9,0,0,0,0]}}},"importadores":[{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":440.5,"usd":306301,"ops":11,"usdKg":0.695,"kgOp":40045,"cuota":22.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,92.7,162.3,185.5],"mensualOps":[0,0,0,0,0,0,0,0,0,3,4,4]},"2026":{"t":1205.6,"usd":833152,"ops":27,"usdKg":0.691,"kgOp":44651,"cuota":47.48,"tV":1205.6,"usdV":833152,"opsV":27,"usdKgV":0.691,"kgOpV":44651,"cuotaV":47.48,"mensualT":[185.5,185.5,162.3,162.3,115.9,0,208.7,185.5,0,0,0,0],"mensualOps":[4,4,4,4,3,0,4,4,0,0,0,0]}}},{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":624.7,"usd":428814,"ops":18,"usdKg":0.686,"kgOp":34706,"cuota":53.29,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,46.4,139.1,439.2],"mensualOps":[0,0,0,0,0,0,0,0,0,1,3,14]},"2025":{"t":1392.7,"usd":948807,"ops":45,"usdKg":0.681,"kgOp":30948,"cuota":69.84,"tV":351.5,"usdV":242528,"opsV":13,"usdKgV":0.69,"kgOpV":27038,"cuotaV":100,"mensualT":[116.9,211,23.6,0,0,0,0,0,92.7,254.6,274,419.9],"mensualOps":[5,7,1,0,0,0,0,0,2,7,10,13]},"2026":{"t":1193.7,"usd":642905,"ops":42,"usdKg":0.539,"kgOp":28421,"cuota":47.01,"tV":1193.7,"usdV":642905,"opsV":42,"usdKgV":0.539,"kgOpV":28421,"cuotaV":47.01,"mensualT":[201.8,283,369.6,45.2,85.6,44.1,41,123.5,0,0,0,0],"mensualOps":[8,8,12,2,3,2,2,5,0,0,0,0]}}},{"nombre":"JEMI SAS","porAnio":{"2024":{"t":21,"usd":14490,"ops":1,"usdKg":0.69,"kgOp":21000,"cuota":1.79,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,21],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":121,"usd":71190,"ops":6,"usdKg":0.588,"kgOp":20167,"cuota":6.07,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,21,40,60],"mensualOps":[0,0,0,0,0,0,0,0,0,1,2,3]},"2026":{"t":140,"usd":81147,"ops":7,"usdKg":0.58,"kgOp":20000,"cuota":5.51,"tV":140,"usdV":81147,"opsV":7,"usdKgV":0.58,"kgOpV":20000,"cuotaV":5.51,"mensualT":[40,0,40,40,20,0,0,0,0,0,0,0],"mensualOps":[2,0,2,2,1,0,0,0,0,0,0,0]}}},{"nombre":"TEDIBLER S A","porAnio":{"2024":{"t":255.5,"usd":141710,"ops":10,"usdKg":0.555,"kgOp":25550,"cuota":21.8,"tV":255.5,"usdV":141710,"opsV":10,"usdKgV":0.555,"kgOpV":25550,"cuotaV":50.54,"mensualT":[86,169.5,0,0,0,0,0,0,0,0,0,0],"mensualOps":[3,7,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":62,"usd":31000,"ops":2,"usdKg":0.5,"kgOp":31000,"cuota":5.29,"tV":62,"usdV":31000,"opsV":2,"usdKgV":0.5,"kgOpV":31000,"cuotaV":12.27,"mensualT":[0,62,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,2,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":44,"usd":25990,"ops":2,"usdKg":0.591,"kgOp":22000,"cuota":3.75,"tV":23,"usdV":11500,"opsV":1,"usdKgV":0.5,"kgOpV":23000,"cuotaV":4.55,"mensualT":[23,0,0,0,0,0,0,0,0,0,0,21],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":60,"usd":33625,"ops":3,"usdKg":0.56,"kgOp":20000,"cuota":5.12,"tV":60,"usdV":33625,"opsV":3,"usdKgV":0.56,"kgOpV":20000,"cuotaV":11.87,"mensualT":[0,60,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,3,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":40,"usd":28940,"ops":2,"usdKg":0.724,"kgOp":20000,"cuota":2.01,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,20,20],"mensualOps":[0,0,0,0,0,0,0,0,0,0,1,1]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IDIL SAS","porAnio":{"2024":{"t":105,"usd":52500,"ops":5,"usdKg":0.5,"kgOp":21000,"cuota":8.96,"tV":105,"usdV":52500,"opsV":5,"usdKgV":0.5,"kgOpV":21000,"cuotaV":20.77,"mensualT":[105,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[5,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]}}}}/*__END_MERCADO__*/</script>
 
 <script>
 (function () {
@@ -134,7 +156,7 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
     .replace(/\/\*__MERCADO_JSON__\*\//, '').replace(/\/\*__END_MERCADO__\*\//, ''));
 
   var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','set','oct','nov','dic'];
-  var PALETA = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)'];
+  var PALETA = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)','var(--s6)'];
   var COLOR = {};
   (D.origenes || []).forEach(function (o, i) { COLOR[o] = PALETA[i % PALETA.length]; });
 
@@ -146,22 +168,45 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
   function svgEl(t, a) { var e = document.createElementNS('http://www.w3.org/2000/svg', t);
     for (var k in a) e.setAttribute(k, a[k]); return e; }
   function txt(id, s) { var n = document.getElementById(id); if (n) n.textContent = s; }
+  function show(id) { var n = document.getElementById(id); if (n) n.hidden = false; }
   function fmt(v, d) { if (v === null || v === undefined || isNaN(v)) return '—';
     return Number(v).toLocaleString('es-UY', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
   function sgn(v, d) { return (v > 0 ? '+' : '') + fmt(v, d); }
   function pct(a, b) { if (!a) return null; return (b / a - 1) * 100; }
+  function fechaCorta(iso) { if (!iso || iso.length < 10) return iso || ''; return parseInt(iso.substr(8, 2), 10) + '/' + parseInt(iso.substr(5, 2), 10); }
+  function mesDe(iso) { var m = parseInt((iso || '').substr(5, 2), 10); return isNaN(m) ? 12 : m; }
 
   if (!D.registros) {
-    txt('meta', 'Sin datos todavía. Poné los extractos detalle_UYimport_*.xlsx de Penta en la carpeta penta\\ y corré actualizar_precios.ps1.');
+    txt('meta', 'Sin datos todavía. Poné los extractos detalle_UYimport_*.xlsx de Penta en la carpeta penta y corré actualizar_precios.ps1.');
     return;
   }
+
+  // ---------- bloque anual (ano contra ano, misma ventana) ----------
+  var A = D.anual || null;
+  var hasA = !!(A && A.total && A.total.porAnio && A.anios && A.anios.length > 1 && A.ventana);
+  var yA = null, yP = null, YEARS = [], winLbl = '';
+  var mkt = function () { return null; };
+  var almarA = null;   // Almar en el total del mercado (todos los origenes)
+  if (hasA) {
+    YEARS = A.anios.map(String);
+    yA = YEARS[YEARS.length - 1]; yP = YEARS[YEARS.length - 2];
+    winLbl = A.ventana.mesCompleto
+      ? MESES[0] + '-' + MESES[A.ventana.mesHasta - 1]
+      : '1/1 al ' + A.ventana.diaHasta + '/' + A.ventana.mesHasta;
+    mkt = function (y) { var p = A.total.porAnio[y]; return p ? p.mercado : null; };
+    if (!mkt(yA) || !mkt(yP)) { hasA = false; }
+    (A.total.importadores || []).forEach(function (i) { if (A.almar && i.nombre === A.almar) almarA = i; });
+  }
+  function pa(imp, y) { return (imp && imp.porAnio && imp.porAnio[y]) ? imp.porAnio[y] : { tV: 0, cuotaV: null, usdKgV: null }; }
 
   // ---------- encabezado ----------
   txt('subCobertura', D.origenes.join(' · ') + '.');
   txt('meta', D.fuente + ' — ' + fmt(D.registros) + ' operaciones de ' + D.anio +
+    (hasA ? ' (' + fmt(A.registros) + ' en ' + YEARS[0] + '-' + yA + ')' : '') +
     ', hasta el ' + D.corte + ' · generado ' + D.generado);
+  txt('h2mensual', 'Volumen mensual por origen, ' + D.anio);
   txt('subMensual', 'Cada punto es un mes cerrado de ' + D.anio + '.');
-  txt('subShare', 'Cómo se reparte el mercado entre orígenes, comparando ' + lblV1 + ' contra ' + lblV2 + '.');
+  txt('subShare', 'Cómo se reparte el mercado entre orígenes, comparando ' + lblV1 + ' contra ' + lblV2 + ' de ' + D.anio + '.');
   txt('subRanking', 'Toneladas netas por mes, sumando todos los orígenes.');
   txt('subAlmar', 'De dónde viene el volumen de Almar y cómo se movió.');
   txt('subMatriz', 'Toneladas por mes en ' + lblV2 + '. Un cero significa que ese importador no opera ese origen.');
@@ -172,32 +217,229 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
   var almar = null;
   D.importadores.forEach(function (i) { if (/ALMAR/i.test(i.nombre)) almar = i; });
 
+  // ---------- helper de tablas ----------
+  function tabla(id, cols, filas) {
+    var t = document.getElementById(id); if (!t) return;
+    t.innerHTML = '';
+    var th = el('thead'), tr = el('tr');
+    cols.forEach(function (c) { var h = el('th'); h.textContent = c; tr.appendChild(h); });
+    th.appendChild(tr); t.appendChild(th);
+    var tb = el('tbody');
+    filas.forEach(function (f) {
+      var r = el('tr'); if (f.cls) r.className = f.cls;
+      f.cells.forEach(function (c) {
+        var td = el('td');
+        if (c && typeof c === 'object') { td.textContent = c.v; if (c.cls) td.className = c.cls; }
+        else { td.textContent = c; }
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+  }
+  function cellDelta(v) {
+    if (Math.abs(v) < 0.5) return { v: '0', cls: 'nil' };
+    return { v: sgn(v), cls: v > 0 ? 'pos' : 'neg' };
+  }
+  function cellPct(v, d) {
+    if (v === null || v === undefined || isNaN(v)) return { v: '—', cls: 'nil' };
+    return { v: sgn(v, d || 0) + '%', cls: v >= 0 ? 'pos' : 'neg' };
+  }
+  function cellPP(v) {
+    if (v === null || v === undefined || isNaN(v)) return { v: '—', cls: 'nil' };
+    if (Math.abs(v) < 0.05) return { v: '0 pp', cls: 'nil' };
+    return { v: sgn(v, 1) + ' pp', cls: v > 0 ? 'pos' : 'neg' };
+  }
+  function addP(n, s) { var p = el('p'); p.appendChild(document.createTextNode(s)); n.appendChild(p); return p; }
+  function lista(items) { return items.join(', ').replace(/, ([^,]*)$/, ' y $1'); }
+
   // ---------- KPIs ----------
-  var kp = document.getElementById('kpis');
-  var brasil = D.porOrigen.filter(function (o) { return /brasil/i.test(o.origen); })[0];
-  var tiles = [
-    { lab: 'Mercado total ' + lblV2, val: fmt(totV2), u: 't/mes',
-      dl: lblV1 + ': ' + fmt(totV1) + ' t/mes', cls: '' }
-  ];
-  if (almar) {
-    tiles.push({ lab: 'Almar, participación', val: fmt(almar.v2 / totV2 * 100, 1) + '%', u: '',
-      dl: lblV1 + ': ' + fmt(almar.v1 / totV1 * 100, 1) + '%', cls: '' });
-    tiles.push({ lab: 'Almar, volumen ' + lblV2, val: fmt(almar.v2), u: 't/mes',
-      dl: sgn(pct(almar.v1, almar.v2), 0) + '% vs ' + lblV1, cls: almar.v2 >= almar.v1 ? 'good' : 'bad' });
-  }
-  if (brasil) {
-    tiles.push({ lab: 'Brasil, variación', val: sgn(pct(brasil.v1, brasil.v2), 0) + '%', u: '',
-      dl: fmt(brasil.v1) + ' → ' + fmt(brasil.v2) + ' t/mes', cls: brasil.v2 >= brasil.v1 ? 'good' : 'bad' });
-  }
-  tiles.forEach(function (t) {
-    var c = el('div', 'tile' + (t.cls ? ' ' + t.cls : ''));
-    var l = el('div', 'lab'); l.textContent = t.lab; c.appendChild(l);
-    var v = el('div', 'val'); v.textContent = t.val;
-    if (t.u) { var u = el('span', 'u'); u.textContent = t.u; v.appendChild(u); }
-    c.appendChild(v);
-    var d = el('div', 'dl'); d.textContent = t.dl; c.appendChild(d);
-    kp.appendChild(c);
-  });
+  (function () {
+    var kp = document.getElementById('kpis');
+    var tiles = [];
+    if (hasA) {
+      var T = mkt(yA), TP = mkt(yP);
+      var vM = pct(TP.tV, T.tV);
+      tiles.push({ lab: 'Mercado total ' + winLbl + ' ' + yA, val: fmt(T.tV), u: 't',
+        dl: yP + ': ' + fmt(TP.tV) + ' t (' + sgn(vM, 0) + '%)', cls: vM >= 0 ? 'good' : 'bad' });
+      if (almarA) {
+        var aA = pa(almarA, yA), aP = pa(almarA, yP);
+        var dpp = (aA.cuotaV || 0) - (aP.cuotaV || 0);
+        tiles.push({ lab: 'Almar, cuota ' + yA, val: fmt(aA.cuotaV, 1) + '%', u: '',
+          dl: yP + ': ' + fmt(aP.cuotaV, 1) + '% (' + sgn(dpp, 1) + ' pp)', cls: dpp >= 0 ? 'good' : 'bad' });
+        var vA = pct(aP.tV, aA.tV);
+        tiles.push({ lab: 'Almar, volumen ' + winLbl + ' ' + yA, val: fmt(aA.tV), u: 't',
+          dl: sgn(vA, 0) + '% vs ' + yP + ' (' + fmt(aP.tV) + ' t)', cls: vA >= 0 ? 'good' : 'bad' });
+      }
+      var o1 = D.origenes[0], O1 = A.origenes[o1];
+      if (O1 && O1.porAnio[yA] && O1.porAnio[yP]) {
+        var a1 = O1.porAnio[yA].mercado.tV, p1 = O1.porAnio[yP].mercado.tV, v1 = pct(p1, a1);
+        tiles.push({ lab: o1 + ', ' + yA + ' vs ' + yP, val: sgn(v1, 0) + '%', u: '',
+          dl: fmt(p1) + ' → ' + fmt(a1) + ' t en ' + winLbl, cls: v1 >= 0 ? 'good' : 'bad' });
+      }
+      if (T.usdKgV && TP.usdKgV) {
+        tiles.push({ lab: 'Precio declarado ' + yA, val: fmt(T.usdKgV, 3), u: 'USD/kg',
+          dl: yP + ': ' + fmt(TP.usdKgV, 3) + ' USD/kg', cls: '' });
+      }
+    } else {
+      var brasil = D.porOrigen.filter(function (o) { return /brasil/i.test(o.origen); })[0];
+      tiles.push({ lab: 'Mercado total ' + lblV2, val: fmt(totV2), u: 't/mes',
+        dl: lblV1 + ': ' + fmt(totV1) + ' t/mes', cls: '' });
+      if (almar) {
+        tiles.push({ lab: 'Almar, participación', val: fmt(almar.v2 / totV2 * 100, 1) + '%', u: '',
+          dl: lblV1 + ': ' + fmt(almar.v1 / totV1 * 100, 1) + '%', cls: '' });
+        tiles.push({ lab: 'Almar, volumen ' + lblV2, val: fmt(almar.v2), u: 't/mes',
+          dl: sgn(pct(almar.v1, almar.v2), 0) + '% vs ' + lblV1, cls: almar.v2 >= almar.v1 ? 'good' : 'bad' });
+      }
+      if (brasil) {
+        tiles.push({ lab: 'Brasil, variación', val: sgn(pct(brasil.v1, brasil.v2), 0) + '%', u: '',
+          dl: fmt(brasil.v1) + ' → ' + fmt(brasil.v2) + ' t/mes', cls: brasil.v2 >= brasil.v1 ? 'good' : 'bad' });
+      }
+    }
+    tiles.forEach(function (t) {
+      var c = el('div', 'tile' + (t.cls ? ' ' + t.cls : ''));
+      var l = el('div', 'lab'); l.textContent = t.lab; c.appendChild(l);
+      var v = el('div', 'val'); v.textContent = t.val;
+      if (t.u) { var u = el('span', 'u'); u.textContent = t.u; v.appendChild(u); }
+      c.appendChild(v);
+      var d = el('div', 'dl'); d.textContent = t.dl; c.appendChild(d);
+      kp.appendChild(c);
+    });
+  })();
+
+  // ---------- small multiples: cada origen, tres anos ----------
+  (function () {
+    if (!hasA) return;
+    show('secAnualChart');
+    txt('subAnualChart', 'Toneladas netas por mes. ' + yA + ' en color, ' + yP + ' en gris oscuro, años anteriores punteados. Cada panel tiene su propia escala.');
+    var lg = document.getElementById('lgAnual');
+    YEARS.slice().reverse().forEach(function (y) {
+      var li = el('li'); var ln = el('span', 'ln' + (y === yA ? '' : (y === yP ? ' prev' : ' old')));
+      if (y === yA) ln.style.borderTopColor = 'var(--s1)';
+      li.appendChild(ln); li.appendChild(document.createTextNode(y)); lg.appendChild(li);
+    });
+
+    function serieDe(porAnio, y) {
+      var p = porAnio[y]; if (!p || !p.mercado) return null;
+      var cap = mesDe(p.ultimoDato);
+      if (y === yA) cap = Math.min(cap, A.ventana.mesHasta);
+      return (p.mercado.mensualT || []).slice(0, cap);
+    }
+    function nice(v) {
+      var steps = [50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000];
+      for (var i = 0; i < steps.length; i++) { if (v / steps[i] <= 5) return Math.ceil(v / steps[i]) * steps[i]; }
+      return Math.ceil(v / 20000) * 20000;
+    }
+    function panel(titulo, porAnio, color) {
+      var W = 460, H = 210, M = { t: 30, r: 12, b: 24, l: 46 };
+      var iw = W - M.l - M.r, ih = H - M.t - M.b;
+      var series = [], vmax = 0;
+      YEARS.forEach(function (y) {
+        var s = serieDe(porAnio, y); if (!s) return;
+        s.forEach(function (v) { if (v > vmax) vmax = v; });
+        series.push({ y: y, pts: s });
+      });
+      if (!series.length) return null;
+      vmax = nice(vmax) || 100;
+      var x = function (i) { return M.l + (i / 11) * iw; };
+      var yy = function (v) { return M.t + ih - (v / vmax) * ih; };
+      var box = el('div', 'panel');
+      var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': titulo + ', volumen mensual por año' });
+      var tt = svgEl('text', { x: 6, y: 16, 'font-size': 12.5, 'font-weight': 600, fill: 'var(--ink)' });
+      tt.textContent = titulo; svg.appendChild(tt);
+      for (var g = 0; g <= 4; g++) {
+        var vy = vmax * g / 4;
+        svg.appendChild(svgEl('line', { x1: M.l, x2: W - M.r, y1: yy(vy), y2: yy(vy), stroke: 'var(--border)', 'stroke-width': 1 }));
+        var tl = svgEl('text', { x: M.l - 6, y: yy(vy) + 4, 'text-anchor': 'end', 'font-size': 10, fill: 'var(--muted)' });
+        tl.textContent = fmt(vy); svg.appendChild(tl);
+      }
+      for (var i = 0; i < 12; i++) {
+        var tx = svgEl('text', { x: x(i), y: H - 8, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--muted)' });
+        tx.textContent = MESES[i]; svg.appendChild(tx);
+      }
+      series.forEach(function (s) {
+        var esA = s.y === yA, esP = s.y === yP;
+        var d = '';
+        s.pts.forEach(function (v, i) { d += (i ? ' L' : 'M') + x(i).toFixed(1) + ' ' + yy(v).toFixed(1); });
+        var attrs = { d: d, fill: 'none', 'stroke-linejoin': 'round', 'stroke-linecap': 'round',
+          stroke: esA ? color : (esP ? 'var(--ink)' : 'var(--muted)'),
+          'stroke-width': esA ? 2.6 : (esP ? 1.8 : 1.5),
+          opacity: esA ? 1 : (esP ? 0.6 : 0.55) };
+        if (!esA && !esP) attrs['stroke-dasharray'] = '4 3';
+        svg.appendChild(svgEl('path', attrs));
+        if (esA) {
+          s.pts.forEach(function (v, i) {
+            var ultimo = (i === s.pts.length - 1) && !A.ventana.mesCompleto;
+            svg.appendChild(svgEl('circle', { cx: x(i), cy: yy(v), r: 2.8, fill: ultimo ? 'var(--card)' : color, stroke: color, 'stroke-width': 1.5 }));
+          });
+        }
+      });
+      box.appendChild(svg);
+      return box;
+    }
+    var grid = document.getElementById('gridAnual');
+    var pTot = panel('Todos los orígenes', A.total.porAnio, 'var(--s1)');
+    if (pTot) grid.appendChild(pTot);
+    var origList = D.origenes.slice();
+    Object.keys(A.origenes || {}).forEach(function (o) { if (origList.indexOf(o) < 0) origList.push(o); });
+    origList.forEach(function (o) {
+      var O = A.origenes[o]; if (!O) return;
+      var p = panel(o, O.porAnio, COLOR[o] || 'var(--s1)');
+      if (p) grid.appendChild(p);
+    });
+  })();
+
+  // ---------- tabla ano contra ano, misma ventana ----------
+  (function () {
+    if (!hasA) return;
+    show('secAnual');
+    var T = mkt(yA), TP = mkt(yP);
+    txt('h2Anual', 'Año contra año, misma ventana: ' + winLbl + ' de cada año');
+    txt('subAnual', 'Del 1 de enero al día de corte (' + fechaCorta(D.corte) + ') en todos los años. Nunca un año entero contra ' + D.meses + ' meses.');
+    var origList = D.origenes.slice();
+    Object.keys(A.origenes || {}).forEach(function (o) { if (origList.indexOf(o) < 0) origList.push(o); });
+    var filas = [], ganaron = [], perdieron = [], sumaPos = 0, sumaNeg = 0;
+    origList.forEach(function (o) {
+      var O = A.origenes[o]; if (!O) return;
+      var vals = YEARS.map(function (y) { return (O.porAnio[y] && O.porAnio[y].mercado) ? O.porAnio[y].mercado.tV : 0; });
+      var a = vals[vals.length - 1], p = vals[vals.length - 2], d = a - p;
+      if (d > 0) { sumaPos += d; ganaron.push(o + ' ' + sgn(d) + ' t' + (p ? ' (' + sgn(pct(p, a), 0) + '%)' : ' (nuevo)')); }
+      else if (d < 0) { sumaNeg += d; perdieron.push(o + ' ' + sgn(d) + ' t (' + sgn(pct(p, a), 0) + '%)'); }
+      filas.push({ cells: [o].concat(vals.map(function (v) { return fmt(v); })).concat([
+        cellDelta(d), cellPct(pct(p, a)),
+        fmt(p / TP.tV * 100, 1) + '%', fmt(a / T.tV * 100, 1) + '%']) });
+    });
+    var totVals = YEARS.map(function (y) { var m = mkt(y); return m ? m.tV : 0; });
+    var dT = T.tV - TP.tV;
+    filas.push({ cls: 'tot', cells: ['TOTAL'].concat(totVals.map(function (v) { return fmt(v); })).concat([
+      cellDelta(dT), cellPct(pct(TP.tV, T.tV)), '100%', '100%']) });
+    tabla('tblAnual', ['Origen'].concat(YEARS.map(function (y) { return y + ' (t)'; })).concat([
+      'Δ ' + yP + '→' + yA, 'var', '% ' + yP, '% ' + yA]), filas);
+
+    var n = document.getElementById('notaAnual');
+    var s1 = 'Con la misma ventana (' + winLbl + ') el mercado importó ' + fmt(T.tV) + ' t en ' + yA +
+      ' contra ' + fmt(TP.tV) + ' t en ' + yP + ' (' + sgn(pct(TP.tV, T.tV), 0) + '%)';
+    if (YEARS.length > 2) { s1 += ' y ' + fmt(totVals[0]) + ' t en ' + YEARS[0] + ' (' + sgn(pct(totVals[0], T.tV), 0) + '% contra ' + YEARS[0] + ')'; }
+    addP(n, s1 + '.');
+    var s2 = '';
+    if (perdieron.length) s2 += 'Perdieron: ' + lista(perdieron) + '. ';
+    if (ganaron.length) s2 += 'Ganaron: ' + lista(ganaron) + '. ';
+    s2 += 'Neto ' + sgn(dT) + ' t: ' + (sumaNeg < 0 && Math.abs(dT) < Math.abs(sumaNeg) * 0.25
+      ? 'casi todo lo que perdió un origen lo absorbieron los otros. Es una redistribución, no una caída de consumo.'
+      : (dT < 0 ? 'una parte del volumen perdido no fue a ningún otro origen: el mercado se achicó de verdad.'
+                : 'el mercado creció, no sólo se redistribuyó.'));
+    addP(n, s2);
+    if (T.usdKgV && TP.usdKgV) {
+      addP(n, 'Precio declarado promedio: ' + fmt(T.usdKgV, 3) + ' USD/kg en ' + yA + ' contra ' + fmt(TP.usdKgV, 3) +
+        ' en ' + yP + '. Depende de la mezcla de orígenes (Ecuador se declara a 1,00 USD/kg), no leerlo como precio de compra.');
+    }
+    var incompletos = YEARS.filter(function (y) { return y !== yA && A.total.porAnio[y] && A.total.porAnio[y].cubreVentana === false; });
+    if (incompletos.length) {
+      var p = addP(n, 'Ojo: ' + lista(incompletos) + ' no cubre la ventana completa en los extractos (último dato ' +
+        lista(incompletos.map(function (y) { return fechaCorta(A.total.porAnio[y].ultimoDato) + '/' + y; })) + '); la comparación queda corta para ese año.');
+      p.style.color = 'var(--bad)';
+    }
+  })();
 
   // ---------- leyenda ----------
   var lg = document.getElementById('lgMensual');
@@ -208,7 +450,7 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
     lg.appendChild(li);
   });
 
-  // ---------- chart mensual ----------
+  // ---------- chart mensual del ano en curso ----------
   (function () {
     var W = 1000, H = 320, M = { t: 18, r: 16, b: 34, l: 52 };
     var iw = W - M.l - M.r, ih = H - M.t - M.b;
@@ -250,31 +492,6 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
     document.getElementById('pMensual').appendChild(svg);
   })();
 
-  // ---------- helper de tablas ----------
-  function tabla(id, cols, filas) {
-    var t = document.getElementById(id); if (!t) return;
-    t.innerHTML = '';
-    var th = el('thead'), tr = el('tr');
-    cols.forEach(function (c) { var h = el('th'); h.textContent = c; tr.appendChild(h); });
-    th.appendChild(tr); t.appendChild(th);
-    var tb = el('tbody');
-    filas.forEach(function (f) {
-      var r = el('tr'); if (f.cls) r.className = f.cls;
-      f.cells.forEach(function (c) {
-        var td = el('td');
-        if (c && typeof c === 'object') { td.textContent = c.v; if (c.cls) td.className = c.cls; }
-        else { td.textContent = c; }
-        r.appendChild(td);
-      });
-      tb.appendChild(r);
-    });
-    t.appendChild(tb);
-  }
-  function cellDelta(v) {
-    if (Math.abs(v) < 0.5) return { v: '0', cls: 'nil' };
-    return { v: sgn(v), cls: v > 0 ? 'pos' : 'neg' };
-  }
-
   // ---------- estacionalidad ----------
   (function () {
     if (!D.estacional || !D.estacional.length) { return; }
@@ -288,7 +505,6 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
     var act = D.estacional.filter(function (e) { return e.anio === D.anio; })[0];
     var prev = D.estacional.filter(function (e) { return e.anio !== D.anio; });
     var n = document.getElementById('notaEstacional');
-    var p = el('p');
     if (prev.length && act) {
       var promPrev = prev.reduce(function (a, e) { return a + e.v2; }, 0) / prev.length;
       var dif = (act.v2 / promPrev - 1) * 100;
@@ -297,24 +513,21 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
         : (dif < 0
             ? 'El nivel de ' + lblV2 + ' en ' + D.anio + ' está ' + fmt(Math.abs(dif), 1) + '% por debajo del promedio de los años previos: acá sí hay contracción real, no sólo estacionalidad.'
             : 'El nivel de ' + lblV2 + ' en ' + D.anio + ' está ' + fmt(dif, 1) + '% por encima del promedio de los años previos: el mercado creció.');
-      p.appendChild(document.createTextNode(veredicto));
+      addP(n, veredicto);
     }
-    n.appendChild(p);
-    var p2 = el('p');
-    p2.appendChild(document.createTextNode('Ojo con leer la caída de ' + lblV1 + ' a ' + lblV2 +
-      ' como pérdida de mercado: comparar contra el mismo período del año anterior, no contra el semestre previo.'));
-    n.appendChild(p2);
+    addP(n, 'Ojo con leer la caída de ' + lblV1 + ' a ' + lblV2 +
+      ' como pérdida de mercado: comparar contra el mismo período del año anterior, no contra el semestre previo.');
     txt('subEstacional', 'La caída de ' + lblV1 + ' a ' + lblV2 + ' se repite todos los años. Lo que importa es el nivel absoluto contra el mismo período del año pasado.');
   })();
 
-  // ---------- interanual ----------
+  // ---------- interanual de los ultimos meses ----------
   (function () {
     var origs = Object.keys(D.interanual || {});
     if (!origs.length) { return; }
     var anios = Object.keys(D.interanual[origs[0]]).sort();
     var prevAnio = anios[anios.length - 2], actAnio = anios[anios.length - 1];
-    txt('h2Redistrib', 'La redistribución: ' + lblV2 + ' ' + actAnio + ' contra ' + prevAnio);
-    txt('subRedistrib', 'Ésta es la comparación que corresponde — mismo período, distinto año.');
+    txt('h2Redistrib', 'La foto reciente: ' + lblV2 + ' ' + actAnio + ' contra ' + lblV2 + ' ' + prevAnio);
+    txt('subRedistrib', 'Sólo los últimos ' + nV2 + ' meses, contra el mismo período de cada año. Muestra hacia dónde se está moviendo el mercado ahora.');
 
     var filas = [], sumaPos = 0, sumaNeg = 0, tot = 0;
     origs.forEach(function (o) {
@@ -328,14 +541,11 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
     tabla('tblInter', ['Origen'].concat(anios.map(function (y) { return y + ' (t/mes)'; })).concat(['Δ ' + prevAnio + '→' + actAnio]), filas);
 
     var n = document.getElementById('notaInter');
-    var p = el('p');
-    p.appendChild(document.createTextNode(
-      'Los orígenes que perdieron suman ' + fmt(sumaNeg) + ' t/mes y los que ganaron ' + sgn(sumaPos) +
+    addP(n, 'Los orígenes que perdieron suman ' + fmt(sumaNeg) + ' t/mes y los que ganaron ' + sgn(sumaPos) +
       ' t/mes. El neto es ' + sgn(tot) + ' t/mes: ' +
       (Math.abs(tot) < Math.abs(sumaNeg) * 0.25
         ? 'casi todo lo que perdió un origen lo absorbieron los otros. Es una redistribución, no una caída de consumo.'
-        : 'una parte del volumen perdido no fue a ningún otro origen.')));
-    n.appendChild(p);
+        : 'una parte del volumen perdido no fue a ningún otro origen.'));
   })();
 
   // ---------- participación por origen ----------
@@ -346,48 +556,133 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
         o.fobV2 ? fmt(o.fobV2, 3) : '—'] };
     });
     filas.push({ cls: 'tot', cells: ['TOTAL', fmt(totV1), fmt(totV2), cellDelta(totV2 - totV1), '100%', '100%', ''] });
-    tabla('tblOrigen', ['Origen', lblV1, lblV2, 'cambio', '% ' + lblV1, '% ' + lblV2, 'USD/kg ' + lblV2], filas);
+    tabla('tblOrigen', ['Origen', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio', '% ' + lblV1, '% ' + lblV2, 'USD/kg ' + lblV2], filas);
   })();
 
   // ---------- ranking de importadores ----------
   (function () {
-    var filas = D.importadores.filter(function (i) { return i.v1 + i.v2 >= 5; }).map(function (i) {
-      var d = pct(i.v1, i.v2);
-      return { cls: /ALMAR/i.test(i.nombre) ? 'hi' : '',
-        cells: [i.nombre, fmt(i.v1), fmt(i.v2), cellDelta(i.v2 - i.v1),
-          d === null ? '—' : { v: fmt(d, 0) + '%', cls: d >= 0 ? 'pos' : 'neg' },
-          fmt(i.v2 / totV2 * 100, 1) + '%'] };
-    });
-    tabla('tblImp', ['Importador', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio', 'var', '% mercado'], filas);
-
     var n = document.getElementById('notaImp');
-    if (almar) {
-      var seg = D.importadores.filter(function (i) { return !/ALMAR/i.test(i.nombre); })[0];
-      var p = el('p');
-      var t1 = 'Almar es el importador más grande con ' + fmt(almar.v2 / totV2 * 100, 1) + '% del mercado';
-      if (seg) { t1 += ', ' + fmt(almar.v2 / seg.v2, 1) + '× el segundo (' + seg.nombre + ')'; }
-      p.appendChild(document.createTextNode(t1 + '.'));
-      n.appendChild(p);
-      var mercadoVar = pct(totV1, totV2), almarVar = pct(almar.v1, almar.v2);
-      var p2 = el('p');
-      p2.appendChild(document.createTextNode(
-        'Almar varió ' + fmt(almarVar, 0) + '% y el mercado ' + fmt(mercadoVar, 0) + '%: ' +
-        (almarVar > mercadoVar + 2 ? 'ganó participación.'
-          : (almarVar < mercadoVar - 2 ? 'perdió participación.'
-            : 'se movió con el mercado, así que la participación quedó igual.'))));
-      n.appendChild(p2);
+    if (hasA && A.total.importadores && A.total.importadores.length) {
+      var T = mkt(yA), TP = mkt(yP);
+      var reciente = {};
+      D.importadores.forEach(function (i) { reciente[i.nombre] = i; });
+      var imps = A.total.importadores.filter(function (i) { return pa(i, yA).tV + pa(i, yP).tV >= 20; });
+      var filas = imps.map(function (i) {
+        var a = pa(i, yA), p = pa(i, yP), r = reciente[i.nombre];
+        var v = pct(p.tV, a.tV);
+        return { cls: (A.almar && i.nombre === A.almar) ? 'hi' : '',
+          cells: [i.nombre, fmt(p.tV), fmt(a.tV), cellDelta(a.tV - p.tV),
+            v === null ? { v: (a.tV > 0 ? 'nuevo' : '—'), cls: a.tV > 0 ? 'pos' : 'nil' } : cellPct(v),
+            p.cuotaV !== null && p.cuotaV !== undefined ? fmt(p.cuotaV, 1) + '%' : '—',
+            a.cuotaV !== null && a.cuotaV !== undefined ? fmt(a.cuotaV, 1) + '%' : '—',
+            cellPP((a.cuotaV || 0) - (p.cuotaV || 0)),
+            r ? cellPct(pct(r.v1, r.v2)) : { v: '—', cls: 'nil' }] };
+      });
+      tabla('tblImp', ['Importador', yP + ' (t)', yA + ' (t)', 'Δ t', 'var', 'cuota ' + yP, 'cuota ' + yA, 'Δ pp', 'reciente ' + lblV1 + '→' + lblV2], filas);
+      txt('subRanking', 'Toneladas netas en ' + winLbl + ' de cada año, sumando todos los orígenes. "Reciente" compara ' + lblV2 + ' contra ' + lblV1 + ' de ' + yA + ' (t/mes).');
+
+      if (almarA) {
+        var aA = pa(almarA, yA), aP = pa(almarA, yP);
+        var pos = 0; imps.forEach(function (i, k) { if (i.nombre === almarA.nombre) pos = k + 1; });
+        var seg = imps.filter(function (i) { return i.nombre !== almarA.nombre; })[0];
+        var s = 'Almar es el importador #' + pos + ' con ' + fmt(aA.cuotaV, 1) + '% del mercado en ' + yA + ' (' + yP + ': ' + fmt(aP.cuotaV, 1) + '%)';
+        if (seg) s += ', ' + fmt(aA.tV / pa(seg, yA).tV, 1) + '× el segundo (' + seg.nombre + ')';
+        var dpp = (aA.cuotaV || 0) - (aP.cuotaV || 0);
+        s += '. ' + (Math.abs(dpp) < 0.5 ? 'La cuota quedó igual.' : (dpp > 0 ? 'Ganó ' : 'Perdió ') + fmt(Math.abs(dpp), 1) + ' puntos de cuota.');
+        var vAl = pct(aP.tV, aA.tV), vMk = pct(TP.tV, T.tV);
+        s += ' Almar varió ' + sgn(vAl, 0) + '% y el mercado ' + sgn(vMk, 0) + '%.';
+        addP(n, s);
+      }
+      var top3 = imps.slice(0, 3);
+      if (top3.length === 3) {
+        var c3a = 0, c3p = 0;
+        top3.forEach(function (i) { c3a += pa(i, yA).cuotaV || 0; c3p += pa(i, yP).cuotaV || 0; });
+        addP(n, 'Los tres primeros (' + lista(top3.map(function (i) { return i.nombre; })) + ') concentran ' + fmt(c3a, 1) + '% en ' + yA + ' (' + yP + ': ' + fmt(c3p, 1) + '%).');
+      }
+      var nuevos = imps.filter(function (i) { return pa(i, yP).tV < 1 && pa(i, yA).tV >= 20; });
+      var salidos = imps.filter(function (i) { return pa(i, yA).tV < 1 && pa(i, yP).tV >= 20; });
+      if (nuevos.length) addP(n, 'Nuevos en ' + yA + ': ' + lista(nuevos.map(function (i) { return i.nombre + ' (' + fmt(pa(i, yA).tV) + ' t)'; })) + '.');
+      if (salidos.length) addP(n, 'Dejaron de importar en ' + yA + ': ' + lista(salidos.map(function (i) { return i.nombre + ' (' + fmt(pa(i, yP).tV) + ' t en ' + yP + ')'; })) + '.');
+      var movs = imps.map(function (i) { return { n: i.nombre, d: (pa(i, yA).cuotaV || 0) - (pa(i, yP).cuotaV || 0) }; })
+        .filter(function (m) { return Math.abs(m.d) >= 1; }).sort(function (a, b) { return b.d - a.d; });
+      if (movs.length) {
+        addP(n, 'Movimientos de cuota de un punto o más: ' + lista(movs.map(function (m) { return m.n + ' ' + sgn(m.d, 1) + ' pp'; })) + '.');
+      }
+    } else {
+      var filas2 = D.importadores.filter(function (i) { return i.v1 + i.v2 >= 5; }).map(function (i) {
+        var d = pct(i.v1, i.v2);
+        return { cls: /ALMAR/i.test(i.nombre) ? 'hi' : '',
+          cells: [i.nombre, fmt(i.v1), fmt(i.v2), cellDelta(i.v2 - i.v1),
+            d === null ? '—' : { v: fmt(d, 0) + '%', cls: d >= 0 ? 'pos' : 'neg' },
+            fmt(i.v2 / totV2 * 100, 1) + '%'] };
+      });
+      tabla('tblImp', ['Importador', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio', 'var', '% mercado'], filas2);
+      if (almar) {
+        var seg2 = D.importadores.filter(function (i) { return !/ALMAR/i.test(i.nombre); })[0];
+        var t1 = 'Almar es el importador más grande con ' + fmt(almar.v2 / totV2 * 100, 1) + '% del mercado';
+        if (seg2) { t1 += ', ' + fmt(almar.v2 / seg2.v2, 1) + '× el segundo (' + seg2.nombre + ')'; }
+        addP(n, t1 + '.');
+        var mercadoVar = pct(totV1, totV2), almarVar = pct(almar.v1, almar.v2);
+        addP(n, 'Almar varió ' + fmt(almarVar, 0) + '% y el mercado ' + fmt(mercadoVar, 0) + '%: ' +
+          (almarVar > mercadoVar + 2 ? 'ganó participación.'
+            : (almarVar < mercadoVar - 2 ? 'perdió participación.'
+              : 'se movió con el mercado, así que la participación quedó igual.')));
+      }
     }
   })();
 
   // ---------- Almar por origen ----------
   (function () {
-    if (!almar) { return; }
-    var filas = D.origenes.map(function (o) {
-      var p = almar.porOrigen[o] || [0, 0];
-      return { cells: [o, fmt(p[0]), fmt(p[1]), cellDelta(p[1] - p[0])] };
-    });
-    filas.push({ cls: 'tot', cells: ['TOTAL', fmt(almar.v1), fmt(almar.v2), cellDelta(almar.v2 - almar.v1)] });
-    tabla('tblAlmar', ['Origen', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio'], filas);
+    var n = document.getElementById('notaAlmar');
+    if (hasA && almarA) {
+      var origList = D.origenes.slice();
+      Object.keys(A.origenes || {}).forEach(function (o) { if (origList.indexOf(o) < 0) origList.push(o); });
+      var filas = [], frases = [];
+      origList.forEach(function (o) {
+        var O = A.origenes[o]; if (!O) return;
+        var alm = null;
+        (O.importadores || []).forEach(function (i) { if (O.almar && i.nombre === O.almar) alm = i; });
+        var ma = (O.porAnio[yA] && O.porAnio[yA].mercado) ? O.porAnio[yA].mercado.tV : 0;
+        var mp = (O.porAnio[yP] && O.porAnio[yP].mercado) ? O.porAnio[yP].mercado.tV : 0;
+        var a = pa(alm, yA), p = pa(alm, yP);
+        var vA = pct(p.tV, a.tV), vM = pct(mp, ma);
+        var ca = a.cuotaV, cp = p.cuotaV;
+        filas.push({ cells: [o, fmt(p.tV), fmt(a.tV), cellDelta(a.tV - p.tV),
+          vA === null ? { v: (a.tV > 0 ? 'nuevo' : '—'), cls: a.tV > 0 ? 'pos' : 'nil' } : cellPct(vA),
+          cellPct(vM),
+          cp !== null && cp !== undefined ? fmt(cp, 1) + '%' : '—',
+          ca !== null && ca !== undefined ? fmt(ca, 1) + '%' : '—',
+          cellPP((ca || 0) - (cp || 0))] });
+        if (a.tV + p.tV >= 20) {
+          var f = o + ': Almar ' + (vA === null ? 'entró con ' + fmt(a.tV) + ' t' : sgn(vA, 0) + '%') +
+            (vM === null ? '' : ' con un origen que varió ' + sgn(vM, 0) + '%');
+          if (ca !== null && ca !== undefined) f += ' → cuota ' + (cp !== null && cp !== undefined ? fmt(cp, 1) + '% → ' : '') + fmt(ca, 1) + '%';
+          frases.push(f + '.');
+        }
+      });
+      var aT = pa(almarA, yA), pT = pa(almarA, yP);
+      filas.push({ cls: 'tot', cells: ['TOTAL', fmt(pT.tV), fmt(aT.tV), cellDelta(aT.tV - pT.tV), cellPct(pct(pT.tV, aT.tV)),
+        cellPct(pct(mkt(yP).tV, mkt(yA).tV)), fmt(pT.cuotaV, 1) + '%', fmt(aT.cuotaV, 1) + '%', cellPP((aT.cuotaV || 0) - (pT.cuotaV || 0))] });
+      tabla('tblAlmar', ['Origen', 'Almar ' + yP + ' (t)', 'Almar ' + yA + ' (t)', 'Δ t', 'var Almar', 'var origen', 'cuota ' + yP, 'cuota ' + yA, 'Δ pp'], filas);
+      txt('subAlmar', 'De dónde viene el volumen de Almar, ' + winLbl + ' de cada año, y qué cuota tiene en cada origen.');
+      if (frases.length) {
+        var ul = el('ul');
+        frases.forEach(function (f) { var li = el('li'); li.textContent = f; ul.appendChild(li); });
+        n.appendChild(ul);
+      }
+      if (almar) {
+        var partes = D.origenes.map(function (o) { var q = almar.porOrigen[o] || [0, 0]; return { o: o, d: q[1] - q[0] }; })
+          .filter(function (m) { return Math.abs(m.d) >= 10; }).sort(function (x, y) { return y.d - x.d; });
+        if (partes.length) addP(n, 'Movimiento reciente de Almar (' + lblV2 + ' contra ' + lblV1 + ', t/mes): ' + lista(partes.map(function (m) { return m.o + ' ' + sgn(m.d); })) + '.');
+      }
+    } else if (almar) {
+      var filas2 = D.origenes.map(function (o) {
+        var q = almar.porOrigen[o] || [0, 0];
+        return { cells: [o, fmt(q[0]), fmt(q[1]), cellDelta(q[1] - q[0])] };
+      });
+      filas2.push({ cls: 'tot', cells: ['TOTAL', fmt(almar.v1), fmt(almar.v2), cellDelta(almar.v2 - almar.v1)] });
+      tabla('tblAlmar', ['Origen', lblV1 + ' (t/mes)', lblV2 + ' (t/mes)', 'cambio'], filas2);
+    }
   })();
 
   // ---------- matriz importador × origen ----------
@@ -410,7 +705,7 @@ code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-siz
     });
     if (soloUno.length) {
       var nombres = soloUno.map(function (i) { return i.nombre; }).join(', ');
-      txt('subMatriz', 'Toneladas por mes en ' + lblV2 + '. Operan un solo origen: ' + nombres + '.');
+      txt('subMatriz', 'Toneladas por mes en ' + lblV2 + ' de ' + D.anio + '. Operan un solo origen: ' + nombres + '.');
     }
   })();
 })();

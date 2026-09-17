@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Controle de Embalagem Bananal · Almar S.R.L.</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1f2937;background:#f3f4f6;margin:0;padding:14px;font-size:12px;line-height:1.45}
+  .page{max-width:780px;margin:0 auto 18px;background:#fff;border:1px solid #d1d5db;border-radius:8px;padding:18px 22px;box-shadow:0 1px 3px rgba(0,0,0,.05);position:relative}
+  h1{margin:0 0 2px;font-size:19px;letter-spacing:.5px;color:#92400e}
+  h1 .em{color:#1f2937}
+  .head-row{display:flex;justify-content:space-between;align-items:end;border-bottom:2px solid #92400e;padding-bottom:8px;margin-bottom:14px}
+  .head-row .sub{font-size:11.5px;color:#6b7280;text-align:right;line-height:1.4}
+  .page-no{position:absolute;top:18px;right:24px;font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:.5px}
+  h2{margin:14px 0 7px;font-size:13px;background:#92400e;color:#fff;padding:5px 12px;border-radius:3px;letter-spacing:.5px;text-transform:uppercase}
+  h2 .meta{font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:#fed7aa;margin-left:6px}
+  .grid{display:grid;gap:8px;margin-bottom:6px}
+  .g2{grid-template-columns:1fr 1fr} .g3{grid-template-columns:1fr 1fr 1fr} .g4{grid-template-columns:1fr 1fr 1fr 1fr}
+  .field{font-size:11px;position:relative}
+  .field label{font-weight:600;color:#4b5563;display:block;margin-bottom:2px;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px}
+  .field label .meta{font-weight:400;text-transform:none;color:#9ca3af;font-size:10px}
+  .field .line{border-bottom:1px solid #9ca3af;height:18px}
+  table{width:100%;border-collapse:collapse;font-size:11.5px;margin:4px 0 8px}
+  th,td{border:1px solid #9ca3af;padding:5px 6px;text-align:center;height:22px}
+  th{background:#fef3c7;font-size:10px;text-transform:uppercase;letter-spacing:.3px;color:#78350f;font-weight:700}
+  td.lbl{text-align:left;background:#fafafa;font-weight:600;font-size:11px}
+  td.meta{text-align:left;color:#6b7280;font-size:10px;background:#fafafa;font-style:italic}
+  .check{display:flex;flex-wrap:wrap;gap:10px;margin:5px 0 8px}
+  .check label{display:inline-flex;align-items:center;gap:5px;font-size:11.5px}
+  .check input{width:14px;height:14px}
+  .small{font-size:10.5px;color:#6b7280;font-style:italic;margin:3px 0}
+  .firma{display:flex;gap:14px;margin-top:18px}
+  .firma .box{flex:1;border-top:1px solid #4b5563;padding-top:6px;text-align:center;font-size:10.5px;color:#4b5563}
+  .tip{background:#fef3c7;border-left:3px solid #f59e0b;padding:6px 10px;font-size:10.5px;color:#78350f;border-radius:3px;margin:4px 0 8px}
+  .tip-r{background:#fee2e2;border-left:3px solid #dc2626;color:#7f1d1d}
+  textarea-fake{display:block;border:1px solid #9ca3af;border-radius:3px}
+  .libre{border:1px solid #9ca3af;border-radius:3px}
+  @media print{
+    body{background:#fff;padding:0}
+    .page{border:none;box-shadow:none;max-width:100%;padding:9mm 11mm;margin:0;border-radius:0}
+    .page.brk{page-break-before:always}
+    @page{size:A4;margin:0}
+  }
+</style>
+</head>
+<body>
+
+<!-- =================== PÁGINA 1 =================== -->
+<div class="page">
+  <div class="page-no">Pág. 1/3</div>
+  <div class="head-row">
+    <h1>🍌 CONTROLE DE EMBALAGEM <span class="em">· Bananal · Almar S.R.L.</span></h1>
+    <div class="sub">Lote nº: _________<br>Data: __/__/____</div>
+  </div>
+
+  <h2>1 · Dados da carga</h2>
+  <div class="grid g4">
+    <div class="field"><label>Produtor</label><div class="line"></div></div>
+    <div class="field"><label>Nº de caixas total</label><div class="line"></div></div>
+    <div class="field"><label>Empresa transp.</label><div class="line"></div></div>
+    <div class="field"><label>Placa do caminhão</label><div class="line"></div></div>
+    <div class="field"><label>Motorista</label><div class="line"></div></div>
+    <div class="field"><label>Hora início embalo</label><div class="line"></div></div>
+    <div class="field"><label>Hora fim embalo</label><div class="line"></div></div>
+    <div class="field"><label>Duração do processo</label><div class="line"></div></div>
+  </div>
+
+  <h2>2 · Recepção do cacho <span class="meta">(idade fisiológica + janela do corte)</span></h2>
+  <div class="grid g4">
+    <div class="field"><label>Hora do corte no campo</label><div class="line"></div></div>
+    <div class="field"><label>Hora de entrada no galpão</label><div class="line"></div></div>
+    <div class="field"><label>Cor da fita do cacho</label><div class="line"></div></div>
+    <div class="field"><label>Semanas desde florescimento <span class="meta">(meta 11-14)</span></label><div class="line"></div></div>
+    <div class="field"><label>Estado ao chegar</label><div class="line"></div></div>
+    <div class="field"><label>Área / talhão do bananal</label><div class="line"></div></div>
+    <div class="field"><label>Nº de cachos recebidos</label><div class="line"></div></div>
+    <div class="field"><label>% descarte por cacho</label><div class="line"></div></div>
+  </div>
+  <div class="tip">⏱️ Meta: máx. <b>12 h</b> do corte ao processo · máx. <b>24 h</b> do corte ao despacho. Sem refrigeração no caminhão, esses limites são ainda mais críticos.</div>
+
+  <h2>3 · Piscina única <span class="meta">(lavagem + fungicida no mesmo tanque)</span></h2>
+  <div class="grid g4">
+    <div class="field"><label>Fungicida usado</label><div class="line"></div></div>
+    <div class="field"><label>Concentração medida (ppm) <span class="meta">TBZ 400-1000 · Imazalil ~500</span></label><div class="line"></div></div>
+    <div class="field"><label>Cloro livre (ppm) <span class="meta">50-150</span></label><div class="line"></div></div>
+    <div class="field"><label>pH da água <span class="meta">6,5-7,5</span></label><div class="line"></div></div>
+    <div class="field"><label>Hora do preparo do banho</label><div class="line"></div></div>
+    <div class="field"><label>Caixas passadas até agora</label><div class="line"></div></div>
+    <div class="field"><label>Próxima troca prevista</label><div class="line"></div></div>
+    <div class="field"><label>Método de medição <span class="meta">(tira / clorímetro)</span></label><div class="line"></div></div>
+  </div>
+
+  <h2>4 · Despenca + drenagem do látex</h2>
+  <div class="check">
+    <label><input type="checkbox"> Corte limpo das pencas</label>
+    <label><input type="checkbox"> Sem ferimento na polpa</label>
+    <label><input type="checkbox"> Drenagem ≥ 5-10 min antes do embalo</label>
+    <label><input type="checkbox"> Coroa virada para baixo durante drenagem</label>
+  </div>
+  <div class="grid g3">
+    <div class="field"><label>Tempo médio de drenagem (min)</label><div class="line"></div></div>
+    <div class="field"><label>Local de drenagem</label><div class="line"></div></div>
+    <div class="field"><label>Responsável da seleção</label><div class="line"></div></div>
+  </div>
+</div>
+
+<!-- =================== PÁGINA 2 =================== -->
+<div class="page brk">
+  <div class="page-no">Pág. 2/3</div>
+  <div class="head-row">
+    <h1>🍌 CONTROLE DE EMBALAGEM <span class="em">· Bananal · Almar S.R.L.</span></h1>
+    <div class="sub">Lote nº: _________<br>Data: __/__/____</div>
+  </div>
+
+  <h2>5 · Medições por penca <span class="meta">(3 pontos do galpão: Porta / Meio / Fundo)</span></h2>
+  <table>
+    <thead><tr><th>Medição</th><th>Porta</th><th>Meio</th><th>Fundo</th><th class="meta">Meta</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">Calibração (grossura, mm)</td><td></td><td></td><td></td><td class="meta">≥ 38 mm</td></tr>
+      <tr><td class="lbl">Comprimento da banana (pol.)</td><td></td><td></td><td></td><td class="meta">8 pol.</td></tr>
+      <tr><td class="lbl">Cor (verde uniforme)</td><td></td><td></td><td></td><td class="meta">verde-duro</td></tr>
+      <tr><td class="lbl">°Brix da polpa (refratômetro)</td><td></td><td></td><td></td><td class="meta">< 4 °Brix</td></tr>
+      <tr><td class="lbl">Firmeza (penetrômetro, kgf)</td><td></td><td></td><td></td><td class="meta">> 7 kgf / 15 lb</td></tr>
+    </tbody>
+  </table>
+  <div class="tip">📌 °Brix e Firmeza são os marcadores objetivos que dizem se a fruta vai aguentar o trajeto até UY.</div>
+
+  <h2>6 · Inspeção visual <span class="meta">(R = Regular · B = Boa · MB = Muito boa)</span></h2>
+  <table>
+    <thead><tr><th>Aspecto</th><th>Porta</th><th>Meio</th><th>Fundo</th><th>Comentários</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">Coroa</td><td>R / B / MB</td><td>R / B / MB</td><td>R / B / MB</td><td></td></tr>
+      <tr><td class="lbl">Queimada (frio/sol)</td><td>R / B / MB</td><td>R / B / MB</td><td>R / B / MB</td><td></td></tr>
+      <tr><td class="lbl">Mancha de látex</td><td>R / B / MB</td><td>R / B / MB</td><td>R / B / MB</td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>7 · Defeitos pontuais detectados <span class="meta">(contar + tirar foto)</span></h2>
+  <table>
+    <thead><tr><th>Tipo</th><th>Nº caixas afetadas</th><th>Posição no caminhão</th><th>Foto anexada</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td class="lbl">Batidas / golpes</td><td></td><td></td><td>☐ SIM ☐ NÃO</td><td></td></tr>
+      <tr><td class="lbl">Picadas (insetos)</td><td></td><td></td><td>☐ SIM ☐ NÃO</td><td></td></tr>
+      <tr><td class="lbl">Cicatrizes</td><td></td><td></td><td>☐ SIM ☐ NÃO</td><td></td></tr>
+      <tr><td class="lbl">Sigatoka</td><td></td><td></td><td>☐ SIM ☐ NÃO</td><td></td></tr>
+      <tr><td class="lbl">Outros</td><td></td><td></td><td>☐ SIM ☐ NÃO</td><td></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- =================== PÁGINA 3 =================== -->
+<div class="page brk">
+  <div class="page-no">Pág. 3/3</div>
+  <div class="head-row">
+    <h1>🍌 CONTROLE DE EMBALAGEM <span class="em">· Bananal · Almar S.R.L.</span></h1>
+    <div class="sub">Lote nº: _________<br>Data: __/__/____</div>
+  </div>
+
+  <h2>8 · Embalagem</h2>
+  <div class="check">
+    <label><input type="checkbox"> Caixa sem danos · plástico interno bem colocado</label>
+    <label><input type="checkbox"> Etiqueta de cluster (PLU)</label>
+    <label><input type="checkbox"> Pencas acomodadas sem sobreposição</label>
+  </div>
+  <div class="grid g3">
+    <div class="field"><label>Peso por caixa (alvo)</label><div class="line"></div></div>
+    <div class="field"><label>Peso por caixa (real)</label><div class="line"></div></div>
+    <div class="field"><label>Marca da caixa</label><div class="line"></div></div>
+  </div>
+
+  <h2>9 · Etiqueta de cada caixa <span class="meta">(rastreabilidade · IN MAPA 69/2018)</span></h2>
+  <div class="grid g4">
+    <div class="field"><label>Nº GGN do produtor <span class="meta">(13 dígitos)</span></label><div class="line"></div></div>
+    <div class="field"><label>Lote interno</label><div class="line"></div></div>
+    <div class="field"><label>Data de embalo</label><div class="line"></div></div>
+    <div class="field"><label>Packing house</label><div class="line"></div></div>
+    <div class="field"><label>Peso líquido</label><div class="line"></div></div>
+    <div class="field"><label>Calibre</label><div class="line"></div></div>
+    <div class="field"><label>IN MAPA 69/2018 (conf.)</label><div class="check" style="margin:0"><label><input type="checkbox"> SIM</label><label><input type="checkbox"> NÃO</label></div></div>
+    <div class="field"><label>Etiqueta legível</label><div class="check" style="margin:0"><label><input type="checkbox"> SIM</label><label><input type="checkbox"> NÃO</label></div></div>
+  </div>
+
+  <h2>10 · Paletização</h2>
+  <div class="check">
+    <label><input type="checkbox"> Pallet base 6 · alinhadas</label>
+    <label><input type="checkbox"> Cintas / cantoneiras OK</label>
+    <label><input type="checkbox"> Etiqueta do pallet (produtor · lote · data)</label>
+    <label><input type="checkbox"> Sem mistura de calibres entre caixas do mesmo pallet</label>
+  </div>
+  <div class="grid g3">
+    <div class="field"><label>Nº caixas / pallet</label><div class="line"></div></div>
+    <div class="field"><label>Nº de pallets total</label><div class="line"></div></div>
+    <div class="field"><label>Altura do pallet armado</label><div class="line"></div></div>
+  </div>
+
+  <h2>11 · Pré-carga · CAMINHÃO ABERTO <span class="meta">(sem refrigeração)</span></h2>
+  <div class="check">
+    <label><input type="checkbox"> Carroceria limpa · sem odores · piso seco</label>
+    <label><input type="checkbox"> Sem pregos / parafusos soltos no piso</label>
+    <label><input type="checkbox"> Lona / encerado em bom estado, sem furos</label>
+    <label><input type="checkbox"> Pallets fixos com cintas / catracas</label>
+    <label><input type="checkbox"> Topes de madeira entre filas (sem folga)</label>
+    <label><input type="checkbox"> Lona colocada e amarrada antes da saída</label>
+    <label><input type="checkbox"> Placa confere com o documento</label>
+  </div>
+  <div class="grid g4">
+    <div class="field"><label>Hora prevista de saída</label><div class="line"></div></div>
+    <div class="field"><label>Hora prevista chegada UY</label><div class="line"></div></div>
+    <div class="field"><label>Temp. ambiente ao carregar (°C)</label><div class="line"></div></div>
+    <div class="field"><label>Previsão na rota <span class="meta">(sol / chuva / fresco)</span></label><div class="line"></div></div>
+  </div>
+  <div class="tip">🌙 Sem refrigeração: o ideal é carregar de <b>madrugada</b> e sair antes do nascer do sol, para evitar que a carga absorva calor.</div>
+
+  <h2>12 · Temperatura inicial da polpa <span class="meta">(crítico — sem câmara o ponto de partida é tudo)</span></h2>
+  <div class="grid g3">
+    <div class="field"><label>Temp. polpa ao fechar (°C) <span class="meta">alvo ≤ 14 °C</span></label><div class="line"></div></div>
+    <div class="field"><label>Ponto de medição</label><div class="line"></div></div>
+    <div class="field"><label>Termômetro usado <span class="meta">(marca / modelo)</span></label><div class="line"></div></div>
+  </div>
+  <div class="tip tip-r">🌡️ <b>Sem refrigeração no caminhão, a fruta sai com a temperatura que tem.</b> Se sai a 18 °C, chega ainda mais quente. Meta: ≤ 14 °C ao fechar, e sair antes do sol.</div>
+
+  <h2>13 · Observações gerais</h2>
+  <div class="libre" style="height:60px"></div>
+
+  <div class="firma">
+    <div class="box">Responsável pela embalagem</div>
+    <div class="box">Motorista</div>
+    <div class="box">Inspetor / assinatura</div>
+  </div>
+</div>
+
+</body>
+</html>

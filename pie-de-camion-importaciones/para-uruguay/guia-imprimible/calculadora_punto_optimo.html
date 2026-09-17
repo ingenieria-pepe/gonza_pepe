@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora · Punto óptimo de recepción — Banana verde · Almar</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  body{font-family:"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#eef2ee;color:#1c2b1c;line-height:1.45;}
+  .wrap{max-width:920px;margin:0 auto;padding:18px;}
+  header{background:linear-gradient(135deg,#2e7d32,#66bb6a);color:#fff;padding:22px 18px;border-radius:0 0 10px 10px;}
+  header h1{margin:0;font-size:22px;}
+  header .sub{opacity:.95;font-size:13px;margin-top:4px;}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .meta input{flex:1;min-width:120px;padding:8px;border:1px solid #bcccbc;border-radius:6px;font-size:14px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:720px){.grid{grid-template-columns:1fr;}}
+  .card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:14px;}
+  .card h2{margin:0 0 10px;font-size:15px;color:#2e7d32;border-bottom:2px solid #d7e6d7;padding-bottom:6px;}
+  .axis-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:8px;}
+  .tag-llenado{background:#e3f2fd;color:#1565c0;}
+  .tag-azucar{background:#fff3e0;color:#e65100;}
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-weight:600;font-size:13.5px;margin-bottom:3px;}
+  .field .hint{font-size:11px;color:#6b7d6b;margin-bottom:4px;}
+  .field select,.field input[type=number]{width:100%;padding:9px;border:1px solid #bcccbc;border-radius:6px;font-size:15px;background:#fff;}
+  .fieldverdict{font-size:11.5px;font-weight:700;margin-top:4px;min-height:16px;}
+  .ok{color:#2e7d32;} .warn{color:#e65100;} .bad{color:#c62828;}
+  /* veredicto */
+  .verdict{position:sticky;top:0;z-index:5;border-radius:10px;padding:18px;color:#fff;text-align:center;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:background .2s;}
+  .verdict .big{font-size:26px;font-weight:800;letter-spacing:.01em;}
+  .verdict .why{font-size:14px;margin-top:6px;opacity:.97;}
+  .v-ok{background:#2e7d32;} .v-warn{background:#ef6c00;} .v-bad{background:#c62828;} .v-none{background:#78909c;}
+  .axes{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+  .axis-badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:4px 12px;font-size:12.5px;font-weight:600;}
+  .reftable{width:100%;border-collapse:collapse;font-size:12px;}
+  .reftable th,.reftable td{border:1px solid #d7e6d7;padding:5px 7px;text-align:left;}
+  .reftable th{background:#eef6ee;color:#2e7d32;}
+  .reftable td.c{text-align:center;}
+  .foot{font-size:11px;color:#6b7d6b;text-align:center;margin:16px 0;}
+  .pill{display:inline-block;background:#2e7d32;color:#fff;border-radius:10px;padding:1px 8px;font-size:10px;margin-left:6px;}
+  button.print{padding:9px 16px;background:#1565c0;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;}
+  @media print{body{background:#fff;}.verdict{position:static;}button.print{display:none;}header{border-radius:0;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍌 Punto óptimo de recepción — Banana verde</h1>
+  <div class="sub">Buscás: <b>verde-duro · LLENO · con poca azúcar</b> (mucha reserva de almidón) — para flete BR/EC → UY 5-7 días, camión abierto sin frío · Almar S.R.L.</div>
+</header>
+
+<div class="wrap">
+
+  <div class="meta">
+    <input type="text" id="lote" placeholder="Lote / Productor">
+    <input type="date" id="fecha">
+    <input type="text" id="resp" placeholder="Responsable">
+  </div>
+
+  <div class="verdict v-none" id="verdict">
+    <div class="big" id="vBig">Cargá las mediciones ↓</div>
+    <div class="why" id="vWhy">El veredicto se calcula solo a medida que completás.</div>
+    <div class="axes">
+      <span class="axis-badge" id="axLlen">📦 Llenado: —</span>
+      <span class="axis-badge" id="axAzu">🍬 Azúcar/Reserva: —</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📦 LLENADO <span class="axis-tag tag-llenado">¿está llena/madura?</span></h2>
+
+      <div class="field">
+        <label>Forma del corte transversal</label>
+        <div class="hint">Angular (aristas) = inmadura · Redondeada = llena</div>
+        <select id="forma" onchange="calc()">
+          <option value="">— elegir —</option>
+          <option value="red">Redondeada (llena)</option>
+          <option value="int">Intermedia</option>
+          <option value="ang">Angular (con aristas)</option>
+        </select>
+        <div class="fieldverdict" id="v_forma"></div>
+      </div>
+
+      <div class="field">
+        <label>Calibre / grado (cm)</label>
+        <div class="hint">Grosor de la sección, en el ecuador del dedo · Codex ≥ 2,7</div>
+        <input type="number" step="0.1" id="calibre" placeholder="ej. 2,8" oninput="calc()">
+        <div class="fieldverdict" id="v_calibre"></div>
+      </div>
+
+      <div class="field">
+        <label>Relación pulpa / cáscara</label>
+        <div class="hint">Pesás pulpa y cáscara del mismo dedo y dividís · ideal 1,3–1,4</div>
+        <input type="number" step="0.01" id="ratio" placeholder="ej. 1,38" oninput="calc()">
+        <div class="fieldverdict" id="v_ratio"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🍬 AZÚCAR / RESERVA <span class="axis-tag tag-azucar">¿aguanta el flete?</span></h2>
+
+      <div class="field">
+        <label>Test de yodo (estágio 1–8)</label>
+        <div class="hint">1 = todo azul (puro almidón) · 8 = sin almidón · buscás OSCURO (1–3)</div>
+        <select id="yodo" onchange="calc()">
+          <option value="">— elegir —</option>
+          <option value="1">1 · todo azul-negro</option>
+          <option value="2">2 · casi todo azul</option>
+          <option value="3">3 · centro aclarando</option>
+          <option value="4">4 · 50/50</option>
+          <option value="5">5 · más claro</option>
+          <option value="6">6 · bordes nomás</option>
+          <option value="7">7 · casi blanco</option>
+          <option value="8">8 · sin almidón</option>
+        </select>
+        <div class="fieldverdict" id="v_yodo"></div>
+      </div>
+
+      <div class="field">
+        <label>Brix de la pulpa (°Brix)</label>
+        <div class="hint">Refractómetro · verde-duro ~1,5–3,0 · &gt;4 ya arrancó a madurar</div>
+        <input type="number" step="0.1" id="brix" placeholder="ej. 2,5" oninput="calc()">
+        <div class="fieldverdict" id="v_brix"></div>
+      </div>
+
+      <div class="field">
+        <label>Firmeza</label>
+        <div class="hint">Verde-duro = dura, no cede al apretar</div>
+        <select id="firmeza" onchange="calc()">
+          <option value="">— elegir —</option>
+          <option value="dura">Dura (no cede)</option>
+          <option value="media">Media</option>
+          <option value="blanda">Blanda (cede fácil)</option>
+        </select>
+        <div class="fieldverdict" id="v_firmeza"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 Tabla de referencia (el punto que buscás)</h2>
+    <table class="reftable">
+      <thead><tr><th>Medición</th><th class="c">✅ Óptimo</th><th class="c">⚠️ Marginal</th><th class="c">❌ Fuera</th><th>Si falla =</th></tr></thead>
+      <tbody>
+        <tr><td>Forma del corte</td><td class="c">Redondeada</td><td class="c">Intermedia</td><td class="c">Angular</td><td>Inmadura</td></tr>
+        <tr><td>Calibre (cm)</td><td class="c">≥ 2,7</td><td class="c">2,5–2,69</td><td class="c">&lt; 2,5</td><td>Inmadura</td></tr>
+        <tr><td>Pulpa/cáscara</td><td class="c">1,30–1,45</td><td class="c">1,2–1,3 / 1,45–1,5</td><td class="c">&lt;1,2 / &gt;1,5</td><td>Inmadura / Pasada</td></tr>
+        <tr><td>Yodo (estágio)</td><td class="c">1–3</td><td class="c">4</td><td class="c">≥ 5</td><td>Madurando</td></tr>
+        <tr><td>Brix (°)</td><td class="c">&lt; 3,0</td><td class="c">3,0–4,0</td><td class="c">&gt; 4,0</td><td>Madurando</td></tr>
+        <tr><td>Firmeza</td><td class="c">Dura</td><td class="c">Media</td><td class="c">Blanda</td><td>Madurando</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;"><button class="print" onclick="window.print()">🖨️ Imprimir este lote</button></div>
+  </div>
+
+  <div class="foot">
+    Regla firme: <b>más oscuro y parejo el yodo + más redondeada la forma = mejor para tu viaje largo</b>. La numeración del yodo es orientativa: guiate por el color.<br>
+    Herramienta de control interno · no reemplaza criterio técnico · Almar S.R.L.
+  </div>
+</div>
+
+<script>
+function evForma(v){
+  if(v==='red') return {s:'ok',  t:'llen', m:'✓ Llena (redondeada)'};
+  if(v==='int') return {s:'warn',t:'llen', m:'⚠ Intermedia'};
+  if(v==='ang') return {s:'bad', t:'inmadura', m:'✗ Angular → INMADURA'};
+  return null;
+}
+function evCalibre(v){
+  if(v==='') return null; v=parseFloat(v); if(isNaN(v)) return null;
+  if(v>=2.7) return {s:'ok',  t:'llen', m:'✓ '+v+' cm (lleno)'};
+  if(v>=2.5) return {s:'warn',t:'llen', m:'⚠ '+v+' cm (justo)'};
+  return {s:'bad', t:'inmadura', m:'✗ '+v+' cm → chico/INMADURA'};
+}
+function evRatio(v){
+  if(v==='') return null; v=parseFloat(v); if(isNaN(v)) return null;
+  if(v<1.2)  return {s:'bad', t:'inmadura', m:'✗ '+v+' → no llena (INMADURA)'};
+  if(v<1.3)  return {s:'warn',t:'llen', m:'⚠ '+v+' (casi llena)'};
+  if(v<=1.45)return {s:'ok',  t:'llen', m:'✓ '+v+' (punto justo)'};
+  if(v<=1.5) return {s:'warn',t:'azu',  m:'⚠ '+v+' (llenándose de más)'};
+  return {s:'bad', t:'pasada', m:'✗ '+v+' → PASADA'};
+}
+function evYodo(v){
+  if(v==='') return null; v=parseInt(v);
+  if(v<=3) return {s:'ok',  t:'azu', m:'✓ estágio '+v+' (mucho almidón)'};
+  if(v===4)return {s:'warn',t:'azu', m:'⚠ estágio 4 (marginal)'};
+  return {s:'bad', t:'madurando', m:'✗ estágio '+v+' → YA MADURANDO'};
+}
+function evBrix(v){
+  if(v==='') return null; v=parseFloat(v); if(isNaN(v)) return null;
+  if(v<3)  return {s:'ok',  t:'azu', m:'✓ '+v+' °Brix (bajo, reserva)'};
+  if(v<=4) return {s:'warn',t:'azu', m:'⚠ '+v+' °Brix (subiendo)'};
+  return {s:'bad', t:'madurando', m:'✗ '+v+' °Brix → YA MADURANDO'};
+}
+function evFirmeza(v){
+  if(v==='dura')  return {s:'ok',  t:'azu', m:'✓ Dura'};
+  if(v==='media') return {s:'warn',t:'azu', m:'⚠ Media'};
+  if(v==='blanda')return {s:'bad', t:'madurando', m:'✗ Blanda → YA MADURANDO'};
+  return null;
+}
+
+function paint(id,r){
+  const el=document.getElementById(id);
+  if(!r){ el.textContent=''; el.className='fieldverdict'; return; }
+  el.textContent=r.m; el.className='fieldverdict '+r.s;
+}
+
+function calc(){
+  const res={
+    forma:evForma(document.getElementById('forma').value),
+    calibre:evCalibre(document.getElementById('calibre').value),
+    ratio:evRatio(document.getElementById('ratio').value),
+    yodo:evYodo(document.getElementById('yodo').value),
+    brix:evBrix(document.getElementById('brix').value),
+    firmeza:evFirmeza(document.getElementById('firmeza').value)
+  };
+  paint('v_forma',res.forma); paint('v_calibre',res.calibre); paint('v_ratio',res.ratio);
+  paint('v_yodo',res.yodo); paint('v_brix',res.brix); paint('v_firmeza',res.firmeza);
+
+  const all=Object.values(res);
+  const done=all.filter(Boolean);
+  const llen=[res.forma,res.calibre,res.ratio];
+  const azu=[res.yodo,res.brix,res.firmeza];
+
+  // eje badges
+  axisBadge('axLlen','📦 Llenado',llen);
+  axisBadge('axAzu','🍬 Azúcar/Reserva',azu);
+
+  const v=document.getElementById('verdict');
+  const big=document.getElementById('vBig');
+  const why=document.getElementById('vWhy');
+
+  if(done.length<6){
+    v.className='verdict v-none';
+    big.textContent='Faltan mediciones ('+done.length+'/6)';
+    why.textContent='Completá las 6 para el veredicto final.';
+    return;
+  }
+
+  const inmadura=done.some(r=>r.t==='inmadura');
+  const madurando=done.some(r=>r.t==='madurando');
+  const pasada=done.some(r=>r.t==='pasada');
+  const warns=done.filter(r=>r.s==='warn').length;
+
+  if(inmadura && (madurando||pasada)){
+    v.className='verdict v-bad';
+    big.textContent='⚠ MUESTRA CONTRADICTORIA';
+    why.textContent='Hay señales de inmadura Y de pasada al mismo tiempo — re-muestreá otros dedos del lote.';
+  } else if(inmadura){
+    v.className='verdict v-bad';
+    big.textContent='❌ RECHAZAR — INMADURA';
+    why.textContent='Cosechada temprano / poco llena → madura mal en destino. No es el punto.';
+  } else if(madurando||pasada){
+    v.className='verdict v-bad';
+    big.textContent='❌ RECHAZAR para flete largo — YA MADURANDO';
+    why.textContent='Con camión abierto sin frío, esta fruta llega PASADA. Sirve solo para venta/destino cercano.';
+  } else if(warns>=2){
+    v.className='verdict v-warn';
+    big.textContent='⚠ MARGINAL';
+    why.textContent=warns+' mediciones al límite. Aceptable solo priorizando despacho rápido. Vigilar.';
+  } else if(warns===1){
+    v.className='verdict v-ok';
+    big.textContent='✅ ÓPTIMO (con 1 observación)';
+    why.textContent='Verde-duro y lleno. Una medición al límite — ok para tu flete, con seguimiento.';
+  } else {
+    v.className='verdict v-ok';
+    big.textContent='✅ PUNTO ÓPTIMO';
+    why.textContent='Verde-duro, lleno y con reserva de almidón. Ideal para flete 5-7 días sin frío. 🍌';
+  }
+}
+
+function axisBadge(id,label,arr){
+  const el=document.getElementById(id);
+  const done=arr.filter(Boolean);
+  if(done.length<arr.length){ el.textContent=label+': —'; return; }
+  const bad=done.some(r=>r.s==='bad');
+  const warn=done.some(r=>r.s==='warn');
+  el.textContent=label+': '+(bad?'✗':warn?'⚠':'✓');
+}
+
+calc();
+</script>
+</body>
+</html>

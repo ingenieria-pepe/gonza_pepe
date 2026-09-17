@@ -1,0 +1,7 @@
+﻿Paquete para el equipo de recepcion en Montevideo (UAM) y para Aloha. 16/09/2026 (reemplaza al del 13/09; guia v3.4: hoja 7 nueva con la comparacion de dos frutas paraguayas sobre tabla blanca y el aviso de calidad del lote HF en el cuaderno de Paraguay; las hojas de referencia pasan a 8-10). Nuevo: el prompt en Word para cargar en el Claude de Montevideo.
+
+PROMPT_Claude_UAM_control_corte_banana_2026-09-16.docx -> prompt v1 (16/09/2026) para el Claude del equipo de recepcion: copiar el bloque entre INICIO y FIN DEL PROMPT en las instrucciones del proyecto de Claude; todo el control por corte (temperaturas, muestreo, cortes, escala 1-5, almidon, frio, Moko, decision, registro, fotos, casos reales, ficha de lote y mensaje a Gonzalo). Se reemplaza cuando cambie la guia.
+PROTOCOLO-corte-banana-en-descarga.md   -> el protocolo completo, version 1.1: muestreo, los tres cortes, puntaje 1-5 (unificado con la guia y la planilla), umbrales, frio, Moko, decision, registro, fotos.
+INSIGHT-para-aloha-2026-09-09.md        -> que puede hacer el ERP con los datos del pie de camion (4 reglas + vida verde).
+guia-imprimible\                        -> guia A4 de 10 paginas (v3.4, set 2026; abrir el .html y Ctrl+P): muestreo, mediciones, enfermedades, desordenes y decision, y casos reales de Almar con fotos propias (fotos\almar\). Ademas calculadora de punto optimo, atlas de cortes y fuentes.
+ejemplo-CK103\                          -> fotos reales: corte en origen (dedo 3 adelantado) y evidencia de frio en recepcion.

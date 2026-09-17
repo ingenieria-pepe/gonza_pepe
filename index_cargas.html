@@ -1,0 +1,267 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Saldo por día y cargas — Almar</title>
+<style>
+:root{
+  --bg:#faf9f5; --card:#fffefb; --ink:#141413; --muted:#6b6a63; --faint:#c3c2b7;
+  --border:rgba(11,11,11,0.10); --good:#006300; --bad:#c0392b; --warn:#b06a00;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --negbg:rgba(192,57,43,.08); --ybg:rgba(237,161,0,.14);
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#1f1e1d; --card:#262624; --ink:#f5f4ee; --muted:#a3a29b; --faint:#56554f;
+         --border:rgba(255,255,255,0.10); --good:#0ca30c; --bad:#e05c4a; --warn:#d99a2b;
+         --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --negbg:rgba(224,92,74,.14); --ybg:rgba(217,154,43,.18); }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1060px;margin:0 auto;padding:26px 18px 60px}
+header h1{font-size:23px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 4px}
+.meta{color:var(--faint);font-size:12px;margin:10px 0 0}
+nav.top{font-size:13px;margin:0 0 14px;color:var(--muted)} nav.top a{color:var(--s1);text-decoration:none;margin-right:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 18px 20px;margin:20px 0}
+.card h2{font-size:17px;margin:0 0 4px}
+.card .sub{margin-bottom:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 14px}
+.tile .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.tile .val{font-size:25px;font-weight:650;margin:3px 0 1px;line-height:1.1}
+.tile .u{font-size:12px;color:var(--muted);font-weight:400;margin-left:3px}
+.tile .dl{font-size:12px;color:var(--muted)}
+.tile.alert .val{color:var(--bad)} .tile.ok .val{color:var(--good)}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13.2px;min-width:520px}
+th,td{padding:6px 9px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+td.nil{color:var(--faint)} td.pos{color:var(--good)} td.neg{color:var(--bad);font-weight:600}
+tr.neg td{background:var(--negbg)} tr.wk td{border-bottom:2px solid var(--faint)}
+td.carga{font-weight:600;background:var(--ybg)} td.paso{color:var(--faint);text-decoration:line-through}
+td.txt{text-align:left;white-space:normal;max-width:380px;font-size:12.3px;color:var(--muted)}
+.chart{width:100%;height:auto;display:block;margin:6px 0 4px}
+.leg{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;margin:4px 0 10px}
+.leg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.lista{margin:8px 0 0;padding-left:20px;font-size:13.8px} .lista li{margin:0 0 7px}
+.lista b{font-weight:650}
+.pasos{counter-reset:p;padding:0;margin:14px 0 0;list-style:none}
+.pasos li{counter-increment:p;position:relative;padding:0 0 12px 38px;font-size:13.4px;line-height:1.5}
+.pasos li::before{content:counter(p);position:absolute;left:0;top:0;width:25px;height:25px;
+  border-radius:50%;background:var(--s1);color:#fff;font-size:13px;font-weight:600;
+  display:flex;align-items:center;justify-content:center}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.note p{margin:0 0 8px} .note p:last-child{margin:0}
+.flag{border-left:3px solid var(--s1);padding-left:11px;border-top:0;margin-top:14px}
+.warn{border-left-color:var(--bad)}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:9px;background:rgba(120,120,120,.13);color:var(--muted);margin-left:4px}
+code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="top"><a href="inicio.html">🏠 Portada</a><a href="index.html">🍌 Plan de compras</a><a href="index_brasil.html">🇧🇷 Brasil</a><a href="index_paraguay_bolivia.html">🇵🇾 Paraguay y Bolivia</a><a href="index_calidad.html">🌱 Calidad</a></nav>
+
+<header>
+  <h1>🚚 Saldo por día y plan de cargas</h1>
+  <p class="sub" id="subHead"></p>
+  <p class="meta" id="meta"></p>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<section class="card" id="cardSaldo">
+  <h2>Saldo por día de venta</h2>
+  <p class="sub" id="subSaldo"></p>
+  <div class="leg"><span><i style="background:var(--s1)"></i>gasificado (foto)</span><span><i style="background:var(--s3)"></i>llegado sin gas</span><span><i style="background:var(--s4)"></i>en camino / programado</span><span><i style="background:transparent;border:1px dashed var(--faint)"></i>sin confirmar</span><span><i style="background:var(--s2);height:2px;vertical-align:3px"></i>venta plan</span></div>
+  <svg class="chart" id="chart" viewBox="0 0 900 250" preserveAspectRatio="none" role="img" aria-label="Oferta por día contra venta plan"></svg>
+  <div class="tblwrap"><table id="tblDias"></table></div>
+  <div class="note" id="notaSaldo"></div>
+</section>
+
+<section class="card" id="cardSem">
+  <h2>Por semana de venta</h2>
+  <p class="sub">Lunes a sábado. "Saldo al sábado" es lo que sobra o falta acumulado al cerrar la semana.</p>
+  <div class="tblwrap"><table id="tblSem"></table></div>
+</section>
+
+<section class="card" id="cardCargar">
+  <h2>Qué hay que cargar y cuándo</h2>
+  <p class="sub" id="subCargar"></p>
+  <ol class="lista" id="listaCargar"></ol>
+  <div class="tblwrap" style="margin-top:10px"><table id="tblCargas"></table></div>
+  <div class="note flag" id="notaRitmo"></div>
+</section>
+
+<section class="card" id="cardCola">
+  <h2>Camiones llegados sin gas y en camino</h2>
+  <p class="sub" id="subCola"></p>
+  <div class="tblwrap"><table id="tblCola"></table></div>
+</section>
+
+<section class="card" id="cardCam">
+  <h2 id="h2Cam">Plan de cámaras (foto)</h2>
+  <p class="sub" id="subCam"></p>
+  <div class="tblwrap"><table id="tblCam"></table></div>
+</section>
+
+<section class="card" id="cardComo">
+  <h2>Cómo se actualiza</h2>
+  <ol class="pasos">
+    <li><b>Guardar la foto</b> del plan de cámaras en <code>fuentes\plan_semanal\</code> como <code>AAAA-MM-DD_camaras_captura.jpeg</code>.</li>
+    <li>En <code>plan_semanal.xlsx</code>, hoja <b>camaras</b>: una fila por cubículo con la fecha de la foto, cantidad, día de gas y día de venta (DIA SEM). Si dice dos días, partir la cantidad en dos filas. Se usa sólo la foto más nueva.</li>
+    <li>Hoja <b>en_camino</b>: lo que llegó sin gas y lo que viene en ruta o está pedido (del master del Plan de Cargas). Sacar lo que ya aparece en la foto con día de venta.</li>
+    <li>El stock del ERP va en <code>fuentes\stock\stock_diario.xlsx</code>. Después correr el script (paso 5i) y abrir esta página.</li>
+  </ol>
+  <div class="note flag" id="notaLags"></div>
+</section>
+
+</div>
+
+<script id="datosPlan" type="application/json">/*__PLAN_JSON__*/{"generado":"2026-09-16 14:09","hoy":"2026-09-16","planilla":"fuentes\\plan_semanal\\plan_semanal.xlsx","foto":"2026-09-15","fotosHist":["2026-09-12","2026-09-15"],"params":{"desc_gas":2,"dias_venta":6,"ad_BO":1,"foto_fraccion_vendida":0.5,"ad_PY":1,"ad_BR":2,"cajas_camion":1250,"mix_BR":0.65,"horizonte_dias":21,"tr_PY":4,"gas_por_dia":2,"mix_PY":0.3,"tr_BR":3,"camara":5,"tr_BO":6,"ventas_semana":16000,"mix_BO":0.05},"ventaDia":2667,"camaras":[{"cub":"4","cam":"3","origen":"BR","cantidad":429,"gas":"2026-09-09","venta":"2026-09-15","llegada":"09/05","nota":"Martes; resto del camion 3"},{"cub":"5","cam":"19","origen":"PY","cantidad":533,"gas":"2026-09-10","venta":"2026-09-15","llegada":"09/05","nota":"Mart/Mier: 1.065 partido en dos filas"},{"cub":"5","cam":"19","origen":"PY","cantidad":532,"gas":"2026-09-10","venta":"2026-09-16","llegada":"09/05","nota":"Mart/Mier (segunda mitad)"},{"cub":"6","cam":"6","origen":"BR","cantidad":1141,"gas":"2026-09-11","venta":"2026-09-16","llegada":"05/09 y 09/09","nota":"Miercoles"},{"cub":"7","cam":"10","origen":"BR","cantidad":1261,"gas":"2026-09-11","venta":"2026-09-16","llegada":"09/09","nota":"Miercoles"},{"cub":"10","cam":"20","origen":"PY","cantidad":630,"gas":"2026-09-12","venta":"2026-09-17","llegada":"09/09","nota":"Juev/Vier: 1.260 partido en dos filas"},{"cub":"8","cam":"7","origen":"BR","cantidad":1260,"gas":"2026-09-12","venta":"2026-09-17","llegada":"09/09","nota":"Jueves"},{"cub":"9","cam":"11","origen":"BR","cantidad":1260,"gas":"2026-09-12","venta":"2026-09-17","llegada":"09/09","nota":"Jueves"},{"cub":"10","cam":"20","origen":"PY","cantidad":630,"gas":"2026-09-12","venta":"2026-09-18","llegada":"09/09","nota":"Juev/Vier (segunda mitad)"},{"cub":"11","cam":"8","origen":"PY","cantidad":1260,"gas":"2026-09-13","venta":"2026-09-18","llegada":"09/10","nota":"Viernes (el 12/09 decia gas 14/09)"},{"cub":"12","cam":"15","origen":"PY","cantidad":1260,"gas":"2026-09-14","venta":"2026-09-19","llegada":"10/09 y 11/09","nota":"Sabado (el 12/09 decia EVALUAR)"}],"cola":[{"origen":"BR","cajas":1148,"estado":"llegado","carga":null,"llegada":"2026-09-12","gas":"2026-09-16","venta":"2026-09-21","desc":"CUB 19, camion 24 (foto 12/09)"},{"origen":"BR","cajas":1254,"estado":"llegado","carga":null,"llegada":"2026-09-11","gas":"2026-09-16","venta":"2026-09-21","desc":"CUB 18, camion 13 (foto 12/09)"},{"origen":"BR","cajas":1008,"estado":"llegado","carga":null,"llegada":"2026-09-12","gas":"2026-09-17","venta":"2026-09-22","desc":"CUB 20, 2 CR (foto 12/09)"},{"origen":"BR","cajas":1260,"estado":"llegado","carga":null,"llegada":"2026-09-11","gas":"2026-09-17","venta":"2026-09-22","desc":"CUB 13, camion 16 (foto 12/09). Confirmar que sigue sin gas."},{"origen":"BR","cajas":1944,"estado":"llegado","carga":null,"llegada":"2026-09-12","gas":"2026-09-18","venta":"2026-09-23","desc":"CUB 21, 4 CR (foto 12/09), dos camiones en un cubiculo"},{"origen":"PY","cajas":1260,"estado":"llegado","carga":null,"llegada":"2026-09-11","gas":"2026-09-18","venta":"2026-09-23","desc":"CUB 15, camion 1 (foto 12/09)"},{"origen":"PY","cajas":1260,"estado":"llegado","carga":null,"llegada":"2026-09-11","gas":"2026-09-19","venta":"2026-09-24","desc":"CUB 14, camion 9 (foto 12/09)"},{"origen":"PY","cajas":1229,"estado":"llegado","carga":null,"llegada":"2026-09-11","gas":"2026-09-19","venta":"2026-09-24","desc":"CUB 17, camion 21 (foto 12/09)"},{"origen":"PY","cajas":1260,"estado":"llegado","carga":null,"llegada":"2026-09-11","gas":"2026-09-20","venta":"2026-09-25","desc":"CUB 16, camion 2 (foto 12/09)"},{"origen":"PY","cajas":1250,"estado":"en_camino","carga":"2026-09-13","llegada":"2026-09-16","gas":"2026-09-20","venta":"2026-09-25","desc":"Paraguay DF, en FRONTERA 15/09, Jauser, AFIDI 1569899; MIC 980; descarga 16/09"},{"origen":"PY","cajas":1250,"estado":"en_camino","carga":"2026-09-13","llegada":"2026-09-16","gas":"2026-09-21","venta":"2026-09-26","desc":"Paraguay HF, en FRONTERA Salto el 15/09, Mega Logistica, AFIDI 1569901; MIC 980; descarga prevista 16/09"},{"origen":"PY","cajas":1250,"estado":"solicitado","carga":"2026-09-14","llegada":"2026-09-17","gas":"2026-09-21","venta":"2026-09-26","desc":"Paraguay MS, SOLICITADO, G.S.C.S. Paraguay Ttes., AFIDI 1569898; descarga 17/09; MIC 980"},{"origen":"PY","cajas":1250,"estado":"solicitado","carga":"2026-09-14","llegada":"2026-09-17","gas":"2026-09-22","venta":"2026-09-28","desc":"Paraguay DF, SOLICITADO, Jauser; descarga 17/09; MIC 980"},{"origen":"PY","cajas":1250,"estado":"en_camino","carga":"2026-09-13","llegada":"2026-09-17","gas":"2026-09-22","venta":"2026-09-28","desc":"Paraguay HF, CARGADO 13/09, frontera 16/09, descarga 17/09; MIC 980"},{"origen":"PY","cajas":1250,"estado":"en_camino","carga":"2026-09-14","llegada":"2026-09-17","gas":"2026-09-23","venta":"2026-09-28","desc":"Paraguay HF, CARGADO 14/09, frontera 16/09, descarga 17/09; MIC 980"},{"origen":"PY","cajas":1250,"estado":"solicitado","carga":"2026-09-15","llegada":"2026-09-18","gas":"2026-09-23","venta":"2026-09-28","desc":"Paraguay MS, SOLICITADO; descarga 18/09; MIC 980"},{"origen":"PY","cajas":1250,"estado":"programado","carga":"2026-09-15","llegada":"2026-09-19","gas":"2026-09-24","venta":"2026-09-29","desc":"Paraguay AS, CONFIRMADO, MARSO Emprendimientos, AFIDI 156990; frontera 17/09, descarga 19/09; MIC 980"},{"origen":"BR","cajas":1250,"estado":"solicitado","carga":"2026-09-18","llegada":"2026-09-21","gas":"2026-09-24","venta":"2026-09-29","desc":"Cassio Hauck (2do camion), SOLICITADO; descarga 21/09; MIC 1008"},{"origen":"BR","cajas":1250,"estado":"solicitado","carga":"2026-09-18","llegada":"2026-09-21","gas":"2026-09-25","venta":"2026-09-30","desc":"Ivo Zimerman, SOLICITADO, factura 106/26, Amaro / Etimex, Rio Branco; descarga 21/09; MIC 936"},{"origen":"BR","cajas":1250,"estado":"solicitado","carga":"2026-09-18","llegada":"2026-09-21","gas":"2026-09-25","venta":"2026-09-30","desc":"Cassio Hauck, SOLICITADO, factura 020/ALM/2026, AXT / A\u0026A, Chuy; descarga 21/09; MIC 936"},{"origen":"BR","cajas":1250,"estado":"solicitado","carga":"2026-09-19","llegada":"2026-09-22","gas":"2026-09-26","venta":"2026-10-01","desc":"Fischer, SOLICITADO, factura 106/26, Amaro / Etimex, Rio Branco; descarga 22/09; MIC 1008"}],"sinConfirmar":[],"dias":[{"fecha":"2026-09-15","dow":2,"semana":"2026-09-14","ventaPlan":1333,"gasificado":962,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":962,"ofertaAcum":962,"ventaAcum":1333,"saldoAntes":-371,"saldo":0,"aCargar":0,"planCajas":0,"descubierto":371,"cargaBR":"2026-09-03","cargaPY":"2026-09-03","cargaBO":"2026-09-01","detalle":"CUB 4 BR 429 | CUB 5 PY 533"},{"fecha":"2026-09-16","dow":3,"semana":"2026-09-14","ventaPlan":2667,"gasificado":2934,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":2934,"ofertaAcum":3896,"ventaAcum":4000,"saldoAntes":267,"saldo":267,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-04","cargaPY":"2026-09-04","cargaBO":"2026-09-02","detalle":"CUB 5 PY 532 | CUB 6 BR 1141 | CUB 7 BR 1261"},{"fecha":"2026-09-17","dow":4,"semana":"2026-09-14","ventaPlan":2667,"gasificado":3150,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":3150,"ofertaAcum":7046,"ventaAcum":6667,"saldoAntes":751,"saldo":751,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-05","cargaPY":"2026-09-05","cargaBO":"2026-09-03","detalle":"CUB 8 BR 1260 | CUB 9 BR 1260 | CUB 10 PY 630"},{"fecha":"2026-09-18","dow":5,"semana":"2026-09-14","ventaPlan":2667,"gasificado":1890,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":1890,"ofertaAcum":8936,"ventaAcum":9333,"saldoAntes":-26,"saldo":0,"aCargar":0,"planCajas":0,"descubierto":26,"cargaBR":"2026-09-06","cargaPY":"2026-09-06","cargaBO":"2026-09-04","detalle":"CUB 10 PY 630 | CUB 11 PY 1260"},{"fecha":"2026-09-19","dow":6,"semana":"2026-09-14","ventaPlan":2667,"gasificado":1260,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":1260,"ofertaAcum":10196,"ventaAcum":12000,"saldoAntes":-1407,"saldo":0,"aCargar":0,"planCajas":0,"descubierto":1407,"cargaBR":"2026-09-07","cargaPY":"2026-09-07","cargaBO":"2026-09-05","detalle":"CUB 12 PY 1260"},{"fecha":"2026-09-21","dow":1,"semana":"2026-09-21","ventaPlan":2667,"gasificado":0,"llegado":2402,"enCamino":0,"sinConfirmar":0,"oferta":2402,"ofertaAcum":12598,"ventaAcum":14667,"saldoAntes":-265,"saldo":0,"aCargar":0,"planCajas":0,"descubierto":265,"cargaBR":"2026-09-09","cargaPY":"2026-09-09","cargaBO":"2026-09-07","detalle":"BR 1148 llegado, gas 16/09 | BR 1254 llegado, gas 16/09"},{"fecha":"2026-09-22","dow":2,"semana":"2026-09-21","ventaPlan":2667,"gasificado":0,"llegado":2268,"enCamino":0,"sinConfirmar":0,"oferta":2268,"ofertaAcum":14866,"ventaAcum":17333,"saldoAntes":-399,"saldo":0,"aCargar":0,"planCajas":0,"descubierto":399,"cargaBR":"2026-09-10","cargaPY":"2026-09-10","cargaBO":"2026-09-08","detalle":"BR 1008 llegado, gas 17/09 | BR 1260 llegado, gas 17/09"},{"fecha":"2026-09-23","dow":3,"semana":"2026-09-21","ventaPlan":2667,"gasificado":0,"llegado":3204,"enCamino":0,"sinConfirmar":0,"oferta":3204,"ofertaAcum":18070,"ventaAcum":20000,"saldoAntes":537,"saldo":537,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-11","cargaPY":"2026-09-11","cargaBO":"2026-09-09","detalle":"BR 1944 llegado, gas 18/09 | PY 1260 llegado, gas 18/09"},{"fecha":"2026-09-24","dow":4,"semana":"2026-09-21","ventaPlan":2667,"gasificado":0,"llegado":2489,"enCamino":0,"sinConfirmar":0,"oferta":2489,"ofertaAcum":20559,"ventaAcum":22667,"saldoAntes":360,"saldo":360,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-12","cargaPY":"2026-09-12","cargaBO":"2026-09-10","detalle":"PY 1260 llegado, gas 19/09 | PY 1229 llegado, gas 19/09"},{"fecha":"2026-09-25","dow":5,"semana":"2026-09-21","ventaPlan":2667,"gasificado":0,"llegado":1260,"enCamino":1250,"sinConfirmar":0,"oferta":2510,"ofertaAcum":23069,"ventaAcum":25333,"saldoAntes":203,"saldo":203,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-13","cargaPY":"2026-09-13","cargaBO":"2026-09-11","detalle":"PY 1260 llegado, gas 20/09 | PY 1250 en_camino, gas 20/09"},{"fecha":"2026-09-26","dow":6,"semana":"2026-09-21","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":2500,"sinConfirmar":0,"oferta":2500,"ofertaAcum":25569,"ventaAcum":28000,"saldoAntes":36,"saldo":36,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-14","cargaPY":"2026-09-14","cargaBO":"2026-09-12","detalle":"PY 1250 en_camino, gas 21/09 | PY 1250 solicitado, gas 21/09"},{"fecha":"2026-09-28","dow":1,"semana":"2026-09-28","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":5000,"sinConfirmar":0,"oferta":5000,"ofertaAcum":30569,"ventaAcum":30667,"saldoAntes":2370,"saldo":2370,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-16","cargaPY":"2026-09-16","cargaBO":"2026-09-14","detalle":"PY 1250 solicitado, gas 22/09 | PY 1250 en_camino, gas 22/09 | PY 1250 en_camino, gas 23/09 | PY 1250 solicitado, gas 23/09"},{"fecha":"2026-09-29","dow":2,"semana":"2026-09-28","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":2500,"sinConfirmar":0,"oferta":2500,"ofertaAcum":33069,"ventaAcum":33333,"saldoAntes":2203,"saldo":2203,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-17","cargaPY":"2026-09-17","cargaBO":"2026-09-15","detalle":"PY 1250 programado, gas 24/09 | BR 1250 solicitado, gas 24/09"},{"fecha":"2026-09-30","dow":3,"semana":"2026-09-28","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":2500,"sinConfirmar":0,"oferta":2500,"ofertaAcum":35569,"ventaAcum":36000,"saldoAntes":2036,"saldo":2036,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-18","cargaPY":"2026-09-18","cargaBO":"2026-09-16","detalle":"BR 1250 solicitado, gas 25/09 | BR 1250 solicitado, gas 25/09"},{"fecha":"2026-10-01","dow":4,"semana":"2026-09-28","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":1250,"sinConfirmar":0,"oferta":1250,"ofertaAcum":36819,"ventaAcum":38667,"saldoAntes":620,"saldo":620,"aCargar":0,"planCajas":0,"descubierto":0,"cargaBR":"2026-09-19","cargaPY":"2026-09-19","cargaBO":"2026-09-17","detalle":"BR 1250 solicitado, gas 26/09"},{"fecha":"2026-10-02","dow":5,"semana":"2026-09-28","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":0,"ofertaAcum":36819,"ventaAcum":41333,"saldoAntes":-2047,"saldo":453,"aCargar":2,"planCajas":2500,"descubierto":0,"cargaBR":"2026-09-20","cargaPY":"2026-09-20","cargaBO":"2026-09-18","detalle":""},{"fecha":"2026-10-03","dow":6,"semana":"2026-09-28","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":0,"ofertaAcum":36819,"ventaAcum":44000,"saldoAntes":-2214,"saldo":286,"aCargar":2,"planCajas":2500,"descubierto":0,"cargaBR":"2026-09-21","cargaPY":"2026-09-21","cargaBO":"2026-09-19","detalle":""},{"fecha":"2026-10-05","dow":1,"semana":"2026-10-05","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":0,"ofertaAcum":36819,"ventaAcum":46667,"saldoAntes":-2380,"saldo":120,"aCargar":2,"planCajas":2500,"descubierto":0,"cargaBR":"2026-09-23","cargaPY":"2026-09-23","cargaBO":"2026-09-21","detalle":""},{"fecha":"2026-10-06","dow":2,"semana":"2026-10-05","ventaPlan":2667,"gasificado":0,"llegado":0,"enCamino":0,"sinConfirmar":0,"oferta":0,"ofertaAcum":36819,"ventaAcum":49333,"saldoAntes":-2547,"saldo":1203,"aCargar":3,"planCajas":3750,"descubierto":0,"cargaBR":"2026-09-24","cargaPY":"2026-09-24","cargaBO":"2026-09-22","detalle":""}],"semanas":[{"lunes":"2026-09-14","etiqueta":"14/09 al 19/09","dias":5,"necesita":12001,"gasificado":10196,"llegado":0,"enCamino":0,"sinConfirmar":0,"saldoFin":0,"aCargar":0,"descubierto":1804},{"lunes":"2026-09-21","etiqueta":"21/09 al 26/09","dias":6,"necesita":16002,"gasificado":0,"llegado":11623,"enCamino":3750,"sinConfirmar":0,"saldoFin":36,"aCargar":0,"descubierto":664},{"lunes":"2026-09-28","etiqueta":"28/09 al 03/10","dias":6,"necesita":16002,"gasificado":0,"llegado":0,"enCamino":11250,"sinConfirmar":0,"saldoFin":286,"aCargar":4,"descubierto":0},{"lunes":"2026-10-05","etiqueta":"05/10 al 10/10","dias":2,"necesita":5334,"gasificado":0,"llegado":0,"enCamino":0,"sinConfirmar":0,"saldoFin":1203,"aCargar":5,"descubierto":0}],"stock":{"fecha":"2026-09-15","filas":[{"origen":"Brasil","kg":21026,"cajas":956},{"origen":"Ecuador","kg":23023,"cajas":1212},{"origen":"Paraguay","kg":10628,"cajas":483},{"origen":"Bolivia","kg":1958,"cajas":98}],"totalCamion":1537,"dias":0.6},"ritmo":{"camionesSemana":12.8,"BR":8,"PY":4,"BOcajasSemana":800,"lagBR":12,"lagPY":12,"lagBO":14}}/*__END_PLAN__*/</script>
+
+<script>
+(function () {
+  "use strict";
+  // Marcadores como regex escapados: su texto literal no aparece en el codigo.
+  var raw = document.getElementById('datosPlan').textContent
+    .replace(/\/\*__PLAN_JSON__\*\//, '').replace(/\/\*__END_PLAN__\*\//, '');
+  var D = {}; try { D = JSON.parse(raw) || {}; } catch (e) { D = {}; }
+  function arr(x){ return Array.isArray(x) ? x : []; }
+
+  function el(t,c){var e=document.createElement(t); if(c) e.className=c; return e;}
+  function txt(id,s){var n=document.getElementById(id); if(n) n.textContent=s;}
+  function fmt(v,d){ if(v===null||v===undefined||isNaN(v)) return '—';
+    return Number(v).toLocaleString('es-UY',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}); }
+  var DOW=['dom','lun','mar','mié','jue','vie','sáb'], DOWL=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  function pd(s){ if(!s) return null; var p=s.slice(0,10).split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+  function f2(n){ return (n<10?'0':'')+n; }
+  function fd(s){ var d=pd(s); if(!d) return '—'; return DOW[d.getDay()]+' '+f2(d.getDate())+'/'+f2(d.getMonth()+1); }
+  function fdl(s){ var d=pd(s); if(!d) return '—'; return DOWL[d.getDay()]+' '+f2(d.getDate())+'/'+f2(d.getMonth()+1); }
+  function tile(c,lab,val,u,dl,cls){
+    var x=el('div','tile'+(cls?' '+cls:''));
+    var l=el('div','lab'); l.textContent=lab; x.appendChild(l);
+    var v=el('div','val'); v.textContent=val;
+    if(u){var s=el('span','u'); s.textContent=u; v.appendChild(s);}
+    x.appendChild(v);
+    var d=el('div','dl'); d.textContent=dl; x.appendChild(d);
+    c.appendChild(x);
+  }
+  function tabla(id,cols,filas){
+    var t=document.getElementById(id); if(!t) return; t.innerHTML='';
+    var th=el('thead'),tr=el('tr');
+    cols.forEach(function(c){var h=el('th'); h.textContent=c; tr.appendChild(h);});
+    th.appendChild(tr); t.appendChild(th);
+    var tb=el('tbody');
+    filas.forEach(function(f){
+      var r=el('tr'); if(f.cls) r.className=f.cls;
+      f.cells.forEach(function(c){
+        var td=el('td');
+        if(c&&typeof c==='object'){ td.textContent=c.v; if(c.cls) td.className=c.cls; if(c.title) td.title=c.title; }
+        else td.textContent=c;
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+  }
+
+  var dias=arr(D.dias);
+  if (!dias.length) {
+    txt('subHead','Todavía no hay datos: falta correr el paso 5i del script con fuentes\\plan_semanal\\plan_semanal.xlsx cargada.');
+    return;
+  }
+  var P=D.params||{}, hoy=pd(D.hoy||(D.generado||'').slice(0,10));
+  var cola=arr(D.cola), sinConf=arr(D.sinConfirmar), camaras=arr(D.camaras), semanas=arr(D.semanas);
+  var ultGas=null, sumGas=0,sumLleg=0,sumEnc=0,sumNo=0,sumCargar=0,sumDesc=0,nDesc=0,primeraCarga=null,nCubLleg=0,nCubEnc=0;
+  dias.forEach(function(x){ if(x.gasificado>0) ultGas=x.fecha; sumGas+=x.gasificado; sumLleg+=x.llegado; sumEnc+=x.enCamino; sumNo+=x.sinConfirmar||0; sumCargar+=x.aCargar||0; if(x.descubierto>0){sumDesc+=x.descubierto; nDesc++;} if(x.aCargar>0&&(!primeraCarga||x.cargaBR<primeraCarga)) primeraCarga=x.cargaBR; });
+  cola.forEach(function(c){ if(c.estado==='llegado') nCubLleg++; else nCubEnc++; });
+
+  txt('subHead','Plan de ventas '+fmt(P.ventas_semana)+' cajas por semana (Brasil + Paraguay + Bolivia), lunes a sábado = '+fmt(D.ventaDia)+' por día. Foto del plan de cámaras del '+fdl(D.foto)+'; camiones en camino según el master del Plan de Cargas'+(D.stock?'; stock ERP del '+fdl(D.stock.fecha):'')+'.');
+  txt('meta','Generado '+D.generado+' · planilla '+D.planilla+' · horizonte '+fmt(P.horizonte_dias)+' días · '+arr(D.fotosHist).length+' foto(s) cargadas.');
+
+  var K=document.getElementById('kpis');
+  tile(K,'Venta plan por día',fmt(D.ventaDia),'cajas',fmt(P.ventas_semana)+' por semana, lun a sáb');
+  tile(K,'Gasificado (foto '+fd(D.foto)+')',fmt(sumGas),'cajas',ultGas?'alcanza hasta el '+fd(ultGas):'nada gasificado');
+  tile(K,'Llegado sin gas + en camino',fmt(sumLleg+sumEnc),'cajas',nCubLleg+' en depósito, '+nCubEnc+' en ruta o pedidos'+(sumNo?' · '+fmt(sumNo)+' sin confirmar aparte':''));
+  tile(K,'Camiones a cargar',fmt(sumCargar),'',sumCargar?'primera carga: '+fd(primeraCarga):'nada falta en '+fmt(P.horizonte_dias)+' días',sumCargar>0?'alert':'ok');
+  if(sumDesc>0) tile(K,'Descubierto',fmt(sumDesc),'cajas',nDesc+' día'+(nDesc>1?'s':'')+' que ya no se llega a cargar','alert');
+  if(D.stock) tile(K,'Stock ERP '+fd(D.stock.fecha),fmt(D.stock.totalCamion),'cajas',D.stock.dias+' días de venta (BR+PY+BO, sin Ecuador)');
+
+  // ---- grafico SVG ----
+  var svg=document.getElementById('chart'), W=900, H=250, padL=52, padR=10, padT=12, padB=34;
+  var n=dias.length, iw=(W-padL-padR)/n;
+  var maxY=0; dias.forEach(function(x){ maxY=Math.max(maxY,x.oferta+(x.sinConfirmar||0)+(x.planCajas||0),x.ventaPlan); }); maxY=Math.ceil(maxY/1000)*1000||1000;
+  function Y(v){ return padT+(H-padT-padB)*(1-v/maxY); }
+  var s='';
+  for(var g=0; g<=maxY; g+=1000){ s+='<line x1="'+padL+'" y1="'+Y(g)+'" x2="'+(W-padR)+'" y2="'+Y(g)+'" stroke="currentColor" stroke-opacity=".08"/>'+'<text x="'+(padL-6)+'" y="'+(Y(g)+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity=".55">'+fmt(g)+'</text>'; }
+  dias.forEach(function(x,i){
+    var x0=padL+i*iw+iw*0.15, bw=iw*0.7, y=Y(0);
+    var d=pd(x.fecha);
+    if(d.getDay()===1&&i>0){ s+='<line x1="'+(padL+i*iw)+'" y1="'+padT+'" x2="'+(padL+i*iw)+'" y2="'+(H-padB)+'" stroke="currentColor" stroke-opacity=".25" stroke-dasharray="3 3"/>'; }
+    [['gasificado','var(--s1)'],['llegado','var(--s3)'],['enCamino','var(--s4)']].forEach(function(k){
+      var v=x[k[0]]; if(v>0){ var h=Y(0)-Y(v); y-=h; s+='<rect x="'+x0+'" y="'+y+'" width="'+bw+'" height="'+h+'" fill="'+k[1]+'"><title>'+fd(x.fecha)+' '+k[0]+': '+fmt(v)+'</title></rect>'; }
+    });
+    if(x.planCajas>0){ var hp=Y(0)-Y(x.planCajas); y-=hp; s+='<rect x="'+x0+'" y="'+y+'" width="'+bw+'" height="'+hp+'" fill="var(--bad)" fill-opacity=".12" stroke="var(--bad)" stroke-dasharray="3 2"><title>a cargar: '+x.aCargar+' camión(es) = '+fmt(x.planCajas)+'</title></rect>'; }
+    if(x.sinConfirmar>0){ var h2=Y(0)-Y(x.sinConfirmar); y-=h2; s+='<rect x="'+x0+'" y="'+y+'" width="'+bw+'" height="'+h2+'" fill="none" stroke="currentColor" stroke-opacity=".4" stroke-dasharray="3 2"><title>sin confirmar: '+fmt(x.sinConfirmar)+'</title></rect>'; }
+    if(x.descubierto>0){ s+='<circle cx="'+(x0+bw/2)+'" cy="'+(H-padB+6)+'" r="3" fill="var(--bad)"><title>descubierto '+fmt(x.descubierto)+'</title></circle>'; }
+    s+='<text x="'+(x0+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="9.5" fill="currentColor" fill-opacity=".65">'+DOW[d.getDay()]+' '+f2(d.getDate())+'</text>';
+  });
+  var pts=dias.map(function(x,i){ return (padL+i*iw+iw/2)+','+Y(x.ventaPlan); }).join(' ');
+  s+='<polyline points="'+pts+'" fill="none" stroke="var(--s2)" stroke-width="2" stroke-dasharray="6 3"/>';
+  svg.innerHTML=s;
+
+  // ---- tabla por dia ----
+  function cg(x,f){ var dd=pd(f), paso=hoy&&dd<hoy; return {v:fd(f)+(paso?' ·pasó':''), cls:(x.aCargar>0?(paso?'paso':'carga'):(x.descubierto>0?'paso':''))}; }
+  var filas=dias.map(function(x){
+    var d=pd(x.fecha), cls=((x.saldoAntes<0)?'neg':'')+(d.getDay()===6?' wk':'');
+    return {cls:cls, cells:[fd(x.fecha), fmt(x.ventaPlan), x.gasificado?fmt(x.gasificado):{v:'—',cls:'nil'}, x.llegado?fmt(x.llegado):{v:'—',cls:'nil'}, x.enCamino?fmt(x.enCamino):{v:'—',cls:'nil'}, fmt(x.oferta),
+      {v:fmt(x.saldoAntes), cls:(x.saldoAntes<0?'neg':'pos')}, x.aCargar?{v:fmt(x.aCargar),cls:'neg'}:{v:'—',cls:'nil'}, x.descubierto?{v:fmt(x.descubierto),cls:'neg'}:{v:'—',cls:'nil'}, cg(x,x.cargaBR), cg(x,x.cargaPY), cg(x,x.cargaBO), {v:x.detalle||'', cls:'txt'}]};
+  });
+  tabla('tblDias',['Día de venta','Venta plan','Gasificado','Llegado sin gas','En camino','Oferta','Saldo antes de cargar','A cargar','Descubierto','Carga BR','Carga PY','Carga BO','Qué hay ese día'],filas);
+  txt('subSaldo','Oferta = fruta que sale de cámara ese día. El día de la foto se cuenta sólo la parte del día que faltaba vender ('+Math.round((1-(P.foto_fraccion_vendida||0))*100)+'%). Lo llegado sin gas y lo en camino se reparte a '+fmt(P.gas_por_dia)+' cubículos gasificados por día y '+fmt(P.camara)+' días de cámara.');
+  document.getElementById('notaSaldo').innerHTML='<p>"Saldo antes de cargar" = lo que sobró del día anterior + oferta − venta plan. Lo que sobra pasa al día siguiente (la fruta espera en cámara); lo que falta no se acumula (venta perdida). Si la fecha de carga todavía no pasó, "A cargar" son los camiones que cubren ese día (barra punteada roja) y su sobra sigue; si ya pasó, el día queda "Descubierto" (punto rojo): sólo se cubre con lo que ya viene, gasificando más rápido o comprando puesto. Fecha amarilla = cuándo cargar en origen (venta − '+fmt(P.camara)+' de cámara − '+fmt(P.desc_gas)+' de descarga a gas − tránsito − aduana).</p>';
+
+  // ---- semanas ----
+  tabla('tblSem',['Semana de venta','Necesita','Gasificado','Llegado sin gas','En camino','Sin confirmar','Camiones a cargar','Descubierto','Sobra al sábado'],
+    semanas.map(function(w){ return {cls:((w.descubierto>0)?'neg':''), cells:[w.etiqueta+(w.dias<6?' ('+w.dias+' días)':''), fmt(w.necesita), fmt(w.gasificado), fmt(w.llegado), fmt(w.enCamino), w.sinConfirmar?fmt(w.sinConfirmar):{v:'—',cls:'nil'}, w.aCargar?{v:fmt(w.aCargar),cls:'neg'}:{v:'—',cls:'nil'}, w.descubierto?{v:fmt(w.descubierto),cls:'neg'}:{v:'—',cls:'nil'}, {v:fmt(w.saldoFin),cls:'pos'}]}; }));
+
+  // ---- que cargar ----
+  var L=document.getElementById('listaCargar'); L.innerHTML='';
+  var faltas=dias.filter(function(x){ return x.aCargar>0; }), descs=dias.filter(function(x){ return x.descubierto>0; });
+  if(!faltas.length&&!descs.length){ var li0=el('li'); li0.textContent='Con lo gasificado, lo llegado y lo que viene en el master no falta ningún camión en '+fmt(P.horizonte_dias)+' días. Mantener el ritmo de régimen.'; L.appendChild(li0); }
+  faltas.forEach(function(x){
+    var li=el('li'); var b=el('b'); b.textContent=x.aCargar+' camión'+(x.aCargar>1?'es':'')+' para vender el '+fdl(x.fecha)+': '; li.appendChild(b);
+    function seg(o,f){ var dd=pd(f), paso=hoy&&dd<hoy; return o+' el '+fd(f)+(paso?' (ya pasó)':''); }
+    li.appendChild(document.createTextNode('cargar en '+seg('Brasil',x.cargaBR)+', en '+seg('Paraguay',x.cargaPY)+' o en '+seg('Bolivia',x.cargaBO)+'. Faltaban '+fmt(-x.saldoAntes)+' cajas.'));
+    L.appendChild(li);
+  });
+  if(descs.length){ var lid=el('li'); var bd=el('b'); bd.textContent='Descubierto (ya no se llega a cargar): '; lid.appendChild(bd); lid.appendChild(document.createTextNode(descs.map(function(x){ return fd(x.fecha)+' faltan '+fmt(x.descubierto); }).join(' · ')+'. Opciones: gasificar más cubículos por día, adelantar lo que está en depósito, o comprar puesto.')); L.appendChild(lid); }
+  // resumen por fecha de carga
+  var porCarga={}; faltas.forEach(function(x){ var k=x.cargaBR; if(!porCarga[k]) porCarga[k]={n:0,ventas:[]}; porCarga[k].n+=x.aCargar; porCarga[k].ventas.push(fd(x.fecha)); });
+  var keys=Object.keys(porCarga).sort();
+  tabla('tblCargas',['Cargar en origen (BR o PY)','Camiones','Para vender el'],keys.map(function(k){ return {cls:'', cells:[fd(k), {v:fmt(porCarga[k].n),cls:'neg'}, {v:porCarga[k].ventas.join(', '),cls:'txt'}]}; }));
+  txt('subCargar',sumCargar?('Faltan '+sumCargar+' camión'+(sumCargar>1?'es':'')+' en el horizonte'+(sumDesc?' y quedan '+fmt(sumDesc)+' cajas descubiertas':'')+'. Cada fecha sale de restar cámara, descarga a gas, tránsito y aduana al día de venta; Brasil y Paraguay dan la misma fecha con los parámetros de hoy.'):'Nada pendiente en el horizonte.');
+  var R=D.ritmo||{};
+  document.getElementById('notaRitmo').innerHTML='<p><b>Ritmo de régimen</b> para '+fmt(P.ventas_semana)+' cajas por semana: '+fmt(R.camionesSemana,1)+' camiones de '+fmt(P.cajas_camion)+' → unos '+R.BR+' de Brasil y '+R.PY+' de Paraguay por semana (2 por día de carga, lunes a sábado) más un bloque de Bolivia de ~'+fmt(R.BOcajasSemana*2)+' cajas cada dos semanas. Regla corta: <b>carga = día de venta − '+R.lagBR+' días</b> (Brasil), − '+R.lagPY+' (Paraguay), − '+R.lagBO+' (Bolivia).</p>';
+
+  // ---- cola ----
+  var colaF=cola.map(function(c){ return {cls:'', cells:[c.origen, fmt(c.cajas), (c.estado||'').replace('_',' '), c.carga?fd(c.carga):{v:'—',cls:'nil'}, c.llegada?fd(c.llegada):{v:'—',cls:'nil'}, fd(c.gas), fd(c.venta), {v:c.desc||'',cls:'txt'}]}; })
+    .concat(sinConf.map(function(c){ return {cls:'', cells:[{v:c.origen+' (sin confirmar)',cls:'nil'}, fmt(c.cajas), (c.estado||'').replace('_',' '), c.carga?fd(c.carga):'—', c.llegada?fd(c.llegada):'—', fd(c.gas), fd(c.venta), {v:c.desc||'',cls:'txt'}]}; }));
+  tabla('tblCola',['Origen','Cajas','Estado','Carga','Llegada','Gas (est.)','Venta (est.)','Detalle'],colaF);
+  txt('subCola',cola.length+' camiones confirmados'+(sinConf.length?' y '+sinConf.length+' sin confirmar':'')+'. Gas y venta estimados con la cola de gasificación ('+fmt(P.gas_por_dia)+' cubículos por día) y '+fmt(P.camara)+' días de cámara; si no hay llegada, es carga + tránsito + aduana.');
+
+  // ---- camaras ----
+  tabla('tblCam',['Cubículo','Camión','Origen','Cajas','Gas','Venta','Llegada','Nota'],camaras.map(function(c){ return {cls:'', cells:[c.cub||'—', c.cam||'—', c.origen, fmt(c.cantidad), c.gas?fd(c.gas):{v:'sin gas',cls:'nil'}, c.venta?fd(c.venta):{v:'—',cls:'nil'}, c.llegada||'—', {v:c.nota||'',cls:'txt'}]}; }));
+  txt('h2Cam','Plan de cámaras — foto del '+fdl(D.foto));
+  var totCam=camaras.reduce(function(a,c){ return a+(c.cantidad||0); },0);
+  txt('subCam',camaras.length+' filas, '+fmt(totCam)+' cajas por vender. En la foto: CUB = cubículo, CAM = camión, DIA SEM = día de venta, OBS = llegada. Color de la columna CAM: salmón = Brasil, gris = Paraguay.');
+
+  document.getElementById('notaLags').innerHTML='<p><b>Tiempos que usa el cálculo</b> (hoja parámetros): tránsito Brasil '+fmt(P.tr_BR)+' + aduana '+fmt(P.ad_BR)+' días, Paraguay '+fmt(P.tr_PY)+' + '+fmt(P.ad_PY)+', Bolivia '+fmt(P.tr_BO)+' + '+fmt(P.ad_BO)+'; descarga a gas '+fmt(P.desc_gas)+'; cámara '+fmt(P.camara)+'; '+fmt(P.gas_por_dia)+' cubículos gasificados por día. Observado en setiembre 2026: gas → venta 4 a 6 días, llegada → gas 2 a 4, carga Brasil vie 04/09 → descarga mié 09/09.</p>';
+})();
+</script>
+</body>
+</html>

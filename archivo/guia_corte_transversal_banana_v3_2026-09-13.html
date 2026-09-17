@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guía de Control · Corte Transversal de Banana Verde — Almar S.R.L.</title>
+<style>
+  :root{
+    --verde:#2e7d32; --verde2:#43a047; --crema:#fffef7;
+    --rojo:#c62828; --amarillo:#f9a825; --azul:#1565c0;
+    --gris:#444; --linea:#cfcfcf; --ok:#2e7d32; --bad:#c62828;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:"Segoe UI",Roboto,Arial,sans-serif;
+    color:#1c1c1c; margin:0; background:#e9e9e9; line-height:1.4;
+    font-size:12px;
+  }
+  .page{
+    width:210mm; min-height:297mm; background:#fff; margin:10px auto;
+    padding:13mm 12mm; box-shadow:0 2px 12px rgba(0,0,0,.25); position:relative;
+  }
+  h1{font-size:20px; margin:0 0 2px; color:var(--verde);}
+  h2{
+    font-size:15px; margin:16px 0 7px; color:#fff; background:var(--verde2);
+    padding:4px 9px; border-radius:4px;
+  }
+  h3{font-size:13px; margin:11px 0 5px; color:var(--verde);}
+  .sub{color:var(--gris); font-size:11px; margin-bottom:8px;}
+  .head{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    border-bottom:3px solid var(--verde); padding-bottom:7px;
+  }
+  .logo{font-size:11px; color:var(--gris); text-align:right;}
+  .meta{
+    display:flex; gap:7px; margin:9px 0; flex-wrap:wrap;
+  }
+  .meta .f{
+    border:1px solid var(--linea); border-radius:4px; padding:4px 8px;
+    flex:1; min-width:90px;
+  }
+  .meta .f b{display:block; font-size:9px; color:var(--gris); text-transform:uppercase; letter-spacing:.4px;}
+  .meta .f .line{border-bottom:1px dotted #999; height:15px;}
+  table{width:100%; border-collapse:collapse; margin:6px 0; font-size:11px;}
+  th,td{border:1px solid var(--linea); padding:4px 6px; vertical-align:top; text-align:left;}
+  th{background:#eef6ee; color:#1c1c1c; font-size:10.5px;}
+  .col-obs{width:22%; font-weight:600;}
+  .ok{color:var(--ok);}
+  .bad{color:var(--bad);}
+  .tip{
+    background:#fff8e1; border-left:4px solid var(--amarillo);
+    padding:6px 9px; margin:8px 0; border-radius:0 4px 4px 0; font-size:11px;
+  }
+  .alert{
+    background:#ffebee; border-left:5px solid var(--rojo);
+    padding:8px 10px; margin:9px 0; border-radius:0 4px 4px 0;
+  }
+  .alert b{color:var(--rojo);}
+  .info{
+    background:#e8f0fe; border-left:4px solid var(--azul);
+    padding:6px 9px; margin:8px 0; border-radius:0 4px 4px 0; font-size:11px;
+  }
+  .grid2{display:flex; gap:10px; flex-wrap:wrap;}
+  .grid2 > *{flex:1; min-width:0;}
+  figure{margin:0; border:1px solid var(--linea); border-radius:5px; overflow:hidden; background:#fafafa;}
+  figure img{width:100%; display:block; height:118px; object-fit:cover;}
+  figure figcaption{padding:3px 5px; font-size:9px; color:var(--gris); line-height:1.3;}
+  figure figcaption b{color:#1c1c1c; display:block; font-size:9.5px;}
+  .cred{font-size:8px; color:#999; margin-top:2px;}
+
+  /* escala yodo */
+  .yodo{display:flex; gap:0; margin:6px 0; text-align:center;}
+  .yodo .st{flex:1; border:1px solid #ccc;}
+  .yodo .dot{height:34px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:11px;}
+  .yodo .lab{font-size:8.5px; padding:2px 1px; background:#f4f4f4;}
+  .y1{background:#1a237e;} .y2{background:#283593;} .y3{background:#3949ab;}
+  .y4{background:#5c6bc0;} .y5{background:#9fa8da;} .y6{background:#c5cae9; color:#333!important;}
+  .y7{background:#e8eaf6; color:#333!important;} .y8{background:#fbfbfd; color:#333!important; border:1px dashed #bbb;}
+  .target{outline:3px solid var(--ok); outline-offset:-3px; position:relative;}
+
+  /* escala color cascara */
+  .color{display:flex; gap:0; margin:6px 0; text-align:center;}
+  .color .st{flex:1; border:1px solid #ccc;}
+  .color .sw{height:30px;}
+  .color .lab{font-size:8px; padding:2px 1px; background:#f4f4f4;}
+  .c1{background:#3a7d2c;} .c2{background:#5a9e3a;} .c3{background:#8fbf4a;}
+  .c4{background:#c4d550;} .c5{background:#ecdb3f;} .c6{background:#f4c724;}
+  .c7{background:#f0b41e;} .c8{background:#e0962a;}
+
+  /* pag 4: escala Almar del corte + casos */
+  .esc{display:flex; gap:0; margin:6px 0; text-align:center;}
+  .esc .st{flex:1; border:1px solid #ccc;}
+  .esc .sw{height:32px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#333;}
+  .esc .lab{font-size:8.5px; padding:3px 3px; background:#f4f4f4; line-height:1.25; min-height:40px;}
+  .esc .lab b{display:block; font-size:9px; color:#1c1c1c;}
+  .e1{background:#d9a441;} .e2{background:#e6b85c;} .e3{background:#f0dc9a;} .e4{background:#f3e9c8;} .e5{background:#f7f3e6; border-bottom:1px solid #ddd;}
+  .casos figure img{height:112px; object-position:center 45%;}
+  .p3 figure img{height:76px;}
+  .p3 .trips h2, .trips + h3{margin-top:10px;}
+  .trips figure img{height:72px; object-position:center 45%;}
+  .p7 figure img{height:80px;}
+  .pref1 figure img{height:76px;}
+  .pref1 table{font-size:10.5px;} .pref1 th,.pref1 td{padding:3px 6px;}
+  .origen figure img{height:66px; object-position:center 60%;}
+  ul.twocol{column-count:2; column-gap:14px; padding-left:17px;} ul.twocol li{break-inside:avoid;}
+  .casos ul.tight li{margin:1px 0;}
+  .twocol{column-count:2; column-gap:14px;}
+  .twocol h3{column-span:all;}
+  ul.tight{margin:3px 0 6px; padding-left:17px;}
+  ul.tight li{margin:2px 0;}
+  .pill{display:inline-block; background:var(--verde2); color:#fff; border-radius:10px; padding:1px 8px; font-size:9.5px; margin-left:5px;}
+  .foot{position:absolute; bottom:6mm; left:12mm; right:12mm; border-top:1px solid var(--linea); padding-top:4px; font-size:8.5px; color:#999; display:flex; justify-content:space-between;}
+  a{color:var(--azul); text-decoration:none; word-break:break-all;}
+  @media print{
+    body{background:#fff;}
+    .page{margin:0; box-shadow:none; width:auto; min-height:auto; page-break-after:always;}
+    .page:last-child{page-break-after:auto;}
+    a{color:#1c1c1c;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HOJA 1 · Desórdenes, origen y decisión ============ -->
+<div class="page">
+  <div class="head">
+    <div><h1>🔪 Guía de control de banana verde — Almar</h1><div class="sub">Hoja 1: frío, boro, bronzing, origen y umbral de decisión · 2–4: escala, casos y cuaderno · 5–7: referencia</div></div>
+    <div class="logo">ALMAR S.R.L.<br>Importación banana BR/PY/EC → UY<br><b>v3 · set 2026</b> · Pág. 1 / 7</div>
+  </div>
+
+  <h2>Desórdenes fisiológicos y nutricionales</h2>
+  <div class="grid2">
+    <div>
+      <h3>❄️ Daño por frío (chilling injury)</h3>
+      <ul class="tight">
+        <li>Aparece bajo <b>~13–14 °C</b> (incluso <b>1 h a 10 °C</b> ya puede marcar). Síntoma más temprano: <b>pardeamiento de los haces vasculares bajo la cáscara</b>; después cáscara opaca/ahumada y pintas marrones en pulpa; <b>no madura bien</b>.</li>
+        <li>Señal al partir: el <b>látex sale escaso y claro</b> en vez de lechoso. <span class="cred">(ojo: el látex claro también pasa en fruta apenas más madura — no es diagnóstico solo, combinalo con el pardeamiento vascular)</span></li>
+        <li>⚠️ En <b>camión sin frío tu riesgo dominante es el CALOR</b> (maduración acelerada + crown rot). Pero <b>en invierno (jun–set) el frío sí llega</b>: el lote CK103 (Cassio, 5 días de tránsito, ola polar del 5–7/09/2026) entró con pulpa <b>12,8 °C en puerta, 17,7 en el medio y 13,6 al fondo</b>: extremos quemados por frío y centro madurando (19 cajas sobremaduras). Medí la pulpa en <b>puerta, medio y fondo</b>, no en una sola caja.</li>
+        <li>🗺️ <b>Antes de cargar, mirá el pronóstico de la ruta</b> (Rio Branco y Montevideo, 3 días). Con mínimas por debajo de 6 °C, el camión no queda cargado el fin de semana.</li>
+        <li>Fotos: <a href="https://postharvest.ucdavis.edu/produce-facts-sheets/banana">postharvest.ucdavis.edu · banana</a></li>
+      </ul>
+      <h3>🧪 Déficit de boro</h3>
+      <ul class="tight">
+        <li>En el corte: <b>núcleo duro/corchoso</b>, cavidades o fisuras radiales, fruta deforme.</li>
+        <li>Causa de cultivo (suelo), no de poscosecha.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>🟤 Maturity bronzing / otros</h3>
+      <ul class="tight">
+        <li>Punteado rojizo-marrón en la cáscara verde (estrés/sol). Estético; chequear que la pulpa esté sana.</li>
+        <li>Cigar-end rot: punta del dedo seca y negra como ceniza de cigarro (hongo). Cortar y descartar dedos afectados.</li>
+      </ul>
+      <div class="alert" style="margin-top:6px;">
+        <b>Regla de oro:</b> manchas vasculares marrones + cualquier exudado raro = parar y mirar dos veces. Lo barato es descartar unos dedos; lo caro es perder la carga en frontera.
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:14px;margin-top:6px;">🌱 En origen: desflore y agua del tanque (visto el 11/09/2026)</h3>
+  <div class="grid2 origen">
+    <figure><img src="fotos/almar/cassio_0911_restos_florales.jpeg" alt="Dedos con restos florales secos en la punta"><figcaption><b>Restos florales sin sacar · Cassio y Marconi</b>Tejido muerto en la punta: entrada de punta de cigarro y antracnosis, y refugio de trips.</figcaption></figure>
+    <figure><img src="fotos/almar/marconi_0911_tanque.jpeg" alt="Tanque de lavado con agua marrón"><figcaption><b>Agua del tanque marrón · Marconi</b>Cada corona recién cortada se lava ahí: vía de entrada de la pudrición de corona en tránsito.</figcaption></figure>
+  </div>
+  <ul class="tight twocol" style="margin-top:6px;">
+    <li><b>Desflore:</b> en la planta, 10–15 días después de salir el racimo, junto con el embolsado: giro suave al resto seco de cada dedo y afuera las brácteas del raquis. La cicatriz cierra en el campo; en el empaque es tarde.</li>
+    <li><b>Embolsar en la primera semana</b> es el control real de los trips; el desflore sólo les saca refugios.</li>
+    <li><b>Agua del tanque</b> limpia y cambiada seguido, y corte del desmane limpio: con agua sucia cada corona sale inoculada. En la visita mirá puntas, bolsa y color del agua.</li>
+  </ul>
+  <h3>Umbral rápido de decisión</h3>
+  <table>
+    <thead><tr><th>Aceptar ✅</th><th>Marginal ⚠️ (negociar/priorizar despacho)</th><th>Rechazar / cuarentena ❌</th></tr></thead>
+    <tbody><tr>
+      <td class="ok">Corte Almar 4–5 · pulpa blanca firme · yodo 1–3 · Brix &lt;3 · sin manchas vasculares · aroma a pepino · cáscara verde 1–2</td>
+      <td>Corte Almar 3 · yodo 4 · Brix 3–4 · pintas leves · firmeza algo baja · viraje de color incipiente</td>
+      <td class="bad">Ooze/vascular marrón (Moko) · pudrición húmeda · olor fermentado · larvas/túneles · yodo 5+ con destino lejano · corte Almar 1–2 (pálida, angular)</td>
+    </tr></tbody>
+  </table>
+  <div class="info">📊 <b>Tolerancias por clase (Codex, referencia):</b> Extra 5 % fuera de clase · Clase I 10 % · Clase II 10 % — pero <b>nada con pudrición</b> en ninguna clase. &nbsp;⚖️ <b>Importante:</b> estos umbrales (Codex/USDA) son referencia internacional; las reglas <b>legales</b> de importación y el protocolo de notificación de Moko en Uruguay los fija <b>MGAP / Mercosur</b> — verificá con tu despachante.</div>
+
+  <div class="foot">
+    <span>Fuentes: Codex CXS 205 · UC Davis Postharvest · CTAHR PD-54 · Frontiers Plant Sci · CAHFSA · USDA AMS · Wikimedia Commons</span>
+    <span>Pág. 1 / 7 — Desórdenes y decisión</span>
+  </div>
+</div>
+
+<!-- ============ HOJA 2 · Escala Almar, campo y casos ============ -->
+<div class="page casos">
+  <div class="head">
+    <div><h1>🌱 En el bananal y al recibir — casos Almar</h1><div class="sub">Lo que vimos en los cortes reales de setiembre 2026, cómo lo leemos y cómo lo anotamos</div></div>
+    <div class="logo">ALMAR S.R.L.<br><b>Pág. 2 / 7</b></div>
+  </div>
+
+  <h2>7 · Escala Almar del corte (1–5) — la que va en la planilla</h2>
+  <div class="esc">
+    <div class="st"><div class="sw e1">1</div><div class="lab"><b>Sobremadura</b>pálida-amarilla, blanda, harinosa o angular. No viaja.</div></div>
+    <div class="st"><div class="sw e2">2</div><div class="lab"><b>Adelantada</b>franja ámbar por el centro, látex escaso. Ya arrancó.</div></div>
+    <div class="st"><div class="sw e3">3</div><div class="lab"><b>Intermedia</b>crema-amarillenta, centro apenas más claro, todavía firme.</div></div>
+    <div class="st"><div class="sw e4 target">4</div><div class="lab"><b>Punto ideal</b>crema pareja, firme, sección redondeada, con látex.</div></div>
+    <div class="st"><div class="sw e5 target">5</div><div class="lab"><b>Muy verde</b>blanco marfil opaco, llena, látex abundante. Aguanta mucho.</div></div>
+  </div>
+  <div class="info">🎯 Para flete de 5–7 días cargá <b>4–5</b>. Un <b>3</b> sólo con viaje corto. <b>1–2 no viaja.</b> Lectura a ojo sobre el corte crudo, sin reactivo; en <b>calidad_lotes.xlsx</b> es la columna <b>corte_color</b>. Sacá siempre la foto del corte para que el número se pueda discutir.</div>
+
+  <h2>8 · Qué mandar y anotar desde el bananal</h2>
+  <div class="grid2">
+    <div>
+      <h3>📸 Fotos: a la sombra, de frente, sin flash</h3>
+      <ul class="tight">
+        <li>Un dedo entero, con una moneda o la regla al lado.</li>
+        <li>Corte transversal al medio, recién hecho, antes de que oxide.</li>
+        <li>Corte longitudinal en dos mitades: franja ámbar, punta y cuello.</li>
+        <li>Corona o cojinete cortado, de cerca.</li>
+        <li>Racimo en la planta y una hoja con manchas, si las hay.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>📏 Mediciones y datos, una línea por productor</h3>
+      <ul class="tight">
+        <li><b>Calibre</b> del dedo del medio de la mano, en mm (Codex ≥ 27).</li>
+        <li><b>Largo</b> por la curva externa, en cm (≥ 14).</li>
+        <li><b>Pulpa:</b> termómetro clavado en el corte; anotá hora y si estaba al sol o a la sombra. <b>Ambiente</b> a esa hora.</li>
+        <li>Productor · días desde el corte del racimo · fecha de carga y días de viaje · lluvia fuerte esa semana.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>9 · Casos reales, setiembre 2026</h2>
+  <div class="grid2">
+    <figure><img src="fotos/almar/cassio_0809_sano.jpeg" alt="Cassio 08/09 corte sano"><figcaption><b>Corte 5 · Cassio, 08/09, en origen</b>Blanco-crema parejo, óvulos alineados, látex, sin franja. Verde-duro sano: así queremos cargar.</figcaption></figure>
+    <figure><img src="fotos/almar/cassio_0809_ambar.jpeg" alt="Cassio 08/09 dedo adelantado"><figcaption><b>Corte 2 · Cassio, 08/09, en origen</b>Franja ámbar a lo largo del centro: ya arrancó. Era 1 de 3 dedos; al recibir hubo 19 cajas sobremaduras (1,9 %). Si te sale uno así, cortá 5 más y separá.</figcaption></figure>
+    <figure><img src="fotos/almar/gilson_0909_longitudinal.jpeg" alt="Gilson 09/09 corte longitudinal"><figcaption><b>Corte 4 · Gilson, 09/09, en origen</b>Crema-amarillento parejo, cáscara fina sobre la pulpa = buen llenado. Halo pardo leve en dos puntas: vigilar cigar-end al recibir.</figcaption></figure>
+  </div>
+  <div class="grid2" style="margin-top:6px;">
+    <figure><img src="fotos/almar/cassio_0909_longitudinal.jpeg" alt="Cassio 09/09 corte longitudinal"><figcaption><b>Corte 5 · Cassio, 09/09, en origen</b>Blanco marfil opaco, sección redondeada, resto floral negro sólo en la punta. Más verde y parejo que el corte del día anterior.</figcaption></figure>
+    <figure><img src="fotos/almar/ck103_quemada_frio.jpg" alt="CK103 quemada por frio"><figcaption><b>Quemada por frío · CK103 Cassio, recibido 09/09</b>Bajo la cáscara, estrías pardas de los haces vasculares. 5 días de tránsito por la ola polar, pulpa 12,8 °C en puerta. Es chilling, no enfermedad.</figcaption></figure>
+    <figure><img src="fotos/almar/ck103_corona.jpg" alt="CK103 corona"><figcaption><b>Corona buena · CK103, mismo lote</b>Cojinete seco, sin moho ni ablandamiento. La corona aguantó; el problema fue frío en los extremos y calor en el centro del camión.</figcaption></figure>
+  </div>
+
+  <h2>10 · Lo que aprendimos</h2>
+  <ul class="tight">
+    <li><b>Un dedo adelantado entre tres ya avisa.</b> En CK103 anticipó el 1,9 % de cajas maduras: ampliá la muestra y separá esa fruta.</li>
+    <li><b>La caja no es dato, medí.</b> Declaraba calibre mínimo 31 mm y medimos 27 / 30 / 29; bruto 24,9 kg contra 26 declarado.</li>
+    <li><b>Pulpa en tres puntos del camión</b> (puerta, medio, fondo): sin equipo, en invierno enfría los extremos y madura el centro.</li>
+    <li><b>Un informe sin fecha, lote ni mediciones no es dato.</b> Se guarda como referencia y se pide el corte con foto.</li>
+    <li><b>Transversal + longitudinal.</b> El transversal da calibre y forma; el longitudinal, franja ámbar, punta y cuello.</li>
+    <li><b>Al recibir, el pie de camión (Aloha) ya trae</b> pulpa ×3, calibre ×3, largo ×3, peso ×6 y corona / quemada / rameada: ese CK### es el código del lote.</li>
+  </ul>
+
+  <div class="foot"><span>Fotos de esta página: Almar S.R.L., set 2026 (cortes en origen de Cassio y Gilson; recepción CK103). Escala 1–5: criterio propio de Almar, no Codex.</span><span>Pág. 2 / 7 — Casos Almar y campo</span></div>
+</div>
+
+<!-- ============ HOJA 3 · Cuaderno de campo ============ -->
+<div class="page">
+  <div class="head">
+    <div><h1>📓 Cuaderno de campo</h1><div class="sub">Lo que vimos en cada corte, visita y recepción, en orden. Se agrega una fila por lote; la foto queda en fuentes\calidad_fotos\fecha_productor</div></div>
+    <div class="logo">ALMAR S.R.L.<br><b>Pág. 3 / 7</b></div>
+  </div>
+
+  <h2>11 · Registro de cortes y recepciones — setiembre 2026</h2>
+  <table>
+    <thead><tr><th>Fecha</th><th>Productor / lote</th><th>Dónde</th><th>Corte</th><th>Calibre</th><th>Pulpa</th><th>Qué vimos</th><th>Veredicto</th></tr></thead>
+    <tbody>
+      <tr><td>08/09</td><td>Cassio</td><td>origen</td><td class="ok">4</td><td>—</td><td>—</td><td>3 dedos: 2 verde-duro sanos y 1 con franja ámbar en el centro.</td><td class="ok">Cargar, vigilar. Al recibir (CK103) hubo 19 cajas sobremaduras: el dedo ámbar avisó.</td></tr>
+      <tr><td>09/09</td><td>Gilson</td><td>origen</td><td class="ok">4</td><td>—</td><td>—</td><td>Crema-amarillento parejo, cáscara fina = buen llenado; halo pardo leve en 2 puntas.</td><td class="ok">Cargar. Vigilar cigar-end al recibir.</td></tr>
+      <tr><td>09/09</td><td>Cassio</td><td>origen</td><td class="ok">5</td><td>—</td><td>—</td><td>Blanco marfil opaco, sección redondeada, resto floral sólo en la punta. Más verde que el 08/09.</td><td class="ok">Cargar.</td></tr>
+      <tr><td>09/09</td><td>Cassio · CK103</td><td>recepción MVD</td><td>—</td><td>27 / 30 / 29 mm</td><td>12,8 · 17,7 · 13,6 °C</td><td>5 días de tránsito por la ola polar. Quemada por frío en los extremos, centro madurando; corona buena; bruto 24,9 kg vs 26 declarado.</td><td class="bad">1,9 % de cajas sobremaduras. Medir pulpa en 3 puntos; pronóstico de ruta antes de cargar.</td></tr>
+      <tr><td>11/09</td><td>Cassio</td><td>origen</td><td class="ok">4</td><td>44–46 (35–37 mm)</td><td>20,1 · 20,6 °C</td><td>Crema pareja, firme, con látex. Manchas rojizas de <b>trips</b> en algunas manos (pág. 7). Restos florales sin sacar.</td><td class="ok">Cargar apartando las manos muy marcadas. Falta cortar un dedo marcado.</td></tr>
+      <tr><td>11/09</td><td>Cassio · cacho maduro</td><td>origen</td><td class="bad">2</td><td>—</td><td>—</td><td>Pulpa amarilla y translúcida en todo el largo; el racimo se ve más claro que los vecinos en el galpón.</td><td class="bad">No viaja 5 días: venta local o maduración ya.</td></tr>
+      <tr><td>11/09</td><td>Marconi</td><td>origen</td><td class="ok">4</td><td>42–46 (33–37 mm)</td><td>20,2 °C</td><td>Crema pareja; un dedo con el centro amarillento (3). Restos florales sin sacar; agua del tanque marrón (pág. 1).</td><td class="ok">Cargar. Hablar de desflore y agua del tanque.</td></tr>
+    </tbody>
+  </table>
+  <div class="info">Corte = escala Almar 1–5 de la pág. 2, a ojo sobre el corte crudo. Calibre = lectura del calibrador INPLASBAN (grados de 1/32") y su equivalente en mm. Pulpa = termómetro clavado en el corte, a la hora de la foto; el 11/09 fue de noche en el galpón, sin temperatura ambiente anotada.</div>
+
+  <h3>Puntas negras en el corte longitudinal — pregunta de Gonzalo, 11/09/2026</h3>
+  <div class="grid2">
+    <div class="info" style="margin:0;">✅ <b>Normal:</b> en la punta del dedo queda el resto de la flor por dentro (la base del estilo). Al cortar a lo largo se ve como un <b>punto o cuña negra chica, seca, de 2–3 mm</b>, con la pulpa blanca pegada a ella. Lo tenían casi todos los cortes de Cassio, Gilson y Marconi de esta semana (fotos de la pág. 2). No se saca ni se descuenta. <b>No todos lo muestran:</b> está justo en el eje de la punta, así que sólo aparece si el cuchillo pasa por el centro; con un corte apenas de costado no se ve, y en dedos desflorados temprano queda más chico.</div>
+    <div class="alert" style="margin:0;">⚠️ <b>Problema:</b> si en vez de un punto seco hay una <b>cuña marrón o gris que entra en la pulpa</b> más de 5 mm, blanda, con halo pardo alrededor o con olor a humedad, es <b>pudrición de punta</b> (punta de cigarro / antracnosis de punta). Entra justo por ese resto floral, en el campo, y avanza en tránsito. <span class="cred">Umbral de 5 mm: regla práctica nuestra, orientativa.</span> Se vio un halo leve en 2 de 4 mitades de Gilson el 09/09: vigilar al recibir.</div>
+  </div>
+  <h3>Pendientes que cierran estas filas</h3>
+  <ul class="tight">
+    <li>Cuando lleguen a Montevideo los lotes de Cassio y Marconi del 11/09: comparar el pie de camión (pulpa ×3, calibre, corona, quemada, cajas maduras) con esta tabla y anotar la <b>fecha en que cada lote empezó a virar</b>. Ése es el dato que calibra la escala.</li>
+    <li>Cortar un dedo marcado con trips y confirmar que la pulpa está igual que la de los sanos.</li>
+    <li>Con Cassio y Marconi: desflore y retiro de brácteas al embolsar, bolsa en la primera semana. Con Marconi: agua del tanque limpia y cambiada seguido.</li>
+    <li>En la próxima tanda de fotos: hora y temperatura ambiente junto con la pulpa.</li>
+  </ul>
+
+  <div class="foot"><span>Cuaderno de campo · se completa en cada visita o recepción · fotos en fuentes\calidad_fotos\</span><span>Pág. 3 / 7 — Cuaderno de campo</span></div>
+</div>
+
+<!-- ============ HOJA 4 · Cuaderno de campo (2) — Paraguay ============ -->
+<div class="page casos p7">
+  <div class="head">
+    <div><h1>📓 Cuaderno de campo (2) — Paraguay</h1><div class="sub">Fruta paraguaya vista el 13/09/2026 en Tembiaporá (Caaguazú). Fotos en fuentes\calidad_fotos\2026-09-13_paraguay</div></div>
+    <div class="logo">ALMAR S.R.L.<br><b>Pág. 4 / 7</b></div>
+  </div>
+
+  <h2>12 · Registro (continuación)</h2>
+  <table>
+    <thead><tr><th>Fecha</th><th>Productor / lote</th><th>Dónde</th><th>Corte</th><th>Calibre</th><th>Pulpa</th><th>Qué vimos</th><th>Veredicto</th></tr></thead>
+    <tbody>
+      <tr><td>13/09</td><td>HF · Tembiaporá, Caaguazú (plus code MJFH+F55, −25,3264 / −55,3721)</td><td>origen, cortado ese día</td><td class="bad">3 (franja ámbar en varias mitades)</td><td>38–42 (30–33 mm)</td><td>21,2 °C</td><td>Pulpa crema-amarilla, harinosa, franja ámbar central en varias mitades (en foto parecía más blanca). Dedos angulosos, cáscara gruesa = llenado corto; calibre bajo Brasil (35–37). Fruta vieja y flaca: <b>22 semanas desde la flor</b> (dato de HF). Pintas planas y cráteres = pitting, no trips. Manipulada mojada, corona irregular. Camión abierto, 4–5 días (llega 17–18/09).</td><td class="bad">Poco aguante: llega virando. Despacho prioritario y venta rápida. A HF: cortar por edad de racimo (cinta), no por calibre. Apartar manos pintadas, secar coronas.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Pintas y cráteres en la cáscara — "pitting"</h2>
+  <div class="grid2">
+    <figure><img src="fotos/almar/paraguay_0913_pintas.jpeg" alt="Pintas oscuras en cáscara verde"><figcaption><b>Pintas</b>Puntos morado-oscuros chicos, repartidos por todo el dedo, algunos con halo claro.</figcaption></figure>
+    <figure><img src="fotos/almar/paraguay_0913_crater_zoom.jpg" alt="Cráter con borde levantado y centro seco, con zoom"><figcaption><b>Cráteres (con zoom)</b>Redondos, 3 a 6 mm, borde levantado y centro hundido, seco y agrietado. Es la pinta ya madura, no una herida.</figcaption></figure>
+    <div>
+      <ul class="tight">
+        <li><b>Una sola cosa en dos etapas.</b> La pinta plana con halo morado es la lesión joven; el cráter con borde levantado y centro seco agrietado, la misma lesión madura. <b>Hongo de cáscara</b> tipo "pitting" (Pyricularia o similar), de racimos sin bolsa con lluvia. <b>No es trips:</b> esas son verrugas de 1 mm en grupos. <span class="cred">Corrige lo dicho el 13/09 a la mañana.</span></li>
+        <li><b>Sólo cáscara:</b> pulpa limpia, no es Moko ni pudrición. Baja la clase. Las lesiones jóvenes siguen creciendo al madurar: en góndola se ve peor que hoy.</li>
+        <li><b>Qué hacer:</b> apartar manos muy marcadas; al productor: bolsa temprana, hojas secas afuera y control del hongo con su técnico. <span class="cred">Diagnóstico visual propio.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Llenado corto y fruta mojada</h2>
+  <div class="grid2">
+    <figure><img src="fotos/almar/paraguay_0913_corte.jpeg" alt="Corte longitudinal con cáscara gruesa"><figcaption><b>Cáscara gruesa, pulpa angosta</b>Dedo cortado antes de llenar: mucho almidón (blanco mate) pero poca pulpa.</figcaption></figure>
+    <figure><img src="fotos/almar/paraguay_0913_mojado.jpeg" alt="Racimo mojado con pintas"><figcaption><b>Racimo mojado</b>Cortado o lavado con lluvia: corona húmeda = puerta abierta a la pudrición de corona.</figcaption></figure>
+    <div>
+      <ul class="tight">
+        <li><b>Vieja y flaca a la vez:</b> cáscara gruesa (poco llenado) y pulpa crema-amarilla (edad). El aguante lo fija la <b>edad del racimo</b>, no el grosor. HF: <b>22 semanas</b>. Orientativo: 12–14 semanas en calor, 16–18 en invierno; pasadas las 20 va viejo aunque siga flaco: mercado local, no camión de 5 días.</li>
+        <li><b>Fruta mojada:</b> secar las coronas antes de encajonar, corte de desmane limpio y parejo, agua limpia si se lava (pág. 1).</li>
+        <li><b>Fila cerrada el 13/09:</b> productor HF, Tembiaporá (plus code MJFH+F55), ficha en productores.xlsx. Al recibir: peso por caja, corona y manos pintadas que pasaron.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot"><span>Cuaderno de campo · Paraguay · fotos propias 13/09/2026</span><span>Pág. 4 / 7 — Cuaderno de campo (2)</span></div>
+</div>
+
+<!-- ============ HOJA 5 · Referencia: muestreo y cuadro visual ============ -->
+<div class="page pref1">
+  <div class="head">
+    <div>
+      <h1>📚 Referencia 1 · Cómo muestrear, cortar y qué mirar</h1>
+      <div class="sub">Base de junio 2026 revisada en setiembre con los casos reales de las hojas 2 a 4. Cavendish · bananal y galpón de empaque.</div>
+    </div>
+    <div class="logo">ALMAR S.R.L.<br><b>Pág. 5 / 7</b></div>
+  </div>
+
+
+  <h2>1 · Cómo muestrear y cortar</h2>
+  <div class="grid2">
+    <div>
+      <ul class="tight">
+        <li><b>Cuántos:</b> 5–10 dedos al azar por lote (y 1–3 extra de cualquier bandeja sospechosa).</li>
+        <li><b>De dónde:</b> tomá dedos de <b>distintas pencas</b> y de distintas posiciones (mano externa e interna). No todos del mismo gajo.</li>
+        <li><b>Dónde cortar:</b> transversal, <b>al ecuador del dedo</b> (la mitad). Para chequear pudrición, cortá también cerca de la <b>corona</b> y de la <b>punta</b>.</li>
+        <li><b>Sumá un corte longitudinal</b> (el dedo en dos mitades, a lo largo): muestra si la franja ámbar corre por el centro y cómo están la punta y el cuello. Es el corte que más nos sirvió en set/2026 (pág. 2).</li>
+        <li><b>Con qué:</b> cuchillo limpio y filoso. Limpialo entre dedo y dedo (si hay sospecha de Moko, desinfectá con lavandina para no contaminar muestras sanas).</li>
+        <li><b>Mirá la forma del corte:</b> sección <b>angular / con aristas</b> = dedo inmaduro (poco lleno); sección <b>redondeada</b> = lleno y listo. (Es el mismo criterio que el calibre Codex ≥2,7 cm.)</li>
+        <li><b>Mirá 3 cosas:</b> 👁️ vista &nbsp; ✋ tacto &nbsp; 👃 olfato.</li>
+      </ul>
+      <div class="tip">⏱️ Hacelo apenas llega la carga y de nuevo antes de cerrar el camión. En verde-duro los problemas internos no se ven por fuera: <b>el corte es la única forma de verlos a tiempo.</b></div>
+      <div class="info">📋 <b>Estándar formal (USDA/Codex):</b> ≥1 % del lote, mín. 3 paquetes, ~50 dedos por paquete; manos de ≥4 dedos. Los 5–10 de arriba son el chequeo rápido.</div>
+    </div>
+    <figure>
+      <img src="fotos/01_corte_sano.png" alt="Corte transversal banana - anatomía">
+      <figcaption>
+        <b>Anatomía del corte</b>
+        Epicarpio (cáscara) → mesocarpio → endocarpio (pulpa). En Cavendish la pulpa es <b>blanco-crema sólida</b>, con un centro en estrella de óvulos diminutos (no son semillas duras). <span class="cred">Foto: Wikimedia Commons — variedad con semillas, mostrada solo para ubicar las partes. CC BY-SA 3.0</span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <h2>2 · Cuadro de control visual — Qué observás / Normal / Problema</h2>
+  <table>
+    <thead><tr><th class="col-obs">Qué observás</th><th>Normal ✅</th><th>Problema ⚠️ (qué significa)</th></tr></thead>
+    <tbody>
+      <tr><td>Color base de la pulpa</td><td class="ok">Blanco-crema pálido, parejo</td><td class="bad">Amarillo dorado = ya arrancó a madurar · Pardo difuso = daño por frío</td></tr>
+      <tr><td>Haces vasculares (hilos)</td><td class="ok">Invisibles o blanquecinos</td><td class="bad">Líneas marrón-rojizas = daño por frío o <b>Moko</b></td></tr>
+      <tr><td>Exudado del corte</td><td class="ok">Solo látex blanco lechoso</td><td class="bad"><b>Gotas viscosas amarillas/marrones = SOSPECHA MOKO</b> → cuarentena</td></tr>
+      <tr><td>Aroma</td><td class="ok">Fresco, tipo pepino</td><td class="bad">Fermentado, ácido o a amoníaco → descarte</td></tr>
+      <tr><td>Cavidades / fisuras radiales</td><td class="ok">Ausentes</td><td class="bad">Presentes = déficit de boro o estrés de cultivo</td></tr>
+      <tr><td>Núcleo duro central</td><td class="ok">Ausente, pulpa homogénea</td><td class="bad">Bulto duro/corchoso = déficit de boro</td></tr>
+      <tr><td>Pintas pardas en la pulpa</td><td class="ok">Ausentes</td><td class="bad">Diseminadas = daño por frío subagudo</td></tr>
+      <tr><td>Podredumbre desde corona/punta</td><td class="ok">Pulpa íntegra</td><td class="bad">Zona marrón blanda = pudrición de corona (Colletotrichum) / cigar-end rot</td></tr>
+      <tr><td>Firmeza al cuchillo</td><td class="ok">Corte limpio y firme</td><td class="bad">Esponjoso o harinoso = sobre-maduro</td></tr>
+      <tr><td>Inclusiones extrañas</td><td class="ok">Ausentes</td><td class="bad">Larvas, túneles, semillas duras → rechazo automático</td></tr>
+      <tr><td>Cáscara (antes de cortar)</td><td class="ok">Verde pareja, lisa</td><td class="bad">Rojizo áspero entre dedos = <b>trips</b> (pág. $1) · pintas con halo y cráteres = <b>pitting</b> (pág. $2). Sólo cáscara</td></tr>
+      <tr><td>Franja ámbar central (corte a lo largo)</td><td class="ok">Ausente, pulpa pareja</td><td class="bad">Franja ámbar / pulpa crema-amarilla = ya arrancó, corte 2–3 (pág. $1) · con cáscara gruesa = <b>vieja y flaca</b> (pág. $2)</td></tr>
+      <tr><td>Punta del dedo (corte a lo largo)</td><td class="ok">Punto negro chico y seco: resto floral, normal</td><td class="bad">Cuña marrón o gris blanda que avanza = pudrición de punta (pág. 3)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="foot"><span>Almar S.R.L. · Guía corte transversal banana verde</span><span>Pág. 5 / 7 — Muestreo + cuadro visual</span></div>
+</div>
+
+<!-- ============ HOJA 6 · Referencia: mediciones y escalas ============ -->
+<div class="page">
+  <div class="head">
+    <div><h1>📏 Mediciones y escalas</h1><div class="sub">Madurez real, azúcar y firmeza — lo que decide si la fruta aguanta el flete</div></div>
+    <div class="logo">ALMAR S.R.L.<br><b>Pág. 6 / 7</b></div>
+  </div>
+
+  <h2>3 · Test de YODO (Lugol) — el patrón oro de madurez</h2>
+  <div class="info">🧭 <b>Hoy no tenemos reactivo.</b> Lo que usamos en la planilla es la <b>escala Almar del corte 1–5</b> (pág. 2), leída a ojo sobre el corte crudo. El yodo queda como opción para afinar cuando lo consigamos: el mismo número corresponde a una tinción más oscura.</div>
+  <div class="grid2">
+    <div>
+      <h3>Cómo se hace</h3>
+      <ul class="tight">
+        <li>Cortá una rodaja transversal de 2–3 cm.</li>
+        <li>Sumergí la cara del corte <b>5 segundos</b> en solución de yodo.</li>
+        <li>Sacá, escurrí y compará el dibujo contra la escala.</li>
+        <li>El <b>almidón se tiñe azul-negro</b>; donde ya hay azúcar <b>queda claro</b>. Cuanto más madura, más claro.</li>
+        <li>Reactivo: tintura de yodo de farmacia diluida en agua alcanza para una lectura aproximada. <span class="cred">Receta Lugol ~1 % KI + 0,25 % I₂, orientativa.</span></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Escala de almidón (estágio 1–8)</h3>
+      <div class="yodo">
+        <div class="st"><div class="dot y1 target">1</div><div class="lab">Todo azul</div></div>
+        <div class="st"><div class="dot y2 target">2</div><div class="lab">Casi todo</div></div>
+        <div class="st"><div class="dot y3 target">3</div><div class="lab">Centro claro</div></div>
+        <div class="st"><div class="dot y4">4</div><div class="lab">50/50</div></div>
+        <div class="st"><div class="dot y5">5</div><div class="lab">Más claro</div></div>
+        <div class="st"><div class="dot y6">6</div><div class="lab">Bordes</div></div>
+        <div class="st"><div class="dot y7">7</div><div class="lab">Casi blanco</div></div>
+        <div class="st"><div class="dot y8">8</div><div class="lab">Sin almidón</div></div>
+      </div>
+      <div class="info">🎯 <b>Regla firme (confirmada):</b> cuanto <b>más oscura y pareja</b> la tinción = más almidón = mejor para viaje largo. Para flete BR/EC → UY (5–7 días) buscá el <b>extremo oscuro</b> de la escala (≈1–3). <span class="cred">La numeración exacta es orientativa: guiate por el color, no por el número.</span></div>
+    </div>
+  </div>
+
+  <h2>4 · Color de cáscara, Brix, pulpa/cáscara y firmeza</h2>
+  <h3>Escala de color de cáscara (referencia visual de maduración 1–7/8)</h3>
+  <div class="color">
+    <div class="st"><div class="sw c1"></div><div class="lab">1 verde</div></div>
+    <div class="st"><div class="sw c2"></div><div class="lab">2 verde</div></div>
+    <div class="st"><div class="sw c3"></div><div class="lab">3 verde-amar.</div></div>
+    <div class="st"><div class="sw c4"></div><div class="lab">4 + amarillo</div></div>
+    <div class="st"><div class="sw c5"></div><div class="lab">5 amarillo p/verde</div></div>
+    <div class="st"><div class="sw c6"></div><div class="lab">6 amarillo</div></div>
+    <div class="st"><div class="sw c7"></div><div class="lab">7 amar. full</div></div>
+    <div class="st"><div class="sw c8"></div><div class="lab">8 pintas</div></div>
+  </div>
+  <div class="info">Para <b>despachar</b> querés cáscara en <b>1–2 (verde firme)</b>. Si ya hay viraje a amarillo (4+) en origen, con camión abierto y sin frío no llega bien.</div>
+
+  <div class="grid2">
+    <div>
+      <h3>Grados Brix de la pulpa <span class="pill">refractómetro</span></h3>
+      <ul class="tight">
+        <li>Verde-duro sano: <b>~1,5 – 3,0 °Brix</b> <span class="cred">(referencial)</span>.</li>
+        <li><b>Más de 4 °Brix</b> = ya arrancó la sobre-maduración invisible.</li>
+      </ul>
+      <h3>Relación pulpa / cáscara <span class="pill">balanza</span></h3>
+      <ul class="tight">
+        <li>Punto de cosecha Cavendish: <b>1,3 – 1,4</b> <span class="cred">(confirmado UC Davis: ~1,35–1,40 a tres cuartos de llenado)</span>.</li>
+        <li>Menor a 1,2 = inmaduro (no llena). Mayor a 1,5 = pasado.</li>
+        <li>Pesá pulpa y cáscara del mismo dedo por separado y dividí.</li>
+      </ul>
+      <h3>Temperatura de pulpa <span class="pill">termómetro</span></h3>
+      <ul class="tight">
+        <li>En origen: clavado en el corte, con hora y sol/sombra (set/2026: 20–21 °C, SC de noche y PY al mediodía).</li>
+        <li>Al recibir: tres cajas, <b>puerta, medio y fondo</b> del camión. Bajo 13–14 °C, daño por frío (pág. 1).</li>
+      </ul>
+      <h3>Edad del racimo <span class="pill">cinta / semanas desde la flor</span></h3>
+      <ul class="tight">
+        <li>Es lo que fija el <b>aguante</b>, no el grosor: un racimo dejado en planta esperando calibre llega viejo aunque siga flaco (HF, 13/09: 22 semanas, pulpa crema-amarilla).</li>
+        <li>Orientativo: 12–14 semanas en calor, 16–18 en invierno subtropical, más de 20 = viejo, mercado local. <span class="cred">Rangos generales; calibrar con la cinta.</span></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Firmeza / presión <span class="pill">penetrómetro o mano</span></h3>
+      <ul class="tight">
+        <li>Verde-duro: resistente, el dedo no se hunde.</li>
+        <li>Si cede fácil al apretar = ya ablandó, riesgo de llegar pasada.</li>
+      </ul>
+      <h3>Grado / calibre (control de tamaño) <span class="pill">Codex</span></h3>
+      <ul class="tight">
+        <li><b>Calibre ≥ 2,7 cm (27 mm)</b> = grosor de la <b>sección transversal</b> entre las caras laterales del dedo. Medilo justo en el corte del ecuador.</li>
+        <li><b>Largo ≥ 14 cm</b>, medido sobre la curva externa.</li>
+        <li>Es el mínimo Codex de exportación; tu comprador puede pedir más.</li>
+        <li>⚠️ <b>La caja no es dato:</b> en set/2026 declaraba mín. 31 mm y medimos 27 / 30 / 29. Medí <b>3 dedos por lote</b>, siempre.</li>
+        <li><b>Calibrador de banano</b> (INPLASBAN, escala 28–63): lectura en grados de 1/32", <b>× 0,79375 = mm</b>. Codex 27 mm ≈ grado 34. Set/2026: Brasil 44–46 = 35–37 mm; Paraguay 38–42 = 30–33 mm.</li>
+      </ul>
+      <div class="tip">📌 Anotá los valores reales del lote en la planilla de descarga. Lo que se mide, se controla.</div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Almar S.R.L. · Guía corte transversal banana verde</span><span>Pág. 6 / 7 — Mediciones y escalas</span></div>
+</div>
+
+<!-- ============ HOJA 7 · Referencia: enfermedades y pudriciones ============ -->
+<div class="page p3">
+  <div class="head">
+    <div><h1>🦠 Enfermedades y pudriciones</h1><div class="sub">Cómo se ven en el corte, qué las causa y qué hacer</div></div>
+    <div class="logo">ALMAR S.R.L.<br><b>Pág. 7 / 7</b></div>
+  </div>
+
+  <div class="alert">
+    🚨 <b>MOKO (Ralstonia solanacearum raza 2) — la señal más crítica.</b><br>
+    En el corte: <b>pudrición seca rojiza a marrón/gris de la pulpa</b> + <b>haces vasculares pardo-rojizos</b> + <b>gotas viscosas amarillas / color crema / blanco-lechosas</b> que manan solas del corte en uno o dos minutos (es ooze bacteriano, NO el látex blanco normal). Es lo que lo distingue del Fusarium, que <b>no</b> da ni pudrición ni ooze en el fruto. Si lo ves → <b>cuarentena del lote completo, no lo cargues.</b> Plaga regulada/cuarentenaria: si llega a UY te confiscan toda la carga y destruye bananales enteros.<br>
+    <b>Ojo:</b> la prueba del vaso y el ooze son <b>presuntivos</b> — la confirmación oficial es de laboratorio (cultivo TZC / PCR). Ante la duda: segregá, no cargues, y dale aviso a tu despachante / MGAP.
+  </div>
+
+  <div class="grid2">
+    <figure>
+      <img src="fotos/07_ralstonia_ooze.jpg" alt="Pardeamiento vascular por Ralstonia">
+      <figcaption><b>Referencia: pardeamiento vascular por Ralstonia</b>
+        Ejemplo en tallo (no es banana) para que reconozcas el tipo de mancha vascular marrón + ooze que produce esta bacteria. En el dedo buscás el equivalente.
+        <span class="cred">Foto: Wikimedia Commons · dominio público</span></figcaption>
+    </figure>
+    <div>
+      <h3>Fotos reales de Moko en banana (ver online)</h3>
+      <ul class="tight">
+        <li>ProMusa (banana): <a href="https://www.promusa.org/Moko+disease">promusa.org/Moko+disease</a></li>
+        <li>DAFF Australia: <a href="https://www.agriculture.gov.au/biosecurity-trade/pests-diseases-weeds/plant/identify/blood-and-moko-diseases-banana">agriculture.gov.au · blood &amp; moko</a></li>
+        <li>Lucidcentral (ficha 525): <a href="https://apps.lucidcentral.org/pppw_v11/text/web_full/entities/banana_moko_disease_525.htm">apps.lucidcentral.org · moko 525</a></li>
+      </ul>
+      <div class="tip">Prueba de campo del ooze: poné el trozo sospechoso en un vaso con agua limpia. Si sale un <b>hilo lechoso</b> desde el corte hacia el agua = streaming bacteriano = altísima sospecha.</div>
+    </div>
+  </div>
+
+  <h2>Otras pudriciones y enfermedades</h2>
+  <div class="grid2">
+    <figure>
+      <img src="fotos/04_crown_rot.jpg" alt="Pudrición de corona">
+      <figcaption><b>Pudrición de corona (crown rot)</b>
+        Corona del gajo marrón/negra y blanda, a veces con moho blanco; avanza hacia el cuello del dedo y puede entrar en la pulpa. Hongos que entran por el corte del despencado; corona húmeda y agua sucia lo disparan (pág. $1). ⚠️ <b>El calor y el viaje largo lo agravan</b> — en camión abierto sin frío es tu riesgo poscosecha #1 (ya visible a los 7 días). Control: corte limpio + fungicida + higiene de piscina + cargar de noche/madrugada.
+        <span class="cred">Wikimedia Commons · CC0</span></figcaption>
+    </figure>
+    <figure>
+      <img src="fotos/06_antracnosis.jpg" alt="Antracnosis lesión negra">
+      <figcaption><b>Antracnosis (Colletotrichum musae)</b>
+        Manchas negras hundidas en la cáscara que crecen al madurar; punta podrida. Empieza latente en verde. Foto: lesión negra en el extremo del dedo.
+        <span class="cred">Wikimedia Commons · CC0</span></figcaption>
+    </figure>
+    <figure>
+      <img src="fotos/05_antracnosis_colletotrichum.jpg" alt="Esporulación naranja Colletotrichum">
+      <figcaption><b>Esporulación naranja-salmón</b>
+        En lesiones avanzadas de antracnosis aparece este polvo/masa naranja (esporas del hongo). Señal de foco activo: aislá y limpiá.
+        <span class="cred">Wikimedia Commons · CC0</span></figcaption>
+    </figure>
+    <figure>
+      <img src="fotos/02_fusarium_pseudotallo.jpg" alt="Fusarium en pseudotallo">
+      <figcaption><b>Fusarium / Mal de Panamá (TR4)</b>
+        ⚠️ <b>NO se ve en el corte del fruto.</b> Se diagnostica cortando el <b>pseudotallo/cormo</b>: anillos vasculares <b>marrón-rojizos</b> (foto). Importa en origen (sanidad del bananal), no en el dedo.
+        <span class="cred">Wikimedia Commons · CC0</span></figcaption>
+    </figure>
+  </div>
+
+  <h2>🐛 Trips en la cáscara — el "rojo" de las pencas (Cassio, 11/09/2026)</h2>
+  <div class="grid2 trips">
+    <figure><img src="fotos/almar/cassio_0911_trips_closeup.jpeg" alt="Mancha rojiza áspera de trips en cáscara verde"><figcaption><b>Cómo se ve</b>Rojizo-marrón, áspera, agrietada como corcho, sobre cáscara verde sana.</figcaption></figure>
+    <figure><img src="fotos/almar/cassio_0911_trips_entre_dedos.jpeg" alt="Bandas rojizas donde un dedo toca al de al lado"><figcaption><b>Dónde</b>Donde un dedo toca al vecino y junto al cojinete: ahí se esconde el insecto.</figcaption></figure>
+    <div>
+      <ul class="tight">
+        <li><b>Qué es:</b> raspado del trips de la herrumbre ("tripes da ferrugem"). <span class="cred">Diagnóstico visual propio.</span></li>
+        <li><b>Sólo cáscara:</b> no es Moko, pudrición ni frío; no avanza en el viaje. Cortá un dedo marcado: la pulpa tiene que estar igual que la de los sanos.</li>
+        <li><b>Qué hacer:</b> apartar las manos muy marcadas (baja la clase, no la calidad). Al productor: desflore y embolsar temprano.</li>
+        <li><b>No confundir con</b> bronzing (punteado fino), sol (negro, lado expuesto) ni roce (marrón liso).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot"><span>Almar S.R.L. · Guía corte transversal banana verde</span><span>Pág. 7 / 7 — Enfermedades y pudriciones</span></div>
+</div>
+
+</body>
+</html>

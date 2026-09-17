@@ -1,6 +1,6 @@
-﻿================================================================
+================================================================
   poronga/  —  Sistema operación banana Almar S.R.L.
-  Última ordenada: 05/06/2026
+  Última ordenada: 10/09/2026 (lo sacado esta en Desktop\poronga_papelera_2026-09-10, borrar despues de una semana)
 ================================================================
 
 ARCHIVOS DEL PIPELINE (NO MOVER, los usa el script):
@@ -10,40 +10,50 @@ ARCHIVOS DEL PIPELINE (NO MOVER, los usa el script):
   index_paraguay_bolivia.html       dashboard Paraguay/Bolivia
   index_ecuador.html                dashboard Ecuador FOB (Tridge spot)
   alertas.log                       histórico de alertas disparadas
-  last_run.log                      stdout de la última corrida (se sobrescribe)
 
-ARCHIVOS DE TRABAJO (referencia, en la raíz):
-  plantilla_descarga.txt            plantilla para descargas → WhatsApp
-  plantilla_envalado_bananal.html   checklist de envalado en bananal (A4, en portugués PT-BR)
-  planilla_almar.xlsx               planilla planificación semanal
-  Plan Almar Brasil 2026.xlsx       planning anual
-  Planilha de Inspeção de Bananal.pdf
-  planilha_bananal_PT.(html|xlsx)   formulario inspección PT
-  planilla_bananal.xlsx
-  planilla_bananal_ES.html
-
+ARCHIVOS DE TRABAJO:
+  plantilla_descarga.txt            plantilla para descargas → WhatsApp (queda en la raíz: se usa en cada descarga)
+  documentos/                       documentos manuales, agrupados el 10/09/2026 (antes sueltos en la raíz):
+    plantilla_envalado_bananal.html       checklist de envalado en bananal (A4, PT-BR) + _ES.html / _ES.pdf
+    planilla_almar_v2.xlsx                planilla planificación semanal
+    Plan Almar Brasil 2026.xlsx           planning anual
+    Planilha de Inspeção de Bananal.pdf
+    planilha_bananal_PT.(html|xlsx)       formulario inspección PT
+    planilla_bananal.xlsx / _ES.html / _PY.(html|pdf)
+    API_ERP_lo_que_necesito.md            pedido de integración al ERP (Aloha)
 CARPETAS:
   config/      whatsapp.json (Whapi token + números)
+               cepea_regiones.json (regiones Cepea a comparar + fletes por camión a MVD; los fletes los cargás vos)
+  penta/       extractos de aduana Penta (detalle_UYimport_*.xlsx, todos los origenes juntos) → tirar el nuevo aca y correr el script
   fuentes/     datos VIVOS del pipeline
                - cargas 2026.xlsx (operaciones del año, vos editás)
-               - precios_banana_SC_2023-2026.xlsx (cache Cepea)
+               - precios_banana_SC_2023-2026.xlsx (cache Cepea Norte SC)
+               - precios_banana_VRibeira/NMinas/BJLapa.xlsx (cache Cepea otras regiones, paso 2b)
                - precios_cepea.json (sidecar inyectado en HTMLs)
                - precios_py_cache.json (Carape PY)
                - precios_ecuador.json (sidecar Ecuador FOB, scraping Tridge)
                - state_whatsapp.json / state_alertas.json
                - clima_archive_cache/ (NASA POWER por región)
-  archivo/     histórico / no usado por el pipeline
+               - mercado_uy.json / mercado_br.json / mercado_pybo.json (sidecars aduana Penta: index_mercado, index_brasil, index_paraguay_bolivia)
+               - plan_cargas/ (planilla maestra bajada a mano) + plan_cargas.json
+               - stock/ (stock_diario.xlsx: Stock kg del ERP por origen y día + capturas) — NO lo usa el pipeline
+               - plan_semanal/ (plan_semanal.xlsx: hojas parametros, camaras [foto diaria del plan de maduración, una fila por cubículo], en_camino [llegados sin gas, en ruta, pedidos] y notas; fotos WhatsApp fechadas) + plan_semanal.json → lo lee el paso 5i y arma index_cargas.html (saldo por día de venta, camiones a cargar y fecha de carga). OJO: no meter planillas propias en plan_cargas/, el paso 5h toma el xlsx más nuevo de ahí como master
+               - productores.xlsx (fichas de productores; se edita en Excel O desde el botón "Editar datos de la ficha" del panel)
+               - productores_ediciones.json (lo escribe el panel al guardar una ficha; el script lo vuelca a productores.xlsx y lo archiva) + state_ediciones.json
+  archivo/     histórico. OJO: archivo/importaciones_uy/ SÍ lo usa el paso 5c (extractos Penta 2024-2025);
+               los backups quedan acá (primero y último de cada familia; los intermedios van a la papelera)
                ├── cargas_historicas/      cargas viejas (2024/25, brasil, etc.)
                ├── fotos/                  WhatsApp y ventas jpegs de referencia
                ├── importaciones_uy/       PDFs/xlsx UYimport (2026-04)
                ├── Cargas_tidy.csv/xlsx    versiones tidy históricas
                └── precios_banana_SC_2026.xlsx   cache viejo single-year
   guia_corte/  control de calidad del DEDO (corte transversal) — NO lo usa el pipeline
-               - guia_corte_transversal_banana.html  guía 3 hojas A4 (enfermedades + mediciones en verde)
+               - guia_corte_transversal_banana.html  guía 5 hojas A4 (v2 set 2026: muestreo, mediciones, enfermedades,
+                                                     desórdenes y decisión, casos Almar con fotos propias en fotos/almar/)
                - calculadora_punto_optimo.html       veredicto por lote (verde-duro / lleno / poca azúcar)
                - atlas_cortes.html                   galería propia: foto del corte + 6 mediciones + veredicto (localStorage)
                - fuentes_y_notas.txt                 trazabilidad: confirmado / orientativo / pendiente MGAP
-               - fotos/                              imágenes de referencia (Wikimedia CC)
+               - fotos/                              imágenes de referencia (Wikimedia CC) + fotos/almar/ (propias, set 2026)
 
 EJECUCIÓN DEL CRON:
   Tarea Windows: "Cepea_ActualizarPrecios_Almar"
@@ -62,30 +72,16 @@ FUENTES DE PRECIO (resumen):
                  Rezago real: ~2 semanas. SIPA descartado por 6m de lag.
 
 LOG DE CAMBIOS:
-  04/09/2026 -> se integro el paquete poronga_2026-09-04.zip (paneles nuevos:
-               inicio/mercado/proyeccion/comparativo/calidad, salud del pipeline,
-               alerta WhatsApp de fallas, Get-AccionZona, penta/).
-               El paquete venia armado en una PC CON Excel y SIN los fixes de
-               servidor del 04/08, asi que hubo que re-aplicarlos uno por uno:
-               * xlsx: volvia a Excel COM. Re-migrado a ImportExcel (EPPlus) en
-                 los dos lectores (Cepea y cargas 2026). Esta PC no tiene Office.
-               * $base: venia hardcodeado a C:\Users\Usuario\Desktop\poronga
-                 (ruta inexistente aca). Vuelto a $PSScriptRoot.
-               * BOM: el .ps1 venia UTF-8 SIN BOM -> PS 5.1 lo leia como ANSI y
-                 daba 48 errores de sintaxis. Reguardado UTF-8 CON BOM.
-               * -UseBasicParsing: se habia perdido en el scraping de Paraguay
-                 (y faltaba en el de IndexMundi, que es codigo nuevo).
-               * config\whatsapp.json: NO se piso, el zip lo trae sin token a
-                 proposito. Solo se le agrego la clave alerts.fallas_pipeline.
-               * Bug propio del paquete: "..." + (if ...) + "..." no es una
-                 expresion valida en PowerShell (revienta en runtime, no al
-                 parsear). Estaba en la alerta de Oportunidad. Pasado a variable.
-               * Cosmetico: el resumen semanal decia "prom mayo" y las alertas de
-                 extremo "desde noviembre", ambos fijos. Ahora salen del mes real.
-
-  ATENCION PARA LA PROXIMA ACTUALIZACION: esta PC-servidor no tiene Excel, no
-  tiene Internet Explorer y corre la tarea con powershell.exe (PS 5.1). Los
-  cuatro fixes de arriba hay que conservarlos en cualquier paquete que llegue.
+  09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
+               Bom Jesus da Lapa) con config/cepea_regiones.json y sección
+               'Cepea por región' en index_brasil. Filtro Cepea corregido
+               (sólo 'Nanica primeira - produtor', antes duplicaba 2 semanas).
+               Sacado el bloque 'Correlación clima-precio' entero (10/09).
+  10/09/2026 → fichas editables desde el panel: botón "Editar datos de la ficha"
+               (contacto, pies, ha, variedad, municipio, localidad, dirección,
+               ubicación por Plus code o lat/lon, nota). Guarda en el navegador y en
+               fuentes/productores_ediciones.json; el paso 3a del script lo pasa a
+               productores.xlsx. Km por ruta a UAM y frigorífico CR en las fichas.
   14/06/2026 → nueva carpeta guia_corte/ : control de calidad por corte
                transversal del dedo en verde. Guía A4 (enfermedades + mediciones,
                con investigación deep-research verificada), calculadora del
