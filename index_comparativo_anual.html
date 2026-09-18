@@ -166,7 +166,6 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 </style>
 <nav class="nav-paneles" aria-label="Paneles"><div class="np-in">
 <a href="inicio.html">🏠 Inicio</a>
-<a href="index.html">🍌 Plan de compras</a>
 <a href="index_brasil.html">🇧🇷 Brasil</a>
 <a href="index_paraguay_bolivia.html">🇵🇾🇧🇴 Paraguay · Bolivia</a>
 <a href="index_ecuador.html">🇪🇨 Ecuador</a>
@@ -198,13 +197,13 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   </section>
 
   <section class="card">
-    <h2>El salto de julio a agosto</h2>
+    <h2 id="h2salto">El salto de un mes al siguiente</h2>
     <p class="sub">Es el arranque de la zafra alta. <span id="sub2"></span></p>
     <div class="plot" id="p2"><div class="tip" id="t2"></div></div>
   </section>
 
   <section class="card">
-    <h2>Agosto, semana a semana</h2>
+    <h2 id="h2mes">Semana a semana</h2>
     <p class="sub"><span id="sub3"></span></p>
     <ul class="legend" id="lg3"></ul>
     <div class="plot" id="p3"><div class="tip" id="t3"></div></div>
@@ -246,6 +245,15 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   function txt(id, s) { var n = document.getElementById(id); if (n) n.textContent = s; }
   var MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   var DOY_MES = [1,32,60,91,121,152,182,213,244,274,305,335];  // año no bisiesto
+  // Mes de referencia (el de la ultima semana Cepea) y mes anterior: los manda el script en el JSON.
+  // Si el JSON es viejo (antes del 18/09/2026, fijo julio->agosto), se cae a esos valores.
+  var MN = D.mes_actual_nombre || 'agosto', MP = D.mes_prev_nombre || 'julio';
+  var M3 = MESES[((D.mes_actual || 8) - 1)];
+  var MSEM = D.mesSem || D.agosto || {};
+  var EH = D.eneHasta || D.eneAgo || [];
+  function sPrev(s) { return s.prev !== undefined ? s.prev : s.jul; }
+  function sAct(s) { return s.act !== undefined ? s.act : s.ago; }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
   function fmt(v, d) { return v == null ? '—' : v.toFixed(d === undefined ? 2 : d).replace('.', ','); }
   function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
@@ -266,10 +274,12 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     var s26 = D.salto.filter(function (x) { return x.anio === ANIO; })[0];
     var prev = D.salto.filter(function (x) { return x.anio < ANIO; });
     var promPrev = prev.reduce(function (a, b) { return a + b.pct; }, 0) / prev.length;
-    var ea = {}; D.eneAgo.forEach(function (x) { ea[x.anio] = x; });
+    var ea = {}; EH.forEach(function (x) { ea[x.anio] = x; });
+    txt('h2salto', 'El salto de ' + MP + ' a ' + MN);
+    txt('h2mes', cap(MN) + ', semana a semana');
 
-    txt('sub2', 'Los ' + prev.length + ' años previos agosto subió +' + fmt(promPrev, 0) +
-      '% sobre julio. ' + ANIO + ': ' + (s26.pct >= 0 ? '+' : '') + fmt(s26.pct, 1) + '%.');
+    txt('sub2', 'Los ' + prev.length + ' años previos ' + MN + (promPrev >= 0 ? ' subió +' : ' bajó ') + fmt(promPrev, 0) +
+      '% sobre ' + MP + '. ' + ANIO + ': ' + (s26 ? ((s26.pct >= 0 ? '+' : '') + fmt(s26.pct, 1) + '%') : 'sin dato todavía') + '.');
 
     var filaOct = D.mensual.filter(function (r) { return r.mes === 10; })[0] || {};
     var octPrev = ORDEN.slice(1)
@@ -283,9 +293,9 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     var tiles = [
       { lab: 'Último precio Cepea', val: fmt(D.ultimo_precio), u: 'R$/kg',
         dl: 'semana del ' + D.ultima_semana, cls: '' },
-      { lab: 'Salto julio $1 agosto ' + ANIO, val: (s26.pct >= 0 ? '+' : '') + fmt(s26.pct, 1) + '%', u: '',
-        dl: 'los ' + prev.length + ' años previos: +' + fmt(promPrev, 0) + '% promedio', cls: 'bad' },
-      { lab: 'Promedio ene-ago ' + ANIO, val: fmt(ea[ANIO].prom), u: 'R$/kg',
+      { lab: 'Salto ' + MP + ' → ' + MN + ' ' + ANIO, val: (s26 ? ((s26.pct >= 0 ? '+' : '') + fmt(s26.pct, 1) + '%') : '—'), u: '',
+        dl: 'los ' + prev.length + ' años previos: ' + (promPrev >= 0 ? '+' : '') + fmt(promPrev, 0) + '% promedio', cls: 'bad' },
+      { lab: 'Promedio ene-' + M3 + ' ' + ANIO, val: fmt(ea[ANIO] ? ea[ANIO].prom : null), u: 'R$/kg',
         dl: ORDEN.slice(1).filter(function (y) { return ea[y]; }).slice(0, 2).map(function (y) { return y + ': ' + fmt(ea[y].prom); }).join('  ·  '), cls: '' },
       { lab: 'Pico de octubre, años previos', val: (octProm == null ? '—' : fmt(octProm, 1)), u: 'R$/kg aprox',
         dl: octPrev.map(function (o) { return 'oct-' + o.y + ' ' + fmt(o.v); }).join(' · '), cls: '' }
@@ -319,7 +329,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   txt('sub1', ANIOS.length + ' años superpuestos para evaluar dónde está ' + ANIO + '.');
   txt('h2curvas', 'Las ' + ANIOS.length + ' curvas, superpuestas por fecha');
   txt('sub3', 'Variación dentro del mes — ' + ANIOS_AGO.slice().reverse().map(function (y) {
-    var a = D.agosto[y] || [];
+    var a = MSEM[y] || [];
     if (a.length < 2) { return y + ': s/d'; }
     var d = (a[a.length - 1] / a[0] - 1) * 100;
     return y + ': ' + (d >= 0 ? '+' : '') + fmt(d, 0) + '%';
@@ -426,7 +436,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     var W = 1000, H = 300, M = { t: 30, r: 20, b: 46, l: 46 };
     var iw = W - M.l - M.r, ih = H - M.t - M.b;
     var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
-      'aria-label': 'Variación porcentual del precio promedio de julio a agosto, por año' });
+      'aria-label': 'Variación porcentual del precio promedio de ' + MP + ' a ' + MN + ', por año' });
 
     var vals = D.salto.map(function (s) { return s.pct; });
     var vmax = Math.ceil(Math.max.apply(null, vals) / 20) * 20;
@@ -462,15 +472,15 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       var xl = svgEl('text', { class: 'tick', x: cx, y: M.t + ih + 20, 'text-anchor': 'middle' });
       xl.textContent = s.anio; svg.appendChild(xl);
       var sl = svgEl('text', { class: 'tick', x: cx, y: M.t + ih + 36, 'text-anchor': 'middle' });
-      sl.textContent = fmt(s.jul) + ' → ' + fmt(s.ago); svg.appendChild(sl);
+      sl.textContent = fmt(sPrev(s)) + ' → ' + fmt(sAct(s)); svg.appendChild(sl);
 
       var hitb = svgEl('rect', { class: 'hitrect', x: cx - banda / 2, y: M.t, width: banda, height: ih });
       hitb.style.cursor = 'default';
       hitb.addEventListener('pointerenter', function () {
         rect.setAttribute('opacity', 0.8);
         tip.textContent = '';
-        var th = el('div', 'th'); th.textContent = 'Julio → agosto ' + s.anio; tip.appendChild(th);
-        [['julio', s.jul], ['agosto', s.ago]].forEach(function (par) {
+        var th = el('div', 'th'); th.textContent = cap(MP) + ' → ' + MN + ' ' + s.anio; tip.appendChild(th);
+        [[MP, sPrev(s)], [MN, sAct(s)]].forEach(function (par) {
           var row = el('div', 'row');
           var k = el('span', 'k'); k.style.background = col; row.appendChild(k);
           var v = el('span', 'v'); v.textContent = fmt(par[1]) + ' R$/kg'; row.appendChild(v);
@@ -491,17 +501,17 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     host.appendChild(svg);
   })();
 
-  // ================= CHART 3: agosto semana a semana =================
+  // ================= CHART 3: el mes de referencia, semana a semana =================
   (function () {
     var host = document.getElementById('p3'), tip = document.getElementById('t3');
     var anios = ANIOS_AGO;
-    var maxSem = Math.max.apply(null, anios.map(function (y) { return (D.agosto[y] || []).length; }));
+    var maxSem = Math.max.apply(null, anios.map(function (y) { return (MSEM[y] || []).length; }));
     var W = 1000, H = 300, M = { t: 26, r: 20, b: 40, l: 46 };
     var iw = W - M.l - M.r, ih = H - M.t - M.b;
     var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
-      'aria-label': 'Precio semana a semana durante agosto, comparando ' + ANIOS_AGO.slice().reverse().join(', ') });
+      'aria-label': 'Precio semana a semana durante ' + MN + ', comparando ' + ANIOS_AGO.slice().reverse().join(', ') });
 
-    var todos = []; anios.forEach(function (y) { (D.agosto[y] || []).forEach(function (v) { todos.push(v); }); });
+    var todos = []; anios.forEach(function (y) { (MSEM[y] || []).forEach(function (v) { todos.push(v); }); });
     var vmax = Math.ceil(Math.max.apply(null, todos) * 2) / 2 + 0.5;
     var yv = function (v) { return M.t + ih - (v / vmax) * ih; };
 
@@ -517,7 +527,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     for (var s = 0; s < maxSem; s++) {
       var base = M.l + banda * s + (banda - (BW + GAP) * anios.length + GAP) / 2;
       anios.forEach(function (y, j) {
-        var arr = D.agosto[y] || []; if (s >= arr.length) return;
+        var arr = MSEM[y] || []; if (s >= arr.length) return;
         var v = arr[s], left = base + j * (BW + GAP), top = yv(v);
         var p = svgEl('path', {
           d: 'M' + left + ' ' + yv(0) + ' L' + left + ' ' + (top + 4) +

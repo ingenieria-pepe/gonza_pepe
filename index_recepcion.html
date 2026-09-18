@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -73,7 +73,6 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 </style>
 <nav class="nav-paneles" aria-label="Paneles"><div class="np-in">
 <a href="inicio.html">🏠 Inicio</a>
-<a href="index.html">🍌 Plan de compras</a>
 <a href="index_brasil.html">🇧🇷 Brasil</a>
 <a href="index_paraguay_bolivia.html">🇵🇾🇧🇴 Paraguay · Bolivia</a>
 <a href="index_ecuador.html">🇪🇨 Ecuador</a>
@@ -174,13 +173,13 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 <script>
 (function(){
   "use strict";
-  var PRODUCTORES = ["A Confirmar","Abacaxi","Adriano","AgroBianvirc","Airton Curuca","Aldo Corupa","Alexandre Wilbert","BAHIA","Bahia + Exoticos","Banana Combinada","Banana MG","Banana SP","Benini","Bolivia Tuli","Boniato","Cassio Hauck","Cebolla","Chicolandia","Claudia","Cobalchini","Corupá","Exoticos PY","Fischer","Furlani","Gilson","Ivo Zimerman","Jaime","Jhony Viera","Jorge Marangoni","Josemar Provesi","João Claudio Winter","Junkes","Marconi Kons","Marnei Meurer","Muller","Nordeste","Osnildo Stein","Papa","Paraguay","Paraguay DF","Paraguay EC","Paraguay GM","Paraguay HF","Paraguay MS","Paraguay OP","Paraguay SF","Sergio","Sidnei","Tureck","Ulgo","Valdemar","Valdemar Ita","Varios","Vinicios Bonkoski","Vitor","Wagner Schveitzer","Zapellini"];
+  var PRODUCTORES = /*__PRODUCTORES_JSON__*/["Agrocurupa","Cassio","Curuca","Fisher","Furlani","Gilson","Ivo zimer","Joao vinter","Jony","Josemar","Marangoni","Marconi","Paraguay AS","Paraguay DF","Paraguay EC","Paraguay GM","Paraguay HF","Paraguay MS","Paraguay SF","Sergio","Shapo","Stein","Valdemar","Wagner","Zapelini","A Confirmar","Otro"]/*__END_PRODUCTORES__*/;
   // columnas EXACTAS de calidad_lotes.xlsx, en orden
   var COLS = ["codigo","fecha_recepcion","origen","productor","cajas","temp_pulpa","calibre_mm","largo_cm","temp_corte","lluvia_sem_mm","corte_color","fecha_corte","semana_cinta","fecha_rompio","destino","merma_pct","obs"];
   var CORTE_TXT = {1:"pálida, NO viaja",2:"algo pálida",3:"intermedia",4:"firme, punto ideal",5:"muy verde, aguanta"};
 
   function $(id){return document.getElementById(id);}
-  // poblar productores
+  // poblar productores (la lista la inyecta actualizar_precios.ps1 desde productores.xlsx entre los marcadores de arriba)
   var sel=$("productor"); sel.innerHTML='<option value="">—</option>';
   PRODUCTORES.forEach(function(p){var o=document.createElement("option");o.textContent=p;sel.appendChild(o);});
   // fecha de hoy por default

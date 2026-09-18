@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brasil — bloques fijos de mayo/junio 2026 (archivo)</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f7fa;
+    color: #1f2933;
+    line-height: 1.5;
+  }
+  .container { max-width: 1180px; margin: 0 auto; padding: 24px; }
+
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  header h1 { margin: 0 0 8px 0; font-size: 32px; letter-spacing: -0.02em; }
+  header .subtitle { opacity: 0.85; font-size: 15px; }
+
+  .status-banner {
+    background: #2f855a;
+    color: white;
+    padding: 18px 24px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .status-banner small { display: block; margin-top: 4px; font-size: 13px; font-weight: 400; opacity: 0.9; }
+
+  h2 {
+    margin: 32px 0 16px 0;
+    font-size: 22px;
+    color: #1e3a5f;
+    border-bottom: 2px solid #cbd5e0;
+    padding-bottom: 8px;
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-left: 4px solid #2c5282;
+  }
+  .kpi .label { font-size: 13px; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .kpi .value { font-size: 26px; font-weight: 700; color: #1e3a5f; }
+  .kpi .sub { font-size: 13px; color: #4a5568; margin-top: 4px; }
+  .kpi.green { border-left-color: #2f855a; }
+  .kpi.green .value { color: #2f855a; }
+  .kpi.red { border-left-color: #c53030; }
+
+  .chart-card {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+  }
+  .chart-card h3 { margin: 0 0 16px 0; font-size: 16px; color: #4a5568; }
+  .chart-container { position: relative; height: 360px; }
+
+  .phases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .phase {
+    border-radius: 8px;
+    padding: 18px;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  .phase.fase1 { background: linear-gradient(135deg, #38a169, #2f855a); }
+  .phase.fase2 { background: linear-gradient(135deg, #ecc94b, #d69e2e); color: #1f2933; }
+  .phase.fase3 { background: linear-gradient(135deg, #ed8936, #c05621); }
+  .phase.fase4 { background: linear-gradient(135deg, #e53e3e, #9b2c2c); }
+  .phase h3 { margin: 0 0 8px 0; font-size: 17px; }
+  .phase .period { font-size: 13px; opacity: 0.95; margin-bottom: 10px; font-weight: 600; }
+  .phase .action { font-size: 14px; line-height: 1.4; }
+  .phase .price { margin-top: 10px; font-size: 13px; opacity: 0.9; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.25); }
+  .phase.fase2 .price { border-top-color: rgba(0,0,0,0.15); }
+  .phase.current { outline: 4px solid #2f855a; outline-offset: 3px; }
+
+  table {
+    width: 100%;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-collapse: collapse;
+  }
+  th {
+    background: #2c5282;
+    color: white;
+    padding: 12px 10px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 11px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+  }
+  tr.fase1-row { background: #f0fdf4; }
+  tr.fase23-row { background: #fffbeb; }
+  tr.fase4-row { background: #fef2f2; }
+  tr.total-row { background: #edf2f7; font-weight: 700; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  .badge.fase1 { background: #2f855a; }
+  .badge.fase23 { background: #d69e2e; color: #1f2933; }
+  .badge.fase4 { background: #c53030; }
+  .badge.normal { background: #718096; }
+
+  .dates-list {
+    background: white;
+    border-radius: 8px;
+    padding: 8px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 24px;
+  }
+  .date-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .date-item:last-child { border-bottom: none; }
+  .date-item.urgent { background: #f0fdf4; border-left: 4px solid #2f855a; }
+  .date-item.today { background: #fefcbf; border-left: 4px solid #d69e2e; }
+  .date-badge {
+    flex-shrink: 0;
+    width: 110px;
+    text-align: center;
+    background: #edf2f7;
+    border-radius: 6px;
+    padding: 8px;
+    margin-right: 16px;
+  }
+  .date-badge .day { font-size: 22px; font-weight: 700; line-height: 1; color: #1e3a5f; }
+  .date-badge .month { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #4a5568; margin-top: 3px; }
+  .date-content .countdown { font-size: 12px; color: #718096; text-transform: uppercase; letter-spacing: 0.05em; }
+  .date-content .event { font-size: 15px; color: #1f2933; margin-top: 2px; }
+
+  footer {
+    margin-top: 40px;
+    padding: 20px;
+    text-align: center;
+    color: #718096;
+    font-size: 12px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 24px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 6px; }
+  }
+
+  nav.sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: white;
+    border-bottom: 1px solid #cbd5e0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    padding: 8px 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  nav.sticky-nav a {
+    display: inline-block;
+    padding: 8px 14px;
+    margin-right: 4px;
+    color: #2c5282;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  nav.sticky-nav a:hover {
+    background: #ebf4ff;
+  }
+  h2 { scroll-margin-top: 70px; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="chart-card" style="border-left:4px solid #b7791f;font-size:14px;line-height:1.6;"><strong>Archivo.</strong> Estos dos bloques se sacaron de index_brasil.html el 18/09/2026: eran fotos escritas a mano en mayo y junio de 2026 que no se actualizaban solas y quedaban en medio de los datos vivos. Se guardan tal cual estaban. La lectura vigente sale del Termómetro Cepea, el Forecast, la Proyección y el ranking de productores del Plan de cargas, que se recalculan en cada corrida.</div>
+
+  <h2 id="calendario">🇧🇷 Calendario de fases BR 2026 <span style="font-size:13px;color:#b7791f;">(foto del 12/06/2026)</span></h2>
+  <div style="background:#fff5f5;border-left:4px solid #c53030;padding:10px 14px;border-radius:4px;font-size:13px;line-height:1.5;margin:-4px 0 14px 0;"><strong>Escrito a mano el 12/06/2026 con el precio de ese día (R$ 0,69/kg) y no se actualiza solo.</strong> Las fases y los precios esperados son la lectura de ese momento. La lectura vigente sale sola en el Termómetro, el Forecast y en <a href="index_proyeccion.html">la proyección a fin de año</a>.</div>
+  <p style="color:#4a5568;font-size:13px;margin-top:-8px;margin-bottom:16px;">
+    El patrón histórico arrancaba la suba en julio. <strong>2026 se adelantó ~1 mes</strong> — el piso fue el 15/05, la suba arrancó la última semana de mayo. Driver: choque de frío SC (tmin 10-11°C) + persistencia de frío 27-31/05.
+  </p>
+  <div class="phases">
+    <div class="phase fase1">
+      <h3>FASE 1 — BAJA <span style="font-size:12px;">(cerrada)</span></h3>
+      <div class="period">13/04 → 22/05 · 6 semanas (era 13 sem)</div>
+      <div class="action"><strong>Piso fue 15/05 (R$ 0,60/kg).</strong> Quien compró fuerte en mayo, ganó.</div>
+      <div class="price">Piso confirmado: R$ 0,60/kg = ~R$ 31/caja</div>
+    </div>
+    <div class="phase fase2">
+      <h3>FASE 2 — Transición ADELANTADA</h3>
+      <div class="period">22/05 → 30/06 · 6 semanas</div>
+      <div class="action"><strong>Suba en curso.</strong> +15% sem-a-sem. Ventana cerrándose. Cerrar contratos largos AHORA.</div>
+      <div class="price">Al 12/06: R$ 0,69/kg · forecast de entonces para el 12/06: R$ 1,01/kg</div>
+    </div>
+    <div class="phase fase3">
+      <h3>FASE 3 — Inflexión ADELANTADA</h3>
+      <div class="period">01/07 → 31/07 · 4 semanas</div>
+      <div class="action"><strong>Ajustar precios de venta.</strong> Subas firmes. Frenar compras spot.</div>
+      <div class="price">Precio esperado: 50-65 BRL/caja</div>
+    </div>
+    <div class="phase fase4">
+      <h3>FASE 4 — ALTA / PICO ADELANTADO</h3>
+      <div class="period">01/08 → 30/09 · 9 semanas (pico estimado jul-ago)</div>
+      <div class="action"><strong>Operar solo por margen.</strong> Pico se adelantó probablemente a jul-ago en vez de set-oct.</div>
+      <div class="price">Precio esperado: 65-75 BRL/caja</div>
+    </div>
+    <div class="phase fase4" style="opacity:0.7;">
+      <h3>FASE 5 — Posible descenso</h3>
+      <div class="period">01/10 → 31/12 · 13 semanas</div>
+      <div class="action"><strong>Monitorear.</strong> Si pico fue jul-ago, oct-dic podría ya estar bajando. Histórico decía oct = pico.</div>
+      <div class="price">Precio esperado: 45-65 BRL/caja (incierto)</div>
+    </div>
+  </div>
+
+
+  <h2 id="hhi">🇧🇷 HHI Productores BR 2025 — histórico (foto de mayo 2026)</h2>
+  <p style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">
+    Concentración de proveedores en 2024 y 2025, calculada en mayo de 2026 con la planilla de cargas de esos años. No se actualiza sola. Para 2026 mirá "Mayor dependencia" en Real BR y el ranking de productores, que se recalculan en cada corrida.
+  </p>
+
+  <div class="kpi-grid" style="margin-bottom:24px;">
+    <div class="kpi green">
+      <div class="label">HHI 2024</div>
+      <div class="value">1.337</div>
+      <div class="sub">Diversificado (<1.500)</div>
+    </div>
+    <div class="kpi green">
+      <div class="label">HHI 2025</div>
+      <div class="value">1.298</div>
+      <div class="sub" style="color:#2f855a;font-weight:600;">−39 vs 2024 · más diversificado</div>
+    </div>
+    <div class="kpi" style="border-left-color:#d69e2e;">
+      <div class="label">Top 3 productores 2025</div>
+      <div class="value" style="color:#b7791f;">52,9%</div>
+      <div class="sub">Fisher + Valdemar + Jony</div>
+    </div>
+    <div class="kpi" style="border-left-color:#d69e2e;">
+      <div class="label">Top 5 productores 2025</div>
+      <div class="value" style="color:#b7791f;">73,2%</div>
+      <div class="sub">+ Cassio + Gilson</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-bottom:12px;">Ranking 2025 (tus 16 productores)</h3>
+  <table style="margin-bottom:24px;">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Productor</th>
+        <th class="num">Carretas 2025</th>
+        <th class="num">% 2025</th>
+        <th class="num">Carretas 2024</th>
+        <th class="num">% 2024</th>
+        <th class="num">Δ pp</th>
+        <th>Riesgo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="background:#fef2f2;font-weight:600;"><td>1</td><td>Fisher</td><td class="num">169,3</td><td class="num">21,1%</td><td class="num">17</td><td class="num">3,6%</td><td class="num" style="color:#2f855a;font-weight:700;">+17,5</td><td>🔴 Alto</td></tr>
+      <tr style="background:#fef2f2;font-weight:600;"><td>2</td><td>Valdemar</td><td class="num">131,5</td><td class="num">16,4%</td><td class="num">84</td><td class="num">17,6%</td><td class="num">−1,3</td><td>🔴 Alto</td></tr>
+      <tr style="background:#fef2f2;font-weight:600;"><td>3</td><td>Jony</td><td class="num">124,5</td><td class="num">15,5%</td><td class="num">67</td><td class="num">14,1%</td><td class="num" style="color:#2f855a;">+1,4</td><td>🔴 Alto</td></tr>
+      <tr><td>4</td><td>Cassio</td><td class="num">87,0</td><td class="num">10,8%</td><td class="num">15</td><td class="num">3,2%</td><td class="num" style="color:#2f855a;font-weight:700;">+7,7</td><td>🟡 Medio</td></tr>
+      <tr><td>5</td><td>Gilson</td><td class="num">75,5</td><td class="num">9,4%</td><td class="num">43</td><td class="num">9,0%</td><td class="num">+0,4</td><td>🟡 Medio</td></tr>
+      <tr><td>6</td><td>Agrocurupa</td><td class="num">74,0</td><td class="num">9,2%</td><td class="num">47</td><td class="num">9,9%</td><td class="num">−0,6</td><td>🟡 Medio</td></tr>
+      <tr><td>7</td><td>Bahia / Sergio (bahia)</td><td class="num">48,0</td><td class="num">5,9%</td><td class="num">70</td><td class="num">14,7%</td><td class="num" style="color:#c53030;font-weight:700;">−8,8</td><td>🟢 Bajo</td></tr>
+      <tr><td>8</td><td>Claudia</td><td class="num">35,0</td><td class="num">4,4%</td><td class="num">81</td><td class="num">17,0%</td><td class="num" style="color:#c53030;font-weight:700;">−12,6</td><td>🟢 Bajo</td></tr>
+      <tr><td>9</td><td>Sergio</td><td class="num">23,0</td><td class="num">2,9%</td><td class="num">52</td><td class="num">10,9%</td><td class="num" style="color:#c53030;font-weight:700;">−8,0</td><td>🟢 Bajo</td></tr>
+      <tr style="background:#f0fdf4;"><td>10</td><td>Aita</td><td class="num">13,5</td><td class="num">1,7%</td><td class="num">—</td><td class="num">—</td><td class="num" style="color:#2f855a;">nuevo</td><td>🟢 Bajo</td></tr>
+      <tr style="background:#f0fdf4;"><td>11</td><td>Victor</td><td class="num">11,9</td><td class="num">1,5%</td><td class="num">—</td><td class="num">—</td><td class="num" style="color:#2f855a;">nuevo</td><td>🟢 Bajo</td></tr>
+      <tr style="background:#f0fdf4;"><td>12</td><td>Tureck</td><td class="num">6,0</td><td class="num">0,7%</td><td class="num">—</td><td class="num">—</td><td class="num" style="color:#2f855a;">nuevo</td><td>🟢 Bajo</td></tr>
+      <tr style="background:#f0fdf4;"><td>13</td><td>Chicolandia</td><td class="num">3,0</td><td class="num">0,4%</td><td class="num">—</td><td class="num">—</td><td class="num" style="color:#2f855a;">nuevo</td><td>🟢 Bajo</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="font-size:16px;color:#4a5568;margin-top:32px;margin-bottom:12px;">Lecturas</h3>
+  <div class="chart-card" style="font-size:14px;line-height:1.7;">
+    <ul style="margin: 0; padding-left: 20px;">
+      <li><strong>Tu cartera de productores está sana.</strong> HHI 1.298 = nivel diversificado. No estás peligrosamente dependiente de nadie.</li>
+      <li><strong>Pero hubo una rotación brutal entre 2024 y 2025:</strong> Fisher saltó de 3,6% a 21,1% (+17,5 pp). Cassio de 3,2% a 10,8%. Claudia cayó de 17% a 4,4%. Sergio de 11% a 3%. Es un cambio de proveedores principales.</li>
+      <li><strong>Sumaste 4 productores nuevos en 2025</strong> (Aita, Victor, Tureck, Chicolandia) — todavía chicos pero buena señal de diversificación activa.</li>
+      <li><strong>Fisher es tu mayor riesgo:</strong> 169 carretas/año, ~21% de tu volumen. Si se cae, perdés ~US$ 1,55 M de costo de compra (170 × 1.008 × 47,4 BRL / 5,2 ≈ R$ 8,1 M ≈ US$ 1,55 M). Vale la pena tenerlo en buenos términos y mapear backup.</li>
+      <li><strong>Claudia y Sergio: salida deliberada — empezaron a venderle a la competencia.</strong> No es problema de relación: vos los sacaste de tu cartera al detectar el conflicto comercial. De 17 % y 11 % en 2024 a 4 % y 3 % en 2025. Mantener vigilancia sobre productores que diversifican hacia tus competidores.</li>
+      <li><strong>El HHI te baja en 2025 a pesar de que Fisher explotó:</strong> porque Claudia y Sergio dejaron de pesar tanto. Tu mix se redistribuyó pero mantuvo balance.</li>
+    </ul>
+  </div>
+
+
+</div>
+</body>
+</html>

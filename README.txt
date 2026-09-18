@@ -5,7 +5,7 @@
 
 ARCHIVOS DEL PIPELINE (NO MOVER, los usa el script):
   actualizar_precios.ps1            script principal (cron viernes 19h)
-  index.html                        dashboard general
+  index.html                        redireccion a index_brasil.html (la "vista rapida" se unifico con Brasil el 18/09/2026)
   index_brasil.html                 dashboard Brasil
   index_paraguay_bolivia.html       dashboard Paraguay/Bolivia
   index_ecuador.html                dashboard Ecuador FOB (Tridge spot)
@@ -128,6 +128,29 @@ LOG DE CAMBIOS:
                (duplicaba la barra); index_brasil.html pierde el banner fijo
                "HOY estas en FASE 1 ... cierra 11/07/2026" (texto estatico
                vencido, ningun JS lo actualizaba).
+  18/09/2026 -> Limpieza de paneles (pedido: informacion vieja y duplicada al entrar a cada
+               uno). 1) index.html (Plan de compras) era un subconjunto de index_brasil:
+               ahora redirige a Brasil y salio de la barra, de $htmlTargets y de la
+               portada. 2) index_brasil: el Calendario de fases (foto 12/06) y el HHI 2025
+               (foto mayo) pasaron a archivo/index_brasil_bloques_fijos_2026-06.html; el
+               bloque de aduana quedo en sus 4 KPI + link a Mercado UY (fuera tabla por
+               ano, posicion en el mercado e inteligencia competitiva) y el titulo dice el
+               corte; un solo ranking de productores (el del Plan de cargas, que ya traia
+               precio y vs Cepea) con la ficha abierta desde el nombre; fuera el ranking de
+               cargas 2026. 3) Clima: ya filtraba por pais; en Paraguay-Bolivia se saco la
+               linea Cepea del grafico. 4) Aduana por origen solo en Mercado UY:
+               Paraguay-Bolivia perdio Indicadores y los bloques PY/BO en aduana (queda el
+               resumen + link); Ecuador oculta volumen y comparativa (queda KPI + link).
+               5) Comparativo anual: salto y semana a semana siguen el mes de la ultima
+               semana Cepea (JSON: mes_actual, mes_prev, mesSem, eneHasta; antes fijo
+               julio-agosto), ciudad del clima con fallback y la etiqueta "$1" arreglada.
+               6) Ecuador: Referencia mundial marcada con los meses de atraso (IndexMundi).
+               7) Cargas y saldo: la cola "en camino / programado" sale del Plan de Cargas
+               (el paso 5i toma $ops del 5h); la hoja en_camino solo aporta lo llegado sin
+               gas; plan_semanal.json trae colaFuente. 8) Recepcion: lista de productores
+               inyectada desde productores.xlsx (marcadores __PRODUCTORES_JSON__, paso 5e).
+               9) Portada: Calidad sale como "sin datos todavia (n de 15 lotes)" hasta
+               juntar los lotes del modelo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

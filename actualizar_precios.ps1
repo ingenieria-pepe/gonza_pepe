@@ -1,7 +1,7 @@
 ﻿# ==========================================================================
 # actualizar_precios.ps1
 # Baja la serie semanal Cepea (Nanica primeira - produtor - Norte SC)
-# y la inyecta en index.html (entre /*__CEPEA_JSON__*/ y /*__END__*/).
+# y la inyecta en index_brasil.html y los demas paneles (entre /*__CEPEA_JSON__*/ y /*__END__*/).
 # Ejecutar viernes (Cepea publica viernes a la tarde).
 #
 # Uso: doble clic, o desde PowerShell:
@@ -35,10 +35,8 @@ try {
     exit 1
 }
 $fuentes = Join-Path $base "fuentes"
-$indexHtml = Join-Path $base "index.html"
 # Lista de archivos HTML a actualizar (todos los que tengan los marcadores Cepea)
 $htmlTargets = @(
-    (Join-Path $base "index.html"),
     (Join-Path $base "index_brasil.html"),
     (Join-Path $base "index_paraguay_bolivia.html")
 )
@@ -2104,26 +2102,32 @@ if (-not (Test-Path $compHtml)) {
         $mensual += [PSCustomObject]$row
     }
 
+    # Mes de referencia = el de la ultima semana Cepea; el "salto" es del mes anterior a ese mes y la
+    # vista semana a semana es de ese mes. Antes estaba fijo julio -> agosto y la pagina quedaba
+    # clavada en agosto todo el ano. [18/09/2026]
+    $mesAct = ([DateTime]::Parse([string]$data.ultima_semana)).Month
+    $mesPrev = if ($mesAct -eq 1) { 12 } else { $mesAct - 1 }
+    $MESES_LARGO = @('','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre')
     $salto = @()
     foreach ($a in $aniosComp) {
-        $jul = Get-PromMesComp $compSerie $a 7
-        $ago = Get-PromMesComp $compSerie $a 8
-        if ($null -eq $jul -or $null -eq $ago -or $jul -le 0) { continue }
-        $salto += [PSCustomObject]@{ anio=$a; jul=$jul; ago=$ago; pct=[math]::Round((($ago/$jul)-1)*100,1) }
+        $prevAnio = if ($mesAct -eq 1) { $a - 1 } else { $a }; $pv = Get-PromMesComp $compSerie $prevAnio $mesPrev
+        $ac = Get-PromMesComp $compSerie $a $mesAct
+        if ($null -eq $pv -or $null -eq $ac -or $pv -le 0) { continue }
+        $salto += [PSCustomObject]@{ anio=$a; prev=$pv; act=$ac; pct=[math]::Round((($ac/$pv)-1)*100,1) }
     }
 
-    $agosto = [ordered]@{}
+    $mesSem = [ordered]@{}
     foreach ($a in $aniosComp) {
-        $v = @($compSerie | Where-Object { $_.anio -eq $a -and $_.mes -eq 8 } | Sort-Object fecha | ForEach-Object { $_.precio })
-        if ($v.Count) { $agosto["$a"] = $v }
+        $v = @($compSerie | Where-Object { $_.anio -eq $a -and $_.mes -eq $mesAct } | Sort-Object fecha | ForEach-Object { $_.precio })
+        if ($v.Count) { $mesSem["$a"] = $v }
     }
 
-    $eneAgo = @(); $anual = @()
+    $eneHasta = @(); $anual = @()
     foreach ($a in $aniosComp) {
-        $v = @($compSerie | Where-Object { $_.anio -eq $a -and $_.mes -le 8 } | ForEach-Object { $_.precio })
+        $v = @($compSerie | Where-Object { $_.anio -eq $a -and $_.mes -le $mesAct } | ForEach-Object { $_.precio })
         if ($v.Count) {
             $st = $v | Measure-Object -Average -Minimum -Maximum
-            $eneAgo += [PSCustomObject]@{ anio=$a; prom=[math]::Round($st.Average,2); min=$st.Minimum; max=$st.Maximum; n=$v.Count }
+            $eneHasta += [PSCustomObject]@{ anio=$a; prom=[math]::Round($st.Average,2); min=$st.Minimum; max=$st.Maximum; n=$v.Count }
         }
         # 'anual' solo para anios completos (los que llegaron a diciembre)
         $tieneDic = @($compSerie | Where-Object { $_.anio -eq $a -and $_.mes -eq 12 }).Count -gt 0
@@ -2138,7 +2142,7 @@ if (-not (Test-Path $compHtml)) {
     # Invierno = 1/jun a 31/ago. 'frias' = semanas con tmin < 12 grados.
     $invierno = @()
     $regClima = $correlData | Where-Object { $_.id -eq 'br_luizalves' } | Select-Object -First 1
-    $ciudadClima = if ($regClima) { $regClima.ciudad } else { 'Luiz Alves' }
+    $ciudadClima = if ($regClima -and $regClima.ciudad) { [string]$regClima.ciudad } elseif ($regClima -and $regClima.nombre) { [string]$regClima.nombre } else { 'Luiz Alves' }
     if ($regClima) {
         $climaDedup = @(); $vistasC = @{}
         foreach ($s in $regClima.serie_semanal) {
@@ -2172,8 +2176,12 @@ if (-not (Test-Path $compHtml)) {
         porAnio       = $porAnio
         mensual       = $mensual
         salto         = $salto
-        agosto        = $agosto
-        eneAgo        = $eneAgo
+        mes_actual    = $mesAct
+        mes_actual_nombre = $MESES_LARGO[$mesAct]
+        mes_prev      = $mesPrev
+        mes_prev_nombre = $MESES_LARGO[$mesPrev]
+        mesSem        = $mesSem
+        eneHasta      = $eneHasta
         anual         = $anual
         invierno      = $invierno
         ciudad_clima  = $ciudadClima
@@ -3408,6 +3416,7 @@ if (-not (Test-Path $psXlsx)) {
         $cola += [PSCustomObject]@{ origen=$c.origen; cajas=$c.cantidad; estado='llegado'; disp=$fotoFecha.AddDays(1); carga=$null; llegada=$null; confirmado=1
             desc=("CUB " + $c.cub + " camion " + $c.cam + " (foto, sin gas)") }
     }
+    $manualCola = @()
     foreach ($r in @(PsTabla (Read-XlsxHoja -Path $psXlsx -Hoja 'en_camino'))) {
         $q = PsNum $r['cajas']; if ($null -eq $q -or $q -le 0) { continue }
         $orig = ([string]$r['origen']).Trim().ToUpper()
@@ -3422,7 +3431,40 @@ if (-not (Test-Path $psXlsx)) {
         }
         $conf = PsNum $r['confirmado']; $conf = if ($null -eq $conf) { 1 } else { [int]$conf }
         $disp = $lleg.AddDays($P.desc_gas); if ($disp -lt $fotoFecha.AddDays(1)) { $disp = $fotoFecha.AddDays(1) }
-        $cola += [PSCustomObject]@{ origen=$orig; cajas=[int][math]::Round($q); estado=$est; disp=$disp; carga=$carga; llegada=$lleg; confirmado=$conf; desc=([string]$r['nota']).Trim() }
+        $manualCola += [PSCustomObject]@{ origen=$orig; cajas=[int][math]::Round($q); estado=$est; disp=$disp; carga=$carga; llegada=$lleg; confirmado=$conf; desc=([string]$r['nota']).Trim() }
+    }
+    # ---- en camino / programados: desde el Plan de Cargas (paso 5h, $ops) cuando existe. [18/09/2026]
+    #      Antes salia todo de la hoja en_camino, copiada a mano del master: habia tres fuentes distintas de
+    #      "que viene en camino" (esta hoja, el Plan de cargas de index_brasil y la tabla camion por camion).
+    #      Ahora la hoja solo aporta lo que el plan no sabe: filas con estado 'llegado' (en deposito sin gas,
+    #      fuera de la foto). Si el plan no se pudo leer en esta corrida, se usa la hoja entera como antes.
+    $planCola = @()
+    $opsPlan = @(); try { if (Get-Variable ops -ErrorAction SilentlyContinue) { $opsPlan = @($ops) } } catch {}
+    $PS_PLAN_ESTADOS = [ordered]@{ 'Solicitado'='programado'; 'Confirmado'='programado'; 'Cargado'='en_camino'; 'Mar'='en_camino'; 'Puerto'='en_camino'; 'Frontera'='en_camino'; 'Liberado'='en_camino'; 'Arribado'='llegado' }
+    $asOfPlan = $fotoFecha; try { if (Get-Variable pcFile -ErrorAction SilentlyContinue) { $asOfPlan = $pcFile.LastWriteTime.Date } } catch {}
+    foreach ($o in $opsPlan) {
+        $stP = ([string]$o.status).Trim(); $kP = $null
+        foreach ($kk in $PS_PLAN_ESTADOS.Keys) { if ($stP -like "$kk*") { $kP = $kk; break } }
+        if (-not $kP) { continue }
+        $q = $o.mic; if ($null -eq $q -or $q -le 0) { continue }
+        $orig = [string]$o.origen; $carga = $o.fecha
+        $tr = $P["tr_$orig"]; $ad = $P["ad_$orig"]; if ($null -eq $tr) { $tr = 3 }; if ($null -eq $ad) { $ad = 1 }
+        $lleg = if ($o.fechaDesc) { $o.fechaDesc } elseif ($kP -eq 'Arribado') { $fotoFecha } elseif ($carga) { $carga.AddDays($tr + $ad) } else { $fotoFecha }
+        # si el plan (fechado el dia que se bajo la planilla) dice que todavia no llego, no pudo haber llegado antes de ese dia
+        if ($kP -ne 'Arribado' -and $lleg -le $asOfPlan) { $lleg = $asOfPlan.AddDays(1) }
+        $conf = if ($kP -eq 'Solicitado') { 0 } else { 1 }
+        $disp = $lleg.AddDays($P.desc_gas); if ($disp -lt $fotoFecha.AddDays(1)) { $disp = $fotoFecha.AddDays(1) }
+        $nomP = [string]$o.key; try { if ($nombre -and $nombre.ContainsKey($o.key)) { $nomP = [string]$nombre[$o.key] } } catch {}
+        $planCola += [PSCustomObject]@{ origen=$orig; cajas=[int][math]::Round($q); estado=$PS_PLAN_ESTADOS[$kP]; disp=$disp; carga=$carga; llegada=$lleg; confirmado=$conf; desc=("$nomP - $stP (Plan de Cargas)") }
+    }
+    if ($planCola.Count -gt 0) {
+        $cola += @($manualCola | Where-Object { $_.estado -eq 'llegado' })
+        $cola += $planCola
+        $pcNom = 'planilla'; try { if (Get-Variable pcFile -ErrorAction SilentlyContinue) { $pcNom = "$($pcFile.Name), bajada $($pcFile.LastWriteTime.ToString('dd/MM'))" } } catch {}
+        $colaFuente = "Plan de Cargas ($pcNom): $($planCola.Count) camiones en camino o pedidos; de la hoja en_camino solo lo llegado sin gas ($(@($manualCola | Where-Object { $_.estado -eq 'llegado' }).Count))"
+    } else {
+        $cola += $manualCola
+        $colaFuente = 'hoja en_camino de plan_semanal.xlsx (manual): el Plan de Cargas no estaba disponible en esta corrida'
     }
     function PsAsignar { param($items)
         # reparte los cubiculos en dias de gas (gas_por_dia por dia) en orden de disponibilidad; venta = gas + camara (domingo -> lunes)
@@ -3555,6 +3597,7 @@ if (-not (Test-Path $psXlsx)) {
         semanas    = @($semanas)
         stock      = $stock
         ritmo      = $ritmo
+        colaFuente = $colaFuente
     }
     $psJson = $plan | ConvertTo-Json -Depth 8 -Compress
     # ConvertTo-Json (PS 5.1) escribe null donde hay un array vacio: la pagina espera listas
@@ -3589,13 +3632,12 @@ Write-Host "[5e] Portada..." -ForegroundColor Cyan
 $inicioHtml = Join-Path $base "inicio.html"
 
 $panelesDef = @(
-    @{ f='index.html';                  t='Plan de compras Brasil';      d='Vista rapida: termometro Cepea, clima, compra Almar vs Cepea y ranking de productores con fichas.'; ico='🍌' },
     @{ f='index_brasil.html';           t='Brasil — detalle';            d='Oportunidad, forecast, correlacion clima-precio, plan de cargas con ranking y fichas, mercado BR en aduana y seguimiento del ano.'; ico='🇧🇷' },
     @{ f='index_paraguay_bolivia.html'; t='Paraguay y Bolivia';          d='Precio mayorista Carape, plan de cargas Paraguay y aduana Penta: Almar, mercado y competidores en Paraguay y Bolivia, mas indicadores de los 4 origenes.'; ico='🇵🇾' },
     @{ f='index_ecuador.html';          t='Ecuador FOB';                 d='Precio FOB de exportacion de Ecuador.'; ico='🇪🇨' },
     @{ f='index_mercado.html';          t='Mercado UY multi-origen';     d='Quien importa que, de donde y cuanto. Datos de aduana.'; ico='🌎' },
     @{ f='index_proyeccion.html';       t='Proyeccion a fin de ano';     d='Precio y volumen proyectados hasta diciembre.'; ico='🔭' },
-    @{ f='index_comparativo_anual.html';t='Comparativo anual';           d='Ano contra ano: curvas, salto julio-agosto e invierno.'; ico='📊' },
+    @{ f='index_comparativo_anual.html';t='Comparativo anual';           d='Ano contra ano: curvas, salto de un mes al siguiente, el mes en curso semana a semana e invierno.'; ico='📊' },
     @{ f='index_recepcion.html';        t='Ficha de recepcion';         d='Cargar un camion parado al lado: corte, mediciones. Arma el WhatsApp y la fila del Excel.'; ico='📝' },
     @{ f='index_calidad.html';          t='Calidad y vida verde';       d='Cuanto aguanta cada lote y que lo explica. Se llena a mano en fuentes\calidad_lotes.xlsx.'; ico='🌱' },
     @{ f='index_cargas.html';           t='Saldo por dia y cargas';      d='Cuanta fruta hay por dia de venta, que falta y cuando cargarla. Se llena con la foto del plan de camaras en fuentes\plan_semanal\plan_semanal.xlsx.'; ico='🚚' },
@@ -3612,14 +3654,19 @@ foreach ($pd in $panelesDef) {
     # generada = el script LA DEBERIA tocar en cada corrida. index_ecuador va aca
     # aunque hoy falle (Tridge da 403): justamente por eso tiene que salir marcada
     # en rojo como atrasada, y no disfrazada de pagina estatica.
-    $auto = $pd.f -in @('index.html','index_brasil.html','index_paraguay_bolivia.html',
+    $auto = $pd.f -in @('index_brasil.html','index_paraguay_bolivia.html',
                         'index_ecuador.html','index_mercado.html','index_proyeccion.html',
                         'index_comparativo_anual.html','index_calidad.html','index_cargas.html')
     $estado = if (-not $auto) { 'estatica' } elseif ($dias -le 8) { 'al dia' } else { 'atrasada' }
+    $nota = $null
+    # Calidad: hasta juntar los lotes minimos del modelo la pagina no muestra analisis; la portada lo dice. [18/09/2026]
+    if ($pd.f -eq 'index_calidad.html' -and (Get-Variable cal -ErrorAction SilentlyContinue) -and $null -ne $cal -and [int]$cal.nConResultado -lt [int]$cal.minLotes) {
+        $estado = 'sin datos'; $nota = "$([int]$cal.nConResultado) de $([int]$cal.minLotes) lotes con resultado"
+    }
     $paneles += [PSCustomObject]@{
         archivo = ($pd.f -replace '\\','/'); titulo = $pd.t; desc = $pd.d; icono = $pd.ico
         actualizado = $fi.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); dias = $dias
-        auto = $auto; estado = $estado
+        auto = $auto; estado = $estado; nota = $nota
     }
 }
 $portada = [ordered]@{
@@ -3644,6 +3691,26 @@ if (Test-Path $inicioHtml) {
 } else {
     Write-Host "    (aviso) falta inicio.html — sidecar generado igual" -ForegroundColor DarkYellow
 }
+
+# ---- Lista de productores para la ficha de recepcion (index_recepcion.html) [18/09/2026] ----
+#      Antes estaba escrita fija en el HTML (con "Varios", "BAHIA", etc.). Ahora sale de las fichas de
+#      productores.xlsx (paso 3a, $almarFichas), entre los marcadores __PRODUCTORES_JSON__ / __END_PRODUCTORES__.
+try {
+    $recHtml = Join-Path $base "index_recepcion.html"
+    if ((Test-Path $recHtml) -and $almarFichas -and $almarFichas.Count -gt 0) {
+        $nombresRec = @($almarFichas.Values | ForEach-Object { ([string]$_['productor']).Trim() } | Where-Object { $_ } | Sort-Object -Unique) + @('A Confirmar', 'Otro')
+        $recJson = ConvertTo-Json -InputObject $nombresRec -Compress
+        $recTxt = Get-Content $recHtml -Raw -Encoding UTF8
+        $patRec = '/\*__PRODUCTORES_JSON__\*/.*?/\*__END_PRODUCTORES__\*/'
+        if (([regex]::Matches($recTxt, $patRec, 'Singleline')).Count -eq 1) {
+            $repRec = '/*__PRODUCTORES_JSON__*/' + $recJson + '/*__END_PRODUCTORES__*/'
+            Set-Content -Path $recHtml -Value ([regex]::Replace($recTxt, $patRec, { param($m) $repRec }, 'Singleline')) -Encoding UTF8 -NoNewline
+            Write-Host "    OK index_recepcion.html ($($nombresRec.Count - 2) productores desde productores.xlsx)" -ForegroundColor Green
+        } else {
+            Write-Host "    (skip) index_recepcion.html: sin marcadores __PRODUCTORES_JSON__" -ForegroundColor DarkYellow
+        }
+    }
+} catch { Add-Falla -Paso 'Recepcion (productores)' -Detalle $_.Exception.Message }
 
 # ==========================================================================
 # [ec] Banana Ecuador FOB via Tridge (publico, sin login)
@@ -4709,5 +4776,5 @@ Write-Host "Alertas nuevas: $nuevasAlertas" -ForegroundColor Green
 Write-Host "Semanas totales: $($nanica.Count)" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "Abri index.html en el navegador para ver los cambios." -ForegroundColor Yellow
+Write-Host "Abri inicio.html en el navegador para ver los cambios." -ForegroundColor Yellow
 Write-Host "Log de alertas: $logPath" -ForegroundColor Yellow
