@@ -120,6 +120,14 @@ LOG DE CAMBIOS:
                (CEPEA_DATA.plan_cargas.cargas: pendientes + ultimos 60 dias) y,
                si no, de la planilla del paso 5h (CARGAS_DATA.porOrigen.BR.lista,
                que ahora tambien lee las columnas Factura y Placa).
+  17/09/2026 -> Cabezal compacto en las 11 paginas (pedido: se repetia lo mismo al
+               entrar a cada panel). La barra NAV_PANELES deja de ser fija y
+               pierde el rotulo "Almar"; el <header> de cada pagina pasa a una
+               sola linea (titulo + subtitulo) por CSS del mismo bloque;
+               index.html pierde el segmento "OTRAS PAGINAS" de su nav de anclas
+               (duplicaba la barra); index_brasil.html pierde el banner fijo
+               "HOY estas en FASE 1 ... cierra 11/07/2026" (texto estatico
+               vencido, ningun JS lo actualizaba).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

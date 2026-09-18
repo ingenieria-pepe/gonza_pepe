@@ -64,17 +64,22 @@ small.n{color:var(--faint);font-size:11px;margin-left:4px}
 </style>
 </head>
 <body>
-<!-- NAV_PANELES: barra comun para saltar entre paneles. Es la misma en inicio.html y en todos los index_*.html: si se cambia, cambiarla en todos. -->
+<!-- NAV_PANELES: barra comun para saltar entre paneles + cabezal compacto de la pagina. Es el mismo bloque en inicio.html y en todos los index_*.html: si se cambia, cambiarlo en todos. -->
 <style>
-.nav-paneles{position:sticky;top:0;z-index:1000;background:#0f172a;border-bottom:1px solid #334155;box-shadow:0 2px 6px rgba(0,0,0,.25);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.nav-paneles .np-in{max-width:1400px;margin:0 auto;padding:8px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.nav-paneles .np-t{color:#94a3b8;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-right:6px;white-space:nowrap}
-.nav-paneles a{display:inline-block;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,.08);color:#e2e8f0;text-decoration:none;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;border:1px solid transparent}
+.nav-paneles{background:#0f172a;border-bottom:1px solid #334155;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.nav-paneles .np-in{max-width:1400px;margin:0 auto;padding:6px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.nav-paneles a{display:inline-block;padding:5px 11px;border-radius:7px;background:rgba(255,255,255,.08);color:#e2e8f0;text-decoration:none;font-size:12.5px;font-weight:600;line-height:1.2;white-space:nowrap;border:1px solid transparent}
 .nav-paneles a:hover{background:rgba(255,255,255,.18);color:#fff}
 .nav-paneles a.on{background:#f6ad55;color:#1a202c;border-color:#ed8936}
+/* Cabezal de la pagina en una sola linea (titulo + subtitulo). Antes era un bloque de 40px de relleno y titulo de 32px que se repetia en cada panel. */
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;padding:10px 24px!important;margin:0 0 14px!important;text-align:left!important}
+body>header{margin:0!important}
+header h1{font-size:19px!important;margin:0!important;line-height:1.3!important;letter-spacing:0!important}
+header .subtitle,header .sub,header p,header .meta,header ul.fuentes{font-size:12.5px!important;margin:0!important;line-height:1.35}
+header ul.fuentes{padding-left:18px;flex-basis:100%}
 @media print{.nav-paneles{display:none}}
 </style>
-<nav class="nav-paneles" aria-label="Paneles"><div class="np-in"><span class="np-t">🍌 Almar</span>
+<nav class="nav-paneles" aria-label="Paneles"><div class="np-in">
 <a href="inicio.html">🏠 Inicio</a>
 <a href="index.html">🍌 Plan de compras</a>
 <a href="index_brasil.html">🇧🇷 Brasil</a>
