@@ -151,6 +151,10 @@ LOG DE CAMBIOS:
                inyectada desde productores.xlsx (marcadores __PRODUCTORES_JSON__, paso 5e).
                9) Portada: Calidad sale como "sin datos todavia (n de 15 lotes)" hasta
                juntar los lotes del modelo.
+  18/09/2026 -> La tabla "camion por camion" del Plan de Cargas se movio del Resumen
+               ejecutivo de index_brasil al final de la seccion "Plan de cargas Brasil"
+               (misma fuente que los KPI y las tablas de ahi). En el Resumen queda una
+               linea con los totales (en camino / en deposito / por venir) y un link.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
