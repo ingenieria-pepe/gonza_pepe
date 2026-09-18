@@ -174,6 +174,17 @@ LOG DE CAMBIOS:
                y ficha; Plan de Cargas con transito y faltantes). Para que la del Plan
                tambien abra fichas hay que cargar esos nombres en la columna Alias de
                productores.xlsx.
+  18/09/2026 -> Alias del Plan de Cargas en productores.xlsx (columna Alias, hoja
+               productores; respaldo en archivo/productores_backup_2026-09-18_alias.xlsx).
+               El Plan escribe nombre y apellido y las fichas nombre corto, asi que la
+               tabla del Plan solo encontraba 4 fichas de 18. Confirmado con Gonzalo:
+               Fischer=Fisher, Jhony Viera=Jony, Cassio Hauck=Cassio, Jorge Marangoni,
+               Osnildo Stein, Ivo Zimerman, Marconi Kons, Wagner Schveitzer, Josemar
+               Provesi, Joao Claudio Winter=Joao vinter, Zapellini=Zapelini y
+               Corupa=Agrocurupa. Valdemar Ita es OTRO productor (no es Valdemar).
+               Ahora 16 de 33 productores del Plan BR abren ficha (todos los activos
+               en 2026 con ficha). Sin ficha: Banana Combinada, Aldo Corupa y los de
+               2024-2025 que ya no cargan.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
