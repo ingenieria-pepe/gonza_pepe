@@ -370,6 +370,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
               <th class="num" id="pyr-th-hist">Años anteriores</th>
               <th class="num">Cajas/camión</th>
               <th class="num">Tránsito</th>
+              <th class="num">Faltantes</th>
               <th>Última carga</th>
               <th>Estado</th>
             </tr>
@@ -378,16 +379,6 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
         </table>
       </div>
       <p id="pyr-rank-nota" style="font-size:12px;color:#718096;margin:8px 0 0 0;">Hacé clic en el nombre de un productor para abrir su ficha. Las fichas se cargan en fuentes\productores.xlsx.</p>
-    </div>
-    <div class="chart-card">
-      <h3 id="pc-h-prod">Productores — camiones, cajas, tránsito y faltantes</h3>
-      <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
-          <thead id="pc-prod-head"></thead>
-          <tbody id="pc-prod-body"></tbody>
-        </table>
-      </div>
-      <p id="pc-prod-nota" style="font-size:12px;color:#718096;margin:10px 0 0 0;"></p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:16px;">
       <div class="chart-card" style="margin-bottom:0;">
@@ -544,7 +535,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     const real = id => Document.prototype.getElementById.call(document, id);
     const rb = real('pyr-rank-tbody');
     if (!rb) return;
-    if (!P || !P.productores || !P.productores.length) { rb.innerHTML = '<tr><td colspan="9" style="color:#718096;">Sin datos del Plan de Cargas para Paraguay. Corré actualizar_precios.ps1 (paso 5h).</td></tr>'; return; }
+    if (!P || !P.productores || !P.productores.length) { rb.innerHTML = '<tr><td colspan="10" style="color:#718096;">Sin datos del Plan de Cargas para Paraguay. Corré actualizar_precios.ps1 (paso 5h).</td></tr>'; return; }
     const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const vacio = v => v === null || v === undefined || String(v).trim() === '';
     const txt = v => vacio(v) ? '—' : esc(v);
@@ -610,14 +601,15 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
         '<td class="num" style="color:#718096;font-size:12px;white-space:nowrap;">' + (prevA.length ? prevA.map(a => fI(p.porAnio && p.porAnio[a] ? p.porAnio[a] : 0)).join(' · ') : fI(p.camiones)) + '</td>' +
         '<td class="num">' + fI(p.cajasPorCamion) + '</td>' +
         '<td class="num">' + (nulo(p.ttMediana) ? '—' : f1(p.ttMediana) + ' d') + '</td>' +
+        '<td class="num" style="white-space:nowrap;">' + (p.conDesc ? ((p.eventos ? '<strong style="color:' + (p.eventos >= 3 ? '#c53030' : '#b7791f') + ';">' + p.eventos + ' ev.</strong> · ' : '') + fI(p.faltante) + ' cajas' + (nulo(p.faltantePct) ? '' : ' (' + f2(p.faltantePct) + '%)')) : '—') + '</td>' +
         '<td>' + fF(p.ultima) + '</td>' +
         '<td style="color:' + e.c + ';">' + e.t + '</td></tr>');
     });
-    rb.insertAdjacentHTML('beforeend', '<tr class="total-row"><td></td><td>TOTAL · ' + prods.length + ' productores</td><td class="num">' + fI(totalA) + '</td><td class="num">100 %</td><td class="num" style="font-size:12px;">' + (prevA.length ? prevA.map(a => fI(prods.reduce((s, p) => s + (p.porAnio && p.porAnio[a] ? Number(p.porAnio[a]) : 0), 0))).join(' · ') : fI(total)) + '</td><td class="num">' + fI(total ? prods.reduce((s, p) => s + (p.cajas || 0), 0) / total : null) + '</td><td class="num">' + (nulo(P.ttMediana) ? '—' : f1(P.ttMediana) + ' d') + '</td><td>' + fF(P.ultima) + '</td><td></td></tr>');
+    rb.insertAdjacentHTML('beforeend', '<tr class="total-row"><td></td><td>TOTAL · ' + prods.length + ' productores</td><td class="num">' + fI(totalA) + '</td><td class="num">100 %</td><td class="num" style="font-size:12px;">' + (prevA.length ? prevA.map(a => fI(prods.reduce((s, p) => s + (p.porAnio && p.porAnio[a] ? Number(p.porAnio[a]) : 0), 0))).join(' · ') : fI(total)) + '</td><td class="num">' + fI(total ? prods.reduce((s, p) => s + (p.cajas || 0), 0) / total : null) + '</td><td class="num">' + (nulo(P.ttMediana) ? '—' : f1(P.ttMediana) + ' d') + '</td><td class="num" style="white-space:nowrap;">' + (nulo(P.faltante) ? '—' : fI(P.faltante) + ' cajas' + (nulo(P.faltantePct) ? '' : ' (' + f2(P.faltantePct) + '%)')) + '</td><td>' + fF(P.ultima) + '</td><td></td></tr>');
     const tt = real('pyr-rank-title'); if (tt) tt.textContent = 'Ranking de productores ' + aMax + ' (1/1 al ' + fF(corte) + ') — ordenado por camiones';
     const nota = real('pyr-rank-nota');
     const nFichas = prods.filter(p => p.ficha).length;
-    if (nota) nota.innerHTML = nFichas + ' de ' + prods.length + ' productores con ficha. Hacé clic en el nombre para abrir la ficha (ubicación, hectáreas, pies, contacto, camiones por mes) y editarla. Las fichas se cargan en fuentes\\productores.xlsx, hoja "productores". Camiones y % son del ' + aMax + '; "' + (prevA.length ? prevA.join(' · ') : 'Total') + '" es la historia. Estado: 🟢 cargó en las últimas 4 semanas · 🟠 entre 4 y 8 semanas sin cargar · ⚫ más de 8 semanas · ⛔ baja decidida por Almar. Fuente: Plan de Cargas (fecha de carga), sin precio porque los productores de Paraguay no están en cargas 2026.xlsx.';
+    if (nota) nota.innerHTML = '<strong>Faltantes</strong> = cajas del MIC menos cajas descargadas, sólo en camiones con descarga válida; "ev." son camiones con 5 o más cajas de menos. ' + nFichas + ' de ' + prods.length + ' productores con ficha. Hacé clic en el nombre para abrir la ficha (ubicación, hectáreas, pies, contacto, camiones por mes) y editarla. Las fichas se cargan en fuentes\\productores.xlsx, hoja "productores". Camiones y % son del ' + aMax + '; "' + (prevA.length ? prevA.join(' · ') : 'Total') + '" es la historia. Estado: 🟢 cargó en las últimas 4 semanas · 🟠 entre 4 y 8 semanas sin cargar · ⚫ más de 8 semanas · ⛔ baja decidida por Almar. Fuente: Plan de Cargas (fecha de carga), sin precio porque los productores de Paraguay no están en cargas 2026.xlsx.';
 
     // ---- modal
     const cell = (k, v) => '<div><div class="k">' + k + '</div><div class="v">' + v + '</div></div>';

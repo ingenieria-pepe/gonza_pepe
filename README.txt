@@ -155,6 +155,16 @@ LOG DE CAMBIOS:
                ejecutivo de index_brasil al final de la seccion "Plan de cargas Brasil"
                (misma fuente que los KPI y las tablas de ahi). En el Resumen queda una
                linea con los totales (en camino / en deposito / por venir) y un link.
+  18/09/2026 -> Segunda pasada de duplicados DENTRO de cada pagina (la primera solo
+               cruzo entre paginas). index_brasil: fuera "Cargas YTD" de Almar vs Cepea
+               y "Camiones BR" + "Ritmo anualizado" de Real BR (los tres repetian el
+               Resumen ejecutivo, mismo numero y misma cuenta); fuera "Top
+               transportistas" de Real BR (ya esta en Plan de cargas), queda
+               Despachantes solo; arreglado el link "el ranking esta mas arriba" que
+               apuntaba al ranking borrado el 18/09. index_paraguay_bolivia: las dos
+               tablas de productores salian de la misma lista (porOrigen.PY.productores):
+               queda el ranking (ficha, estado, % del ano) con la columna Faltantes de la
+               tabla que se saco.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -660,11 +660,6 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 
   <h2 id="cepea-vs-almar">⚖️ Compra Almar vs Cepea — Spread y productores</h2>
   <div class="kpi-grid">
-    <div class="kpi green" id="almar-kpi-cargas">
-      <div class="label">Cargas YTD 2026</div>
-      <div class="value" id="almar-cargas-value">—</div>
-      <div class="sub" id="almar-cargas-sub">—</div>
-    </div>
     <div class="kpi" id="almar-kpi-precio">
       <div class="label">Precio promedio Almar (4 sem)</div>
       <div class="value" id="almar-precio-value">—</div>
@@ -1034,16 +1029,6 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-16 14:08","fuent
   <p id="real2026-intro" style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">Datos reales 2026 — se completa con los datos del script.</p>
 
   <div class="kpi-grid" style="margin-bottom:24px;">
-    <div class="kpi green">
-      <div class="label" id="real2026-kpi-label">Camiones BR 2026</div>
-<div class="value" id="real2026-kpi-value" data-mode="camiones">—</div>
-<div class="sub" id="real2026-kpi-sub" style="color:#2f855a;font-weight:600;">—</div>
-    </div>
-    <div class="kpi">
-      <div class="label" id="r26-k2-l">Ritmo anualizado</div>
-      <div class="value" id="r26-k2-v">—</div>
-      <div class="sub" id="r26-k2-s" style="font-weight:600;">—</div>
-    </div>
     <div class="kpi" style="border-left-color:#d69e2e;">
       <div class="label" id="r26-k3-l">Mayor dependencia</div>
       <div class="value" id="r26-k3-v">—</div>
@@ -1056,20 +1041,15 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-16 14:08","fuent
     </div>
   </div>
 
-  <p id="real2026-rank-puntero" style="font-size:13px;color:#4a5568;margin:0 0 24px 0;">El ranking de productores está más arriba, en <a href="#real2026-rank-title">Plan de cargas Brasil</a>, junto a la tabla de camiones, cajas, tránsito y faltantes.</p>
+  <p id="real2026-rank-puntero" style="font-size:13px;color:#4a5568;margin:0 0 24px 0;">El ranking de productores está más arriba, en <a href="#cargas">Plan de cargas Brasil</a>, junto a la tabla de camiones, cajas, tránsito y faltantes.</p>
 
-  <h3 id="r26-h-dt" style="font-size:16px;color:#4a5568;margin-bottom:12px;">Despachantes y transportistas del año (planilla de cargas)</h3>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:24px;">
+  <h3 id="r26-h-dt" style="font-size:16px;color:#4a5568;margin-bottom:12px;">Despachantes del año (planilla de cargas)</h3>
+  <p style="font-size:12px;color:#718096;margin:-6px 0 12px 0;">Transportistas y fronteras: en <a href="#cargas">Plan de cargas Brasil</a>.</p>
+  <div style="max-width:560px;margin-bottom:8px;">
     <div class="chart-card">
       <h3>Despachantes</h3>
       <table>
         <thead><tr><th>Despachante</th><th class="num">Cargas</th><th class="num">%</th></tr></thead><tbody id="r26-desp-body"></tbody>
-      </table>
-    </div>
-    <div class="chart-card">
-      <h3>Top transportistas</h3>
-      <table>
-        <thead><tr><th>Transportista</th><th class="num">Cargas</th><th class="num">%</th></tr></thead><tbody id="r26-transp-body"></tbody>
       </table>
     </div>
   </div>
@@ -2417,7 +2397,7 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
 
   // ---- tarjeta KPI (modo segun pagina) ----
   const kv = $('real2026-kpi-value');
-  if (kv) {
+  if (kv && kv.dataset) {   // la tarjeta se saco el 18/09/2026 (duplicaba el Resumen); el shim devuelve un mock sin dataset
     const kl = $('real2026-kpi-label'), ks = $('real2026-kpi-sub');
     if (kv.dataset.mode === 'plan') {
       const dp = tPlan ? (A.total_cargas - tPlan) / tPlan * 100 : null;
@@ -2517,8 +2497,8 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
     const tot = arr.reduce((s, x) => s + x.cargas, 0);
     r26b.innerHTML = arr.slice(0, 8).map((x, i) => '<tr><td>' + (i === 0 ? '<strong>' + x.nombre + '</strong>' : x.nombre) + '</td><td class="num"' + (i === 0 ? ' style="font-weight:700;"' : '') + '>' + f1(x.cargas) + '</td><td class="num"' + (i === 0 ? ' style="font-weight:700;"' : '') + '>' + f1(tot ? x.cargas / tot * 100 : null) + ' %</td></tr>').join('')
       + (arr.length > 8 ? '<tr><td colspan="3" style="color:#718096;font-size:12px;">… y ' + (arr.length - 8) + ' más con menos cargas</td></tr>' : ''); };
-  fillDT('r26-desp-body', A.despachantes); fillDT('r26-transp-body', A.transportistas);
-  const hdt = $('r26-h-dt'); if (hdt) hdt.textContent = 'Despachantes y transportistas ' + anio + ' (planilla de cargas, ' + f1(A.total_cargas) + ' cargas)';
+  fillDT('r26-desp-body', A.despachantes);   // transportistas: solo en Plan de cargas (18/09/2026)
+  const hdt = $('r26-h-dt'); if (hdt) hdt.textContent = 'Despachantes ' + anio + ' (planilla de cargas, ' + f1(A.total_cargas) + ' cargas)';
 
   // lecturas calculadas
   const lec = $('r26-lecturas');
