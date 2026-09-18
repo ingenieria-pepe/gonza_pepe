@@ -165,6 +165,15 @@ LOG DE CAMBIOS:
                tablas de productores salian de la misma lista (porOrigen.PY.productores):
                queda el ranking (ficha, estado, % del ano) con la columna Faltantes de la
                tabla que se saco.
+  18/09/2026 -> Vuelve el ranking de productores de index_brasil (el de cargas 2026.xlsx,
+               sacado ese mismo dia por "duplicado"). Error: era el que abria las fichas
+               de los 18 productores de Brasil; la tabla del Plan de cargas solo encuentra
+               4 (Valdemar, Gilson, Sergio, Furlani) porque los nombres del Plan ("Cassio
+               Hauck", "Fischer", "Ivo Zimerman") no coinciden con los de las fichas.
+               Quedan las dos tablas: son fuentes distintas (planilla de cargas con precio
+               y ficha; Plan de Cargas con transito y faltantes). Para que la del Plan
+               tambien abra fichas hay que cargar esos nombres en la columna Alias de
+               productores.xlsx.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
