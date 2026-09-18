@@ -4152,6 +4152,30 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
 
     $alertasFire = @()
 
+    # ---- Decidir el RESUMEN antes que las alertas de evento (17/09/2026) ----
+    # El 16/09 llegaron 4 mensajes en la misma corrida: Forecast, Clima severo,
+    # Ecuador y el Resumen, y los tres primeros ya estaban adentro del cuarto.
+    # La tarea corre miercoles y viernes, y el resumen sale siempre esos dias,
+    # asi que esas alertas NUNCA llegaban solas. Regla nueva: si en esta corrida
+    # sale el resumen, forecast y clima no se mandan aparte (ya van completos
+    # en el resumen) y lo que es realmente nuevo (Cepea +-15%, PY +-10%, punto
+    # nuevo de Ecuador) va en una linea "Novedades" arriba del resumen. Si NO
+    # sale el resumen (corrida extra fuera de dia), todo sigue como antes.
+    # Criticas de compra y fallas del pipeline no cambian: son eventos raros.
+    $sendResumen = $false
+    if ($waConfig.alerts.resumen_semanal) {
+        $hoyDow = (Get-Date).DayOfWeek
+        if ($hoyDow -eq [DayOfWeek]::Friday -or $hoyDow -eq [DayOfWeek]::Wednesday) { $sendResumen = $true }
+        elseif ($waState.ContainsKey('ts_resumen')) {
+            try {
+                $diasUltimoResumen = ((Get-Date) - [DateTime]::Parse($waState['ts_resumen'])).TotalDays
+                if ($diasUltimoResumen -ge 3) { $sendResumen = $true }
+            } catch { $sendResumen = $true }
+        } else { $sendResumen = $true }
+    }
+    $novedades = @()   # lineas cortas que van arriba del resumen
+    function Get-FechaCortaWA { param([string]$iso) try { ([DateTime]::Parse($iso)).ToString('dd/MM') } catch { $iso } }
+
     # ===== ALERTAS CRITICAS DE COMPRA =====
     if ($waConfig.alerts.criticas_compra) {
         # Score crossing thresholds (+4 or -4)
@@ -4201,7 +4225,11 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $dir = if ($deltaSem -lt 0) {"⚡ Cepea CAYÓ"} else {"⚡ Cepea SUBIÓ"}
                 $msg = "🍌 *ALMAR — Movimiento*`n$dir $($deltaSem.ToString('F1'))% en una semana`n"
                 $msg += "R$ $($nanica[-2].precio.ToString('F2')) → R$ $($nanica[-1].precio.ToString('F2'))/kg"
-                $alertasFire += @{ tipo='mov'; msg=$msg }
+                if ($sendResumen) {
+                    $novedades += "$dir $($deltaSem.ToString('F1'))% en una semana: R$ $($nanica[-2].precio.ToString('F2')) → R$ $($nanica[-1].precio.ToString('F2'))/kg"
+                } else {
+                    $alertasFire += @{ tipo='mov'; msg=$msg }
+                }
             }
         }
         # Forecast cambio >20%
@@ -4221,10 +4249,11 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                     $fc4Date = $correlData[0].forecast_4w[-1].fecha
                     $msg = "🍌 *ALMAR — Forecast 4 sem*`n🔮 Tendencia: $tendencia ($($fcPct.ToString('F1'))%)`n`n"
                     $msg += "Hoy: R$ $($hoyPrec.ToString('F2'))/kg`n"
-                    $msg += "$fc4Date proyectado: R$ $($fc4Avg.ToString('F2'))/kg`n`n"
+                    $msg += "$(Get-FechaCortaWA $fc4Date) proyectado: R$ $($fc4Avg.ToString('F2'))/kg`n`n"
                     $accion = if ($fcPct -gt 0) { "Cerrá precio antes del repunte" } else { "Esperá la baja antes de cerrar" }
                     $msg += "👉 $accion"
-                    $alertasFire += @{ tipo='forecast'; msg=$msg }
+                    # Con resumen en la misma corrida no se manda: el bloque "Modelo 4 sem" ya lo trae.
+                    if (-not $sendResumen) { $alertasFire += @{ tipo='forecast'; msg=$msg } }
                 }
             }
         }
@@ -4259,7 +4288,8 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
             $msg = "🍌 *ALMAR · Clima severo*`n⚠️ $totalAlertas alerta(s) en $($climaPorZona.Count) zona(s) próx 7 días:`n`n"
             $msg += $climaPorZona -join "`n"
             $msg += "`n`n_Frío bajo 15°C frena crecimiento de banana — esperar menor oferta en 4-6 semanas, presión al alza._"
-            $alertasFire += @{ tipo='clima'; msg=$msg }
+            # Con resumen en la misma corrida no se manda: el bloque "Clima prox 7d" ya lo trae.
+            if (-not $sendResumen) { $alertasFire += @{ tipo='clima'; msg=$msg } }
         }
     }
 
@@ -4298,7 +4328,11 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 } else {
                     $msg += "_Monitorear evolución_"
                 }
-                $alertasFire += @{ tipo='py'; msg=$msg }
+                if ($sendResumen) {
+                    $novedades += "$dirPy $sgnPy$($pyDelta.ToString('F1'))% (mayorista Asunción): PYG $($pyAnt.ToString('N0')) → PYG $($pyUlt.ToString('N0'))/caja"
+                } else {
+                    $alertasFire += @{ tipo='py'; msg=$msg }
+                }
                 $waState['py_last_precio'] = $pyUlt.ToString()
             }
         }
@@ -4312,13 +4346,15 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
         $spread = (($ecP - $ecPmsBox) / $ecPmsBox) * 100
         $sgnEc = if ($spread -ge 0) {"+"} else {""}
         $msgEc = "🍌 *ALMAR · 🇪🇨 Ecuador spot FOB*`n"
-        $msgEc += "Nuevo punto $ecD : *USD $($ecP.ToString('F2'))/caja*`n"
+        $msgEc += "Nuevo punto $(Get-FechaCortaWA $ecD) : *USD $($ecP.ToString('F2'))/caja*`n"
+        $novEc = "🇪🇨 Ecuador FOB: punto nuevo $(Get-FechaCortaWA $ecD), USD $($ecP.ToString('F2'))/caja"
         if ($script:ecPrevLastPoint) {
             $prevP = [double]$script:ecPrevLastPoint.usd_box
             $prevD = $script:ecPrevLastPoint.date
             if ($prevP -ne 0) { $delta = (($ecP - $prevP) / $prevP) * 100 } else { $delta = 0 }
             $sgnPrev = if ($delta -ge 0) {"+"} else {""}
-            $msgEc += "vs $prevD : USD $($prevP.ToString('F2')) ($sgnPrev$($delta.ToString('F1'))%)`n"
+            $msgEc += "vs $(Get-FechaCortaWA $prevD) : USD $($prevP.ToString('F2')) ($sgnPrev$($delta.ToString('F1'))%)`n"
+            $novEc += " ($sgnPrev$($delta.ToString('F1'))% vs $(Get-FechaCortaWA $prevD))"
         }
         $msgEc += "vs PMS USD $($ecPmsBox.ToString('F2')) : *$sgnEc$($spread.ToString('F0'))%*`n`n"
         if ($spread -gt 50) {
@@ -4328,22 +4364,13 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
         } else {
             $msgEc += "_Spot cerca del PMS — mercado equilibrado_"
         }
-        $alertasFire += @{ tipo='ecuador'; msg=$msgEc }
+        if ($sendResumen) { $novedades += $novEc } else { $alertasFire += @{ tipo='ecuador'; msg=$msgEc } }
     }
 
     # ===== RESUMEN SEMANAL =====
     # Dispara: Miércoles (mid-week check) o Viernes (post-Cepea publish) o >=3 días sin resumen
+    # $sendResumen se decide arriba, antes de las alertas de evento (17/09/2026).
     if ($waConfig.alerts.resumen_semanal) {
-        $sendResumen = $false
-        $hoyDow = (Get-Date).DayOfWeek
-        if ($hoyDow -eq [DayOfWeek]::Friday -or $hoyDow -eq [DayOfWeek]::Wednesday) { $sendResumen = $true }
-        elseif ($waState.ContainsKey('ts_resumen')) {
-            try {
-                $diasUltimoResumen = ((Get-Date) - [DateTime]::Parse($waState['ts_resumen'])).TotalDays
-                if ($diasUltimoResumen -ge 3) { $sendResumen = $true }
-            } catch { $sendResumen = $true }
-        } else { $sendResumen = $true }
-
         if ($sendResumen) {
             # ------------------------------------------------------------------
             # Resumen semanal - reescrito 04/09/2026.
@@ -4371,6 +4398,12 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
             $vsProm = (($oppLast - $oppPM) / $oppPM) * 100
 
             $msg = "🍌 *ALMAR · Resumen semanal $((Get-Date).ToString('dd/MM'))*`n`n"
+
+            # --- Novedades: lo que antes salia como mensaje aparte en la misma
+            #     corrida (Cepea +-15%, PY +-10%, punto nuevo de Ecuador). Solo si hay.
+            if ($novedades.Count -gt 0) {
+                $msg += "*⚡ Novedades*`n" + ($novedades -join "`n") + "`n`n"
+            }
 
             # --- Cepea: precio, variacion semanal y de 3 semanas (la que mueve el score)
             $msg += "*💰 Cepea Nanica 1ª (SC)* — semana $(Get-FechaCorta $nanica[-1].fecha)`n"

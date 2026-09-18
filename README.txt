@@ -75,6 +75,15 @@ FUENTES DE PRECIO (resumen):
                  Rezago real: ~2 semanas. SIPA descartado por 6m de lag.
 
 LOG DE CAMBIOS:
+  17/09/2026 -> WhatsApp: un solo mensaje por corrida. El 16/09 llegaron 4 (Forecast,
+               Clima severo, Ecuador y Resumen) y los 3 primeros ya estaban dentro del
+               Resumen, que sale siempre (miercoles y viernes). Ahora $sendResumen se
+               decide ANTES de las alertas de evento: si sale el resumen, forecast y
+               clima no se mandan aparte, y Cepea +-15%, PY +-10% y punto nuevo de
+               Ecuador van en una linea "Novedades" arriba del resumen. Sin resumen
+               (corrida extra fuera de dia) todo sigue igual que antes. Criticas de
+               compra y fallas del pipeline no cambian. Fechas ISO de los mensajes
+               sueltos pasadas a dd/MM. Probado en seco en PS 5.1, los dos caminos.
   17/09/2026 -> Plan de Cargas desde Aloha (paso [3b] del script). Gonzalo pidio
                anexar el plan de cargas al resumen semanal: la planilla cargas
                2026.xlsx quedo vieja ("hace 6 sem sin cargas nuevas"). Ahora el
