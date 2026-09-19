@@ -196,6 +196,16 @@ LOG DE CAMBIOS:
                5 camara, lags de plan_semanal). Cargadas las semanas 14-19/09 (real:
                BR 3, PY 8) y 21-26/09 (programada: BR 9, PY 4). Todavia se corre a mano
                (scratchpad); el paso del script y la seccion en index_cargas vienen despues.
+  19/09/2026 -> index_compras.html: SIMULADOR del plan de compras. Grilla de camiones por
+               semana de carga (dom-sab) y por origen, editable; venta semanal, lags,
+               cajas/camion, colchon inicial y minimo editables; saldo por semana de
+               venta con estado (ok / justo / FALTA), fecha limite de carga, sugerencia
+               de camiones a agregar, grafico y resumen de texto. Lo editado se guarda
+               en localStorage (boton 'Volver a lo cargado'). Datos entre los marcadores
+               /*__COMPRAS_JSON__*/ ... /*__END_COMPRAS__*/ desde fuentes/plan_compras.json
+               (por ahora generado a mano con el mismo criterio del futuro paso 5j:
+               Plan de Cargas + plan_compras.xlsx, dictadas pisan al Plan). Barra de
+               paneles v4 con el boton 'Plan de compras' en las 11 paginas.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
