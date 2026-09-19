@@ -30,6 +30,8 @@ CARPETAS:
   fuentes/     datos VIVOS del pipeline
                - cargas 2026.xlsx (operaciones del año, vos editás)
                - plan_cargas_aloha.json (cache del Plan de Cargas leído de Aloha)
+               - plan_compras.xlsx (PLAN DE COMPRAS: cargas_programadas que dicta Gonzalo por semana
+                 + ventas_plan por origen; ver hoja notas) [19/09/2026]
                - precios_banana_SC_2023-2026.xlsx (cache Cepea Norte SC)
                - precios_banana_VRibeira/NMinas/BJLapa.xlsx (cache Cepea otras regiones, paso 2b)
                - precios_cepea.json (sidecar inyectado en HTMLs)
@@ -185,6 +187,15 @@ LOG DE CAMBIOS:
                Ahora 16 de 33 productores del Plan BR abren ficha (todos los activos
                en 2026 con ficha). Sin ficha: Banana Combinada, Aldo Corupa y los de
                2024-2025 que ya no cargan.
+  19/09/2026 -> Arranca el PLAN DE COMPRAS (banana BR/PY/BO). Nueva planilla
+               fuentes/plan_compras.xlsx: hoja cargas_programadas (una fila por camion,
+               semana de carga domingo-sabado, como la dicta Gonzalo; esas semanas PISAN
+               al Plan de Cargas) y hoja ventas_plan (cajas/semana por origen; hoy el
+               promedio de los reportes del ERP: BR 7.200, PY 5.250, BO 1.230). Modelo:
+               cada camion se vende desde carga + 12 dias (5 de ruta y aduana + 2 gas +
+               5 camara, lags de plan_semanal). Cargadas las semanas 14-19/09 (real:
+               BR 3, PY 8) y 21-26/09 (programada: BR 9, PY 4). Todavia se corre a mano
+               (scratchpad); el paso del script y la seccion en index_cargas vienen despues.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
