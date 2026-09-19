@@ -218,6 +218,15 @@ LOG DE CAMBIOS:
                quedan). Resultado con lo dictado: BR justo hasta la sem. del 05/10 y
                FALTA desde el 12/10 (5 camiones a cargar hasta el 30/09), PY cubierto
                hasta el 12/10, BO se termina la sem. del 28/09 y no hay nada en camino.
+  19/09/2026 -> Simulador: stock FISICO semana a semana, como lo lleva Gonzalo. Regla:
+               stock al sabado = stock anterior + camiones que DESCARGAN esa semana - venta.
+               Descarga = carga + 3 dias (lun-mie entra en la semana, vie-sab entra lun-mar;
+               Bolivia 6). Ya no se corre el camion 7 dias hasta que madura: el conteo cuenta
+               toda la fruta, madura o no. En cambio hay un MINIMO en camara = 7 dias de
+               venta (lo que todavia no maduro); por debajo, 'bajo minimo'; negativo, FALTA.
+               Horizonte 3 semanas (pedido). Con lo dictado: total BR+PY+BO 26.824 cajas al
+               19/09, 21.960 al 26/09, 15.264 al 03/10 y 1.584 al 10/10: hay que cargar la
+               semana del 28/09 (BR 7, PY 5) y Bolivia ya.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
