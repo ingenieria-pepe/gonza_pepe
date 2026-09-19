@@ -141,9 +141,10 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   // camiones del dato agrupados por origen y semana de carga (domingo)
   var dato = {}; ORIG.forEach(function (o) { dato[o] = {}; });
   D.camiones.forEach(function (c) { if (!dato[c.origen]) return; var k = c.semana_carga; if (!dato[c.origen][k]) dato[c.origen][k] = []; dato[c.origen][k].push(c); });
-  // semanas de carga a mostrar: desde 4 semanas antes de hoy hasta 8 despues
-  var semCarga = []; var s0 = domingo(add(HOY, -28));
-  for (var i = 0; i < 13; i++) semCarga.push(iso(add(s0, i * 7)));
+  // semanas de carga a mostrar: desde 2 semanas antes de hoy hasta 6 despues (horizonte: 6 semanas de venta)
+  var HORIZ = 6;
+  var semCarga = []; var s0 = domingo(add(HOY, -14));
+  for (var i = 0; i < 3 + HORIZ; i++) semCarga.push(iso(add(s0, i * 7)));
   var st = JSON.parse(JSON.stringify(base));
   try { var sv = JSON.parse(localStorage.getItem(LS) || 'null'); if (sv) { ['venta', 'lag', 'cajas', 'conteo', 'minimo'].forEach(function (k) { if (sv[k]) ORIG.forEach(function (o) { if (sv[k][o] !== undefined) st[k][o] = sv[k][o]; }); }); if (sv.conteo && sv.conteo.fecha) st.conteo.fecha = sv.conteo.fecha; if (sv.semanas) st.semanas = sv.semanas; } } catch (e) {}
   function guardar() { try { localStorage.setItem(LS, JSON.stringify(st)); } catch (e) {} }
@@ -170,7 +171,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     var todos = []; semCarga.forEach(function (k) { todos = todos.concat(camionesDe(o, k)); });
     // semanas de venta: desde la semana del conteo (venta prorrateada por los dias que quedan) hasta 9 semanas despues de hoy
     var fCon = d(st.conteo.fecha);
-    var ini = lunes(fCon), fin = lunes(add(HOY, 63)), filas = [], saldo = +st.conteo[o] || 0;
+    var ini = lunes(fCon), fin = lunes(add(HOY, HORIZ * 7)), filas = [], saldo = +st.conteo[o] || 0;
     for (var w = ini; w <= fin; w = add(w, 7)) {
       var kw = iso(w), llega = todos.filter(function (c) { return iso(lunes(c.venta)) === kw; });
       var cajas = llega.reduce(function (s, c) { return s + c.cajas; }, 0);
@@ -264,14 +265,16 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       if (primeraFalta) { txt = 'falta desde la semana del ' + ddmm(primeraFalta.semana) + ' (cargar hasta el ' + ddmm(primeraFalta.limite) + ')'; }
       else if (primeraJusta) { txt = 'justo la semana del ' + ddmm(primeraJusta.semana); }
       else { txt = 'cubierto en todo el horizonte'; }
-      var s = sug[o], totalSug = Object.keys(s).reduce(function (a, k) { return a + s[k]; }, 0);
+      var s = sug[o], semSug = Object.keys(s).sort(), totalSug = semSug.reduce(function (a, k) { return a + s[k]; }, 0);
       var diasCam = st.venta[o] ? Math.round((+st.conteo[o] || 0) / (st.venta[o] / 6)) : null;
-      tile.innerHTML = '<div class="lab ' + o + '">' + NOM[o] + ' · en cámara al ' + ddmm(st.conteo.fecha) + ': ' + fmt(st.conteo[o]) + ' cajas' + (diasCam !== null ? ' (' + diasCam + ' días)' : '') + '</div><div class="val ' + (primeraFalta ? 'bad' : (primeraJusta ? 'warn' : 'ok')) + '">' + (totalSug ? '+' + totalSug + ' camiones' : 'ok') + '</div><div class="dl">' + txt + (totalSug ? ' · sugerido: ' + Object.keys(s).sort().map(function (k) { return s[k] + ' en la sem. del ' + ddmm(k); }).join(', ') : '') + '</div>';
+      var val = 'ok'; if (semSug.length) { val = s[semSug[0]] + ' camión' + (s[semSug[0]] > 1 ? 'es' : '') + ' · sem. del ' + ddmm(semSug[0]); }
+      var detalle = semSug.length > 1 ? 'después: ' + semSug.slice(1).map(function (k) { return s[k] + ' la sem. del ' + ddmm(k); }).join(', ') + ' (' + totalSug + ' en total hasta el ' + ddmm(iso(lunes(add(HOY, HORIZ * 7)))) + ')' : '';
+      tile.innerHTML = '<div class="lab ' + o + '">' + NOM[o] + ' · en cámara al ' + ddmm(st.conteo.fecha) + ': ' + fmt(st.conteo[o]) + ' cajas' + (diasCam !== null ? ' (' + diasCam + ' días)' : '') + '</div><div class="val ' + (primeraFalta ? 'bad' : (primeraJusta ? 'warn' : 'ok')) + '">' + (semSug.length ? 'cargar ' + val : 'ok') + '</div><div class="dl">' + txt + (detalle ? ' · ' + detalle : '') + '</div>';
       kp.appendChild(tile);
       // resumen
       resumen.push(NOM[o].toUpperCase() + ' (venta ' + fmt(st.venta[o]) + '/sem):');
-      filas.filter(function (f) { return !f.pasada; }).slice(0, 6).forEach(function (f) { var e = estado(f, o); resumen.push('  sem ' + ddmm(f.semana) + ': llegan ' + f.camiones + ' (' + fmt(f.cajas) + ') · saldo ' + fmt(f.saldo) + ' · ' + e[0] + (f.futura ? ' · cargar hasta ' + ddmm(f.limite) : '')); });
-      if (totalSug) resumen.push('  cargar ademas: ' + Object.keys(s).sort().map(function (k) { return s[k] + ' camion(es) sem. del ' + ddmm(k); }).join(', '));
+      filas.filter(function (f) { return !f.pasada; }).forEach(function (f) { var e = estado(f, o); resumen.push('  sem ' + ddmm(f.semana) + ': llegan ' + f.camiones + ' (' + fmt(f.cajas) + ') · saldo ' + fmt(f.saldo) + ' · ' + e[0] + (f.futura ? ' · cargar hasta ' + ddmm(f.limite) : '')); });
+      if (totalSug) resumen.push('  cargar ademas: ' + semSug.map(function (k) { return s[k] + ' camion(es) sem. del ' + ddmm(k); }).join(', '));
       resumen.push('');
     });
     document.getElementById('resumen').value = 'PLAN DE COMPRAS · ' + ddmm(D.hoy) + ' · conteo ' + ddmm(st.conteo.fecha) + ': BR ' + fmt(st.conteo.BR) + ' / PY ' + fmt(st.conteo.PY) + ' / BO ' + fmt(st.conteo.BO) + ' cajas · lags BR ' + st.lag.BR + ' / PY ' + st.lag.PY + ' / BO ' + st.lag.BO + ' dias' + (nSimul ? ' · ' + nSimul + ' celdas simuladas' : '') + '\n\n' + resumen.join('\n');
