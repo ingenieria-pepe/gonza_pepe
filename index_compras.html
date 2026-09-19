@@ -141,10 +141,10 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   // camiones del dato agrupados por origen y semana de carga (domingo)
   var dato = {}; ORIG.forEach(function (o) { dato[o] = {}; });
   D.camiones.forEach(function (c) { if (!dato[c.origen]) return; var k = c.semana_carga; if (!dato[c.origen][k]) dato[c.origen][k] = []; dato[c.origen][k].push(c); });
-  // semanas de carga a mostrar: desde 2 semanas antes de hoy hasta 6 despues (horizonte: 6 semanas de venta)
-  var HORIZ = 6;
-  var semCarga = []; var s0 = domingo(add(HOY, -14));
-  for (var i = 0; i < 3 + HORIZ; i++) semCarga.push(iso(add(s0, i * 7)));
+  // horizonte: 3 semanas de venta (pedido de Gonzalo: 2 o 3, no mas). Semanas de carga: desde 1 antes de hoy hasta 3 despues.
+  var HORIZ = 3;
+  var semCarga = []; var s0 = domingo(add(HOY, -7));
+  for (var i = 0; i < 2 + HORIZ; i++) semCarga.push(iso(add(s0, i * 7)));
   var st = JSON.parse(JSON.stringify(base));
   try { var sv = JSON.parse(localStorage.getItem(LS) || 'null'); if (sv) { ['venta', 'lag', 'cajas', 'conteo', 'minimo'].forEach(function (k) { if (sv[k]) ORIG.forEach(function (o) { if (sv[k][o] !== undefined) st[k][o] = sv[k][o]; }); }); if (sv.conteo && sv.conteo.fecha) st.conteo.fecha = sv.conteo.fecha; if (sv.semanas) st.semanas = sv.semanas; } } catch (e) {}
   function guardar() { try { localStorage.setItem(LS, JSON.stringify(st)); } catch (e) {} }
