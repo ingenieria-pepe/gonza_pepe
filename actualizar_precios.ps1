@@ -3641,6 +3641,7 @@ $panelesDef = @(
     @{ f='index_recepcion.html';        t='Ficha de recepcion';         d='Cargar un camion parado al lado: corte, mediciones. Arma el WhatsApp y la fila del Excel.'; ico='📝' },
     @{ f='index_calidad.html';          t='Calidad y vida verde';       d='Cuanto aguanta cada lote y que lo explica. Se llena a mano en fuentes\calidad_lotes.xlsx.'; ico='🌱' },
     @{ f='index_cargas.html';           t='Saldo por dia y cargas';      d='Cuanta fruta hay por dia de venta, que falta y cuando cargarla. Se llena con la foto del plan de camaras en fuentes\plan_semanal\plan_semanal.xlsx.'; ico='🚚' },
+    @{ f='index_compras.html';          t='Plan de compras';            d='Simulador: cuantos camiones cargar por semana y por origen contra la venta y lo que ya viene. Datos de fuentes\plan_compras.xlsx + Plan de Cargas.'; ico='🧮' },
     @{ f='guia_corte\guia_corte_transversal_banana.html'; t='Guia de corte transversal'; d='Control de calidad del dedo al recibir. Imprimible.'; ico='🔪' },
     @{ f='guia_corte\calculadora_punto_optimo.html';      t='Punto optimo de recepcion'; d='Calculadora: llenado, azucar y si aguanta el flete.'; ico='🧮' },
     @{ f='guia_corte\atlas_cortes.html';                  t='Atlas de cortes';           d='Fotos de referencia de cortes sanos y con problemas.'; ico='🖼️' }
