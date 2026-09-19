@@ -206,6 +206,18 @@ LOG DE CAMBIOS:
                (por ahora generado a mano con el mismo criterio del futuro paso 5j:
                Plan de Cargas + plan_compras.xlsx, dictadas pisan al Plan). Barra de
                paneles v4 con el boton 'Plan de compras' en las 11 paginas.
+  19/09/2026 -> El simulador arranca del CONTEO FISICO por camara, no de una
+               reconstruccion. Error corregido: el conteo del 17/09 estaba en Descargas
+               (conteo-todas-2026-09-18.xlsx) y se habia ignorado; el 'Stock' del reporte
+               diario del ERP es solo lo listo para vender ese dia (< 1 dia), no la
+               camara. Guardado en fuentes/stock/2026-09-17_conteo_camaras.xlsx y en la
+               hoja 'conteo' de plan_compras.xlsx (BR 14.475, PY 12.345, BO 2.604 cajas;
+               sin palta ni mandioca 'Brasil'). Regla: saldo = conteo + camiones que
+               DESCARGAN despues de la fecha del conteo (descarga real o carga + ruta +
+               aduana) - venta (la semana del conteo prorrateada por los dias que
+               quedan). Resultado con lo dictado: BR justo hasta la sem. del 05/10 y
+               FALTA desde el 12/10 (5 camiones a cargar hasta el 30/09), PY cubierto
+               hasta el 12/10, BO se termina la sem. del 28/09 y no hay nada en camino.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
