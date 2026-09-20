@@ -1,4 +1,4 @@
-================================================================
+﻿================================================================
   poronga/  —  Sistema operación banana Almar S.R.L.
   Última ordenada: 10/09/2026 (lo sacado esta en Desktop\poronga_papelera_2026-09-10, borrar despues de una semana)
 ================================================================
@@ -247,6 +247,19 @@ LOG DE CAMBIOS:
                barra y la tarjeta de la portada. Bolivia entra por fin: exportacion de Aloha
                fuente OTROS en fuentes/plan_cargas/otros/ (Pais = BO, exportadores Befrut y
                Banexfrut, 1.050 cajas, carga a descarga ~6 dias); 5h no mira esa subcarpeta.
+  20/09/2026 -> Venta POR SEMANA en el plan de compras. Gonzalo: "la semana que viene
+               un estimado de 15 mil y la siguiente 17 mil". Hoja ventas_plan de
+               plan_compras.xlsx reescrita: 21/09 = 15.000, 28/09 = 17.000, 05/10 en
+               adelante = 17.000 marcadas SUPUESTO; el total se reparte por origen con
+               el mix real de los reportes del ERP de la semana 38 (BR 52,6 % / PY
+               38,4 % / BO 9,0 %). El simulador toma la venta de la fila de cada
+               semana (si la semana no esta, usa la ultima anterior); el minimo en
+               camara (7 dias) se calcula con la venta de esa semana. Las casillas
+               "Venta semanal" quedan vacias = plan; un numero fijo pisa el plan en
+               todas las semanas (para probar). Clave del navegador plan_compras_sim_v4.
+               Resultado con lo dictado: al sabado 03/10 BR 7.100 (5 dias, minimo
+               10.430), PY 7.100 (7 dias, minimo 7.620), BO 360; la semana del 05/10
+               sin cargas nuevas queda en falta.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
