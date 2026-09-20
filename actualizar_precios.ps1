@@ -1239,6 +1239,7 @@ function Get-WeatherHistory {
     return ,$daily
 }
 
+$dailyPorRegion = @{}   # serie diaria por zona: la reusa la tabla de invierno del comparativo (5c)
 foreach ($br in $brRegiones) {
     Write-Host "    archive $($br.ciudad)... " -NoNewline
     $dailyData = Get-WeatherHistory -regId $br.id -lat $br.lat -lon $br.lon -start $startDate -end $endDate
@@ -1246,6 +1247,7 @@ foreach ($br in $brRegiones) {
         Write-Host "sin datos)" -ForegroundColor Red
         continue
     }
+    $dailyPorRegion[$br.id] = $dailyData
 
     # Agrupar daily en bucket semanal Friday-anchored
     $weekBucket = @{}
@@ -2141,32 +2143,82 @@ if (-not (Test-Path $compHtml)) {
         }
     }
 
-    # Invierno = 1/jun a 31/ago. 'frias' = semanas con tmin < 12 grados.
-    $invierno = @()
-    $regClima = $correlData | Where-Object { $_.id -eq 'br_luizalves' } | Select-Object -First 1
-    $ciudadClima = if ($regClima -and $regClima.ciudad) { [string]$regClima.ciudad } elseif ($regClima -and $regClima.nombre) { [string]$regClima.nombre } else { 'Luiz Alves' }
-    if ($regClima) {
-        $climaDedup = @(); $vistasC = @{}
-        foreach ($s in $regClima.serie_semanal) {
-            if ($vistasC.ContainsKey($s.fecha)) { continue }
-            $vistasC[$s.fecha] = $true
-            $climaDedup += $s
-        }
-        foreach ($a in $aniosComp) {
-            $w = @($climaDedup | Where-Object {
-                $dc = [DateTime]::Parse($_.fecha)
-                $dc.Year -eq $a -and $dc.Month -ge 6 -and $dc.Month -le 8
+    # Invierno = semanas (viernes ancla) cuyo viernes cae en jun-ago, 13 por anio,
+    # calculadas sobre la serie DIARIA del cache historico y no sobre serie_semanal:
+    # esa viene redondeada a 1 decimal y dos semanas de 2025 (11,99 y 11,96) quedaban
+    # en 12,0 y no contaban como frias, lo que empataba 2025 con 2026 (20/09/2026).
+    # 'frias'   = semanas con tmin promedio < 12 SIN redondear.
+    # 'min_abs' = tmin diaria mas baja del invierno (con fecha) y 'dias5' = dias con
+    #             tmin < 5: el "frio fuerte" que recuerda un productor es una helada
+    #             de dos noches, y el promedio semanal no la ve.
+    # Dos zonas: Luiz Alves (norte de SC, la del precio Cepea) y Caaguazu (PY). Con
+    # invierno suave en PY hay sobreoferta, los compradores AR/UY se van para alla y
+    # el norte de SC se queda sin demanda en agosto: por eso el precio no salta.
+    # --- Get-InviernoStats ---
+    function Get-InviernoStats {
+        param($daily, $anios)
+        $filas = @()
+        foreach ($a in $anios) {
+            $dias = @($daily | Where-Object {
+                $dd = [DateTime]::Parse($_.fecha)
+                $dd.Year -eq $a -and $dd.Month -ge 6 -and $dd.Month -le 8
             })
-            if ($w.Count -eq 0) { continue }
-            $invierno += [PSCustomObject]@{
-                anio  = $a
-                tmin  = [math]::Round((($w | Measure-Object tmin -Average).Average),1)
-                tmax  = [math]::Round((($w | Measure-Object tmax -Average).Average),1)
-                frias = @($w | Where-Object { [double]$_.tmin -lt 12 }).Count
-                n     = $w.Count
+            if ($dias.Count -eq 0) { continue }
+            $wk = @{}
+            foreach ($r in $dias) {
+                $dd = [DateTime]::Parse($r.fecha)
+                $k = $dd.AddDays((5 - [int]$dd.DayOfWeek + 7) % 7).ToString('yyyy-MM-dd')
+                if (-not $wk.ContainsKey($k)) { $wk[$k] = @() }
+                $wk[$k] += [double]$r.tmin
+            }
+            $semanas = @($wk.Keys | Where-Object { $mk = [DateTime]::Parse($_).Month; $mk -ge 6 -and $mk -le 8 })
+            $frias = @($semanas | Where-Object { (($wk[$_] | Measure-Object -Average).Average) -lt 12 }).Count
+            $minDia = $dias | Sort-Object { [double]$_.tmin } | Select-Object -First 1
+            $filas += [PSCustomObject]@{
+                anio      = $a
+                tmin      = [math]::Round((($dias | Measure-Object tmin -Average).Average), 1)
+                tmax      = [math]::Round((($dias | Measure-Object tmax -Average).Average), 1)
+                frias     = $frias
+                n         = $semanas.Count
+                min_abs   = [math]::Round([double]$minDia.tmin, 1)
+                min_fecha = [string]$minDia.fecha
+                dias5     = @($dias | Where-Object { [double]$_.tmin -lt 5 }).Count
+                dias10    = @($dias | Where-Object { [double]$_.tmin -lt 10 }).Count
             }
         }
+        # sin la coma: con ',$filas' y @() en el caller el array quedaba anidado ([[...]])
+        return $filas
     }
+    # --- fin Get-InviernoStats ---
+
+    $zonasInv = @(
+        @{ id='br_luizalves';   ciudad='Luiz Alves'; pais='Brasil';   bandera='BR'; rol='norte de Santa Catarina, la zona del precio Cepea' },
+        @{ id='py_paraguay_ms'; ciudad='Caaguazú';   pais='Paraguay'; bandera='PY'; rol='zona productora paraguaya' }
+    )
+    $invierno = @()
+    foreach ($z in $zonasInv) {
+        $regZ = $regionesClima | Where-Object { $_.id -eq $z.id } | Select-Object -First 1
+        if (-not $regZ) { continue }
+        $dailyZ = @()
+        if ($dailyPorRegion.ContainsKey($z.id)) {
+            $dailyZ = $dailyPorRegion[$z.id]
+        } else {
+            # Solo las zonas BR se bajan en 3.6 (la correlacion es contra Cepea);
+            # PY se baja aca, con el mismo helper y el mismo cache.
+            Write-Host "    archive invierno $($regZ.ciudad)... " -NoNewline
+            $dailyZ = Get-WeatherHistory -regId $z.id -lat $regZ.lat -lon $regZ.lon -start $startDate -end $endDate
+            Write-Host "$(@($dailyZ).Count) dias)" -ForegroundColor Green
+        }
+        if (-not $dailyZ -or @($dailyZ).Count -eq 0) { continue }
+        $filasZ = @(Get-InviernoStats $dailyZ $aniosComp)
+        if ($filasZ.Count -eq 0) { continue }
+        $invierno += [PSCustomObject]@{ id=$z.id; ciudad=$z.ciudad; pais=$z.pais; bandera=$z.bandera; rol=$z.rol; filas=$filasZ }
+    }
+    $ciudadClima = if ($invierno.Count -gt 0) { [string]$invierno[0].ciudad } else { 'Luiz Alves' }
+    # r² de la regresion clima-precio (lag 4) para la aclaracion del comparativo
+    $climaR2 = $null
+    $regClima = $correlData | Where-Object { $_.id -eq 'br_luizalves' } | Select-Object -First 1
+    if ($regClima -and $regClima.regresion_lag4) { $climaR2 = [double]$regClima.regresion_lag4.r2 }
 
     $comparativo = [ordered]@{
         generado      = (Get-Date).ToString('yyyy-MM-dd HH:mm')
@@ -2187,6 +2239,7 @@ if (-not (Test-Path $compHtml)) {
         anual         = $anual
         invierno      = $invierno
         ciudad_clima  = $ciudadClima
+        clima_r2      = $climaR2
     }
     $compJson = $comparativo | ConvertTo-Json -Depth 10 -Compress
 

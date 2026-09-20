@@ -260,6 +260,15 @@ LOG DE CAMBIOS:
                Resultado con lo dictado: al sabado 03/10 BR 7.100 (5 dias, minimo
                10.430), PY 7.100 (7 dias, minimo 7.620), BO 360; la semana del 05/10
                sin cargas nuevas queda en falta.
+  20/09/2026 -> Tabla "invierno" del comparativo anual (paso 5c) calculada sobre el
+               cache DIARIO (funcion Get-InviernoStats, fuentes\clima_archive_cache),
+               sin redondear: dos semanas de 2025 de 11,99 y 11,96 grados quedaban en
+               12,0 y no contaban como frias, y 2025 empataba con 2026. Dos zonas:
+               Luiz Alves y Caaguazu (PY, se baja en 5c con el mismo cache), con
+               minima absoluta con fecha y dias con menos de 5 grados. Nuevo
+               $dailyPorRegion en el loop de 3.6 y clima_r2 en el JSON del
+               comparativo. Lo hizo la sesion del Excel de Paraguay; parser PS 5.1
+               sin errores, commit desde aca.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
