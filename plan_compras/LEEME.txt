@@ -1,0 +1,35 @@
+PLAN DE COMPRAS (banana Brasil / Paraguay / Bolivia) - se trabaja POR FUERA del dashboard
+==========================================================================================
+Decision de Gonzalo (20/09/2026): esto no va en las paginas index hasta que este listo. Por eso vive
+en esta carpeta, sin boton en la barra ni tarjeta en la portada, y actualizar_precios.ps1 no lo toca.
+
+QUE HAY
+  simulador.html       la herramienta: se abre en el navegador. Grilla de camiones por semana de carga
+                       (domingo a sabado) y por origen, venta semanal, dias de carga a descarga, minimo en
+                       camara; stock al sabado de cada semana con estado, camiones sugeridos, grafico y
+                       resumen de texto. Lo que se toca queda en el navegador ("Volver a lo cargado" lo limpia).
+  plan_compras.xlsx    hojas:
+                         cargas_programadas  lo que dicta Gonzalo cada semana (una fila por camion)
+                         ventas_plan         cajas por semana y por origen (hoy: promedio del ERP sem 38)
+                         conteo              stock fisico por origen a la fecha del conteo por camara
+                         ventas_erp          registro de los reportes diarios del ERP (no entra en el calculo)
+                         notas               instrucciones
+  plan_compras.json    datos que usa el simulador (lo genera el script)
+  generar_datos.ps1    regenera plan_compras.json y lo inyecta en simulador.html
+
+COMO SE ACTUALIZA (cada vez que cambie algo)
+  1. Plan de cargas Brasil/Paraguay: exportar desde Aloha (Plan de cargas > exportar, sin filtro) y dejar
+     el .xlsx en fuentes\plan_cargas\ (el script toma el mas nuevo). Tambien sirve el master de OneDrive.
+  2. Bolivia: exportar desde Aloha con fuente OTROS y dejarlo en fuentes\plan_cargas\otros\.
+  3. Conteo por camara nuevo: una fila por origen en la hoja conteo (fecha, origen, cajas).
+  4. Cargas dictadas: filas en cargas_programadas (solo valen para fechas posteriores a la ultima carga
+     que ya trae el plan de ese origen).
+  5. Correr:  powershell -ExecutionPolicy Bypass -File plan_compras\generar_datos.ps1
+  6. Abrir plan_compras\simulador.html.
+
+LA CUENTA
+  stock al sabado = stock anterior + camiones que DESCARGAN esa semana - venta semanal
+  descarga = fecha real si ya descargo; si no, carga + 3 dias (BR, PY) o + 6 (BO):
+             lo cargado lunes a miercoles entra en la semana, viernes y sabado entra lunes o martes.
+  minimo en camara = 7 dias de venta (la fruta que todavia no maduro: gas + camara).
+  El "Stock" del reporte diario del ERP NO es el stock: es solo lo listo para vender ese dia.

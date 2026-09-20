@@ -1,0 +1,9 @@
+Exportacion de Aloha con fuente=OTROS (todos los paises menos la planilla Brasil/Paraguay): Ecuador,
+Chile, Bolivia, Peru, Colombia, Argentina, Mexico... Misma hoja 'Plan de cargas' de 26 columnas, con la
+columna Pais llena (BO, EC, CL...) y Productor vacio; el exportador esta en la columna Exportador.
+
+El paso 5h de actualizar_precios.ps1 NO mira esta subcarpeta (toma solo el .xlsx mas nuevo de
+fuentes\plan_cargas\, que es el plan Brasil/Paraguay). La usa plan_compras\generar_datos.ps1 para
+los camiones de BOLIVIA (Pais = BO) del simulador del plan de compras.
+
+Para actualizar: exportar desde Aloha con fuente OTROS y dejar el archivo aca con la fecha en el nombre.

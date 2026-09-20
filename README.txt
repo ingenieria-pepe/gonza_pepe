@@ -26,6 +26,8 @@ CARPETAS:
                cepea_regiones.json (regiones Cepea a comparar + fletes por camión a MVD; los fletes los cargás vos)
                aloha.json (usuario/clave de Aloha para leer el Plan de Cargas;
                plantilla en aloha.example.json)
+  plan_compras/ plan de compras BR/PY/BO, POR FUERA del dashboard: simulador.html, plan_compras.xlsx,
+               generar_datos.ps1 (ver plan_compras/LEEME.txt) [20/09/2026]
   penta/       extractos de aduana Penta (detalle_UYimport_*.xlsx, todos los origenes juntos) → tirar el nuevo aca y correr el script
   fuentes/     datos VIVOS del pipeline
                - cargas 2026.xlsx (operaciones del año, vos editás)
@@ -237,6 +239,14 @@ LOG DE CAMBIOS:
                fuentes/plan_cargas/exportaciones_aloha/ (no sirven para 5h). Simulador: las
                cargas dictadas en plan_compras.xlsx valen solo para fechas POSTERIORES a la
                ultima carga del Plan (antes 'pisaban' semanas enteras).
+  20/09/2026 -> El plan de compras pasa POR FUERA del dashboard (pedido de Gonzalo: no
+               enredar el index; se integra cuando este listo). Todo en plan_compras\:
+               simulador.html (era index_compras.html, sin barra), plan_compras.xlsx,
+               plan_compras.json y generar_datos.ps1, que regenera el JSON y lo inyecta
+               (se corre a mano; actualizar_precios.ps1 no lo toca). Fuera el boton de la
+               barra y la tarjeta de la portada. Bolivia entra por fin: exportacion de Aloha
+               fuente OTROS en fuentes/plan_cargas/otros/ (Pais = BO, exportadores Befrut y
+               Banexfrut, 1.050 cajas, carga a descarga ~6 dias); 5h no mira esa subcarpeta.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

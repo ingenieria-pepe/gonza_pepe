@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de compras — Almar</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1f2933;--muted:#5f6b7a;--faint:#8a95a3;--border:#e3e7ec;--s1:#2c5282;--s2:#c05621;--s3:#2f855a;--ok:#2f855a;--warn:#b7791f;--bad:#c53030}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 18px 60px}
+header h1{font-size:23px;margin:0 0 6px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 4px}
+.meta{color:var(--faint);font-size:12px;margin:10px 0 0}
+h2{font-size:17px;margin:26px 0 10px;color:var(--s1)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.tile .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.tile .val{font-size:22px;font-weight:700;margin:2px 0}
+.tile .dl{font-size:12px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#edf2f7;color:#2d3748;text-align:left;padding:7px 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto}
+input[type=number]{width:74px;padding:5px 6px;border:1px solid #cbd5e0;border-radius:6px;font-size:13px;text-align:right;background:#fff}
+input[type=number].w{width:60px}
+input[type=date]{padding:5px 6px;border:1px solid #cbd5e0;border-radius:6px;font-size:13px}
+.param{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;font-size:13px}
+.param label{color:var(--muted)}
+.origen{font-weight:700}
+.BR{color:var(--s3)} .PY{color:var(--s2)} .BO{color:#6b46c2}
+.ok{color:var(--ok);font-weight:600} .warn{color:var(--warn);font-weight:600} .bad{color:var(--bad);font-weight:700}
+tr.past td{color:var(--faint)}
+tr.hoy td{background:#fffbeb}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;background:#edf2f7;color:#4a5568;margin-left:4px}
+.badge.dato{background:#e6fffa;color:#2c7a7b}
+.badge.sim{background:#fefcbf;color:#975a16}
+button{padding:7px 12px;border:1px solid #cbd5e0;border-radius:8px;background:#fff;font-size:13px;cursor:pointer}
+button:hover{background:#edf2f7}
+button.primary{background:var(--s1);color:#fff;border-color:var(--s1)}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+.note{background:#fef9c3;border-left:4px solid #ca8a04;padding:10px 14px;border-radius:6px;font-size:13px;margin:10px 0}
+.plot{width:100%;height:170px}
+.plot svg{width:100%;height:100%}
+textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;padding:10px;border:1px solid #cbd5e0;border-radius:8px;background:#fff}
+.mini{font-size:12px;color:var(--faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>🧮 Plan de compras — simulador</h1>
+  <p class="sub">Cuántos camiones cargar por semana y por origen, contra lo que se vende y lo que ya viene. Tocá los números y mirá el stock. Herramienta aparte del dashboard: se regenera con plan_compras\generar_datos.ps1.</p>
+  <p class="meta" id="meta"></p>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="card">
+  <h2 style="margin-top:0">1. Camiones por semana de carga (domingo a sábado)</h2>
+  <p class="mini">Las semanas con <span class="badge dato">dato</span> traen lo del Plan de Cargas o lo que dictó Gonzalo; se pueden cambiar igual. Lo que cambies queda <span class="badge sim">simulado</span> y guardado en este navegador.</p>
+  <div class="tblwrap"><table id="tblCargas"></table></div>
+  <div class="acciones">
+    <button id="btnReset">Volver a lo cargado</button>
+    <span class="mini" id="estadoSim"></span>
+  </div>
+</div>
+
+<div class="grid3">
+  <div class="card"><h2 style="margin-top:0">Venta semanal (cajas)</h2><div class="param" id="pVenta"></div><p class="mini" id="ventaFuente"></p></div>
+  <div class="card"><h2 style="margin-top:0">Días</h2><div class="param" id="pLag"></div><p class="mini">Carga → descarga: 3 días. Lo que se carga lunes a miércoles entra en la semana; viernes y sábado entra lunes o martes de la siguiente. Mínimo en cámara: la fruta que todavía no maduró (gas + cámara, 7 días de venta); por debajo de eso no hay fruta madura para vender.</p></div>
+  <div class="card"><h2 style="margin-top:0">Conteo físico (arranque)</h2><div class="param" id="pConteo"></div><p class="mini" id="conteoFuente"></p><p class="mini">Stock real de banana por origen a la fecha del conteo por cámara, todas las sedes, madura o no. Stock = conteo + descargas después de esa fecha − ventas. No es el "Stock" del reporte diario del ERP (eso es lo listo para vender ese día).</p></div>
+  <div class="card"><h2 style="margin-top:0">Cajas por camión</h2><div class="param" id="pOtros"></div><p class="mini">1.008 Brasil (936 los chicos de AXT), 980 Paraguay. Es lo que se usa para los camiones simulados.</p></div>
+</div>
+
+<h2>2. Saldo por semana de venta (lunes a sábado)</h2>
+<div id="salidas"></div>
+
+<h2>3. Resumen para mandar</h2>
+<div class="card"><textarea id="resumen" readonly></textarea><p class="mini">Seleccionar todo y copiar. Se arma con lo que está en pantalla, simulado incluido.</p></div>
+
+<div class="note" id="notaFuentes"></div>
+</div>
+
+<script id="datosCompras" type="application/json">/*__COMPRAS_JSON__*/{"generado":"2026-09-20 16:35","hoy":"2026-09-20","plan_cargas":{"archivo":"Plan - Cargas (export Aloha 2026-09-20).xlsx","fecha":"2026-09-20 16:15","camiones":115,"ultima_carga":{"BR":"2026-09-19","PY":"2026-09-15"}},"plan_cargas_otros":{"archivo":"2026-09-20_export_aloha_otros.xlsx","fecha":"2026-09-20 16:32","camiones_bo":8,"ultima_carga_bo":"2026-09-18"},"plan_compras":{"archivo":"plan_compras\\plan_compras.xlsx","fecha":"2026-09-19 20:59","dictadas_usadas":13,"dictadas_omitidas_por_estar_en_el_plan":11},"lags":{"BR":{"descarga":3,"madurar":7},"PY":{"descarga":3,"madurar":7},"BO":{"descarga":6,"madurar":7}},"cajas_camion":{"BR":1008,"PY":980,"BO":1050},"conteo":{"fecha":"2026-09-17","BR":14475,"PY":12345,"BO":2604,"EC":23654,"fuente":"fuentes\\stock\\2026-09-17_conteo_camaras.xlsx"},"ventas_plan":[{"semana_lunes":"2026-09-14","BR":7200,"PY":5250,"BO":1230,"fuente":"promedio 4 reportes ERP (sem 38) x 6 dias"},{"semana_lunes":"2026-09-21","BR":7200,"PY":5250,"BO":1230,"fuente":"promedio 4 reportes ERP (sem 38) x 6 dias"},{"semana_lunes":"2026-09-28","BR":7200,"PY":5250,"BO":1230,"fuente":"promedio 4 reportes ERP (sem 38) x 6 dias"},{"semana_lunes":"2026-10-05","BR":7200,"PY":5250,"BO":1230,"fuente":"promedio 4 reportes ERP (sem 38) x 6 dias"},{"semana_lunes":"2026-10-12","BR":7200,"PY":5250,"BO":1230,"fuente":"promedio 4 reportes ERP (sem 38) x 6 dias"},{"semana_lunes":"2026-10-19","BR":7200,"PY":5250,"BO":1230,"fuente":"promedio 4 reportes ERP (sem 38) x 6 dias"}],"camiones":[{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-02","semana_carga":"2026-08-02","cajas":980,"status":"Descargado","descarga":"2026-08-06","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-02","semana_carga":"2026-08-02","cajas":980,"status":"Descargado","descarga":"2026-08-06","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-03","semana_carga":"2026-08-02","cajas":980,"status":"Descargado","descarga":"2026-08-08","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-08-03","semana_carga":"2026-08-02","cajas":980,"status":"Descargado","descarga":"2026-08-08","transportista":"Lider Express","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-08-05","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-07","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Gilson","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Josemar Provesi","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Josemar Provesi","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Marconi Kons","carga":"2026-08-08","semana_carga":"2026-08-02","cajas":1008,"status":"Descargado","descarga":"2026-08-11","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-09","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-12","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-09","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-12","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-09","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-13","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-09","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-12","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-10","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-13","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-08-10","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-14","transportista":"Lider Express","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-11","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-14","transportista":"0","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-11","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-14","transportista":"0","fuente":"plan_cargas"},{"origen":"BO","productor":"Befrut","carga":"2026-08-12","semana_carga":"2026-08-09","cajas":1050,"status":"Descargado","descarga":"2026-08-22","transportista":"Sintercargas","fuente":"plan_cargas_otros"},{"origen":"BR","productor":"Corupá","carga":"2026-08-12","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-15","transportista":"FG","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-12","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-15","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-08-12","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-15","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-13","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-16","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"BO","productor":"Banexfrut","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1050,"status":"Descargado","descarga":"2026-08-26","transportista":"Surcentral","fuente":"plan_cargas_otros"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":936,"status":"Descargado","descarga":"2026-08-18","transportista":"AXT","fuente":"plan_cargas"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-18","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-18","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Wagner Schveitzer","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-18","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Gilson","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-18","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-18","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Gilson","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":1008,"status":"Descargado","descarga":"2026-08-18","transportista":"FG","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-14","semana_carga":"2026-08-09","cajas":980,"status":"Descargado","descarga":"2026-08-18","transportista":"0","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-17","semana_carga":"2026-08-16","cajas":980,"status":"Descargado","descarga":"2026-08-21","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-21","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-21","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":936,"status":"Descargado","descarga":"2026-08-22","transportista":"AXT","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":936,"status":"Descargado","descarga":"2026-08-22","transportista":"AXT","fuente":"plan_cargas"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-21","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-21","transportista":"FG","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":980,"status":"Descargado","descarga":"2026-08-21","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-18","semana_carga":"2026-08-16","cajas":980,"status":"Descargado","descarga":"2026-08-21","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"BO","productor":"Befrut","carga":"2026-08-19","semana_carga":"2026-08-16","cajas":1050,"status":"Descargado","descarga":"2026-08-27","transportista":"Sintercargas","fuente":"plan_cargas_otros"},{"origen":"BR","productor":"Furlani","carga":"2026-08-19","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-21","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-21","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-26","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-08-21","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-26","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-08-21","semana_carga":"2026-08-16","cajas":1008,"status":"Descargado","descarga":"2026-08-26","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BO","productor":"Banexfrut","carga":"2026-08-24","semana_carga":"2026-08-23","cajas":1050,"status":"Descargado","descarga":"2026-09-03","transportista":"Surcentral","fuente":"plan_cargas_otros"},{"origen":"BO","productor":"Befrut","carga":"2026-08-24","semana_carga":"2026-08-23","cajas":1050,"status":"Descargado","descarga":"2026-09-01","transportista":"Sintercargas","fuente":"plan_cargas_otros"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-08-24","semana_carga":"2026-08-23","cajas":980,"status":"Descargado","descarga":"2026-08-27","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-24","semana_carga":"2026-08-23","cajas":980,"status":"Descargado","descarga":"2026-08-27","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-24","semana_carga":"2026-08-23","cajas":980,"status":"Descargado","descarga":"2026-08-27","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-08-26","semana_carga":"2026-08-23","cajas":1009,"status":"Descargado","descarga":"2026-08-29","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-26","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-08-29","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Gilson","carga":"2026-08-26","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-08-29","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-09-01","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":936,"status":"Descargado","descarga":"2026-09-02","transportista":"AXT","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-09-01","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-09-01","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Josemar Provesi","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-09-01","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Marconi Kons","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-09-01","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Furlani","carga":"2026-08-28","semana_carga":"2026-08-23","cajas":1008,"status":"Descargado","descarga":"2026-09-01","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-30","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-02","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-31","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-03","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-08-31","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-03","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-31","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-03","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-08-31","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-03","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-09-01","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-04","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-09-01","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-05","transportista":"Lider Express","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-09-02","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-04","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Josemar Provesi","carga":"2026-09-02","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-04","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-09-02","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-04","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-09-02","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-04","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-02","semana_carga":"2026-08-30","cajas":936,"status":"Descargado","descarga":"2026-09-04","transportista":"AXT","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-02","semana_carga":"2026-08-30","cajas":980,"status":"Descargado","descarga":"2026-09-05","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-09-04","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-09","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Shapo","carga":"2026-09-04","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-09","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-09-04","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-09","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Shapo","carga":"2026-09-04","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-09","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-09-04","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-09","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-04","semana_carga":"2026-08-30","cajas":1008,"status":"Descargado","descarga":"2026-09-09","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-06","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-10","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-09-06","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-09","transportista":"Lider Express","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-06","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-10","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"BO","productor":"Banexfrut","carga":"2026-09-07","semana_carga":"2026-09-06","cajas":1050,"status":"Descargado","descarga":"2026-09-12","transportista":"Surcentral","fuente":"plan_cargas_otros"},{"origen":"BR","productor":"Fischer","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-12","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":936,"status":"Descargado","descarga":"2026-09-12","transportista":"AXT","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay DF","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"Jauser","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-08","semana_carga":"2026-09-06","cajas":980,"status":"Descargado","descarga":"2026-09-11","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupa","carga":"2026-09-09","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-11","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-09-09","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-11","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-09","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-12","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-09","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-12","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Gilson","carga":"2026-09-10","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-12","transportista":"FG","fuente":"plan_cargas"},{"origen":"BO","productor":"Banexfrut","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1050,"status":"Descargado","descarga":"2026-09-17","transportista":"Surcentral","fuente":"plan_cargas_otros"},{"origen":"BR","productor":"Osnildo Stein","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"Chabat","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"Amaro","fuente":"plan_cargas"},{"origen":"BR","productor":"Corupá","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Shapo","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Marconi Kons","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Josemar Provesi","carga":"2026-09-11","semana_carga":"2026-09-06","cajas":1008,"status":"Descargado","descarga":"2026-09-15","transportista":"FG","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay DF","carga":"2026-09-13","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-16","transportista":"Jauser","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-13","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-16","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-13","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-17","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-14","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-17","transportista":"Mega Logistica","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay DF","carga":"2026-09-14","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-17","transportista":"Jauser","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-09-14","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-18","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay MS","carga":"2026-09-15","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-19","transportista":"G.S.C.S. PARAGUAY TTES.","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay AS","carga":"2026-09-15","semana_carga":"2026-09-13","cajas":980,"status":"Descargado","descarga":"2026-09-19","transportista":"MARSO EMPRENDIMIENTOS S.R.L.","fuente":"plan_cargas"},{"origen":"BO","productor":"Bolivia","carga":"2026-09-18","semana_carga":"2026-09-13","cajas":1050,"status":"Solicitado","descarga":null,"transportista":"","fuente":"plan_cargas_otros"},{"origen":"BR","productor":"Cassio Hauck","carga":"2026-09-18","semana_carga":"2026-09-13","cajas":936,"status":"Solicitado","descarga":null,"transportista":"AXT","fuente":"plan_cargas"},{"origen":"BR","productor":"Ivo Zimerman","carga":"2026-09-18","semana_carga":"2026-09-13","cajas":936,"status":"Solicitado","descarga":null,"transportista":"FG","fuente":"plan_cargas"},{"origen":"BR","productor":"Fischer","carga":"2026-09-19","semana_carga":"2026-09-13","cajas":1008,"status":"Solicitado","descarga":null,"transportista":"Amaro","fuente":"plan_cargas"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-20","semana_carga":"2026-09-20","cajas":980,"status":"programado","descarga":null,"transportista":"","fuente":"plan_compras","nota":"domingo (supuesto 20/09)"},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-21","semana_carga":"2026-09-20","cajas":980,"status":"programado","descarga":null,"transportista":"","fuente":"plan_compras","nota":""},{"origen":"PY","productor":"Paraguay AS","carga":"2026-09-21","semana_carga":"2026-09-20","cajas":980,"status":"programado","descarga":null,"transportista":"","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Fisher","carga":"2026-09-22","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"Amaro","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Gilson","carga":"2026-09-22","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"FG (Nilton)","fuente":"plan_compras","nota":""},{"origen":"PY","productor":"Paraguay HF","carga":"2026-09-22","semana_carga":"2026-09-20","cajas":980,"status":"programado","descarga":null,"transportista":"","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Stein","carga":"2026-09-25","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"FG (Nilton)","fuente":"plan_compras","nota":"dia supuesto (no lo dijo)"},{"origen":"BR","productor":"Cassio","carga":"2026-09-25","semana_carga":"2026-09-20","cajas":936,"status":"programado","descarga":null,"transportista":"AXT","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Agrocurupa","carga":"2026-09-25","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"FG (Nilton)","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Ivo zimer","carga":"2026-09-25","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"Chabat","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Josemar","carga":"2026-09-25","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"Chabat","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Marconi","carga":"2026-09-25","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"Chabat","fuente":"plan_compras","nota":""},{"origen":"BR","productor":"Fisher","carga":"2026-09-26","semana_carga":"2026-09-20","cajas":1008,"status":"programado","descarga":null,"transportista":"Amaro","fuente":"plan_compras","nota":""}]}/*__END_COMPRAS__*/</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById('datosCompras').textContent.replace(/\/\*__COMPRAS_JSON__\*\//, '').replace(/\/\*__END_COMPRAS__\*\//, ''));
+  if (!D.camiones) { document.getElementById('meta').textContent = 'Sin datos: falta correr el script (fuentes\\plan_compras.json).'; return; }
+  var ORIG = ['BR', 'PY', 'BO'], NOM = { BR: 'Brasil', PY: 'Paraguay', BO: 'Bolivia' };
+  var LS = 'plan_compras_sim_v3';
+  function el(t, c, h) { var e = document.createElement(t); if (c) e.className = c; if (h !== undefined) e.innerHTML = h; return e; }
+  function fmt(n) { return (n === null || n === undefined || isNaN(n)) ? '—' : Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function d(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2], 12, 0, 0); }
+  function iso(x) { return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); }
+  function ddmm(s) { return s.substring(8, 10) + '/' + s.substring(5, 7); }
+  function add(x, n) { var y = new Date(x.getTime()); y.setDate(y.getDate() + n); return y; }
+  function domingo(x) { return add(x, -x.getDay()); }
+  function lunes(x) { return add(x, -((x.getDay() + 6) % 7)); }
+  var HOY = d(D.hoy);
+
+  // ---- estado (parametros + camiones por semana de carga), con lo guardado encima
+  var ventasBase = (D.ventas_plan && D.ventas_plan.length) ? D.ventas_plan[D.ventas_plan.length - 1] : { BR: 7200, PY: 5250, BO: 1230 };
+  var C0 = D.conteo || {};
+  // lag = dias de carga a descarga (regla de Gonzalo: lun-mie entra en la semana, vie-sab entra lun-mar).
+  // minDias = dias de venta que tiene que haber en camara como minimo: es la fruta que todavia no maduro (gas + camara, 7 dias).
+  var base = { venta: { BR: ventasBase.BR, PY: ventasBase.PY, BO: ventasBase.BO }, lag: {}, cajas: {}, conteo: { fecha: C0.fecha || D.hoy, BR: +C0.BR || 0, PY: +C0.PY || 0, BO: +C0.BO || 0 }, minDias: {}, semanas: {} };
+  ORIG.forEach(function (o) { var L = D.lags[o] || {}; base.lag[o] = (L.descarga !== undefined) ? L.descarga : ((L.ruta || 0) + (L.aduana || 0)); base.minDias[o] = (L.madurar !== undefined) ? L.madurar : 7; base.cajas[o] = D.cajas_camion[o]; });
+  function minimo(o) { return Math.round((+st.venta[o] || 0) / 6 * (+st.minDias[o] || 0)); }
+  // camiones del dato agrupados por origen y semana de carga (domingo)
+  var dato = {}; ORIG.forEach(function (o) { dato[o] = {}; });
+  D.camiones.forEach(function (c) { if (!dato[c.origen]) return; var k = c.semana_carga; if (!dato[c.origen][k]) dato[c.origen][k] = []; dato[c.origen][k].push(c); });
+  // horizonte: 3 semanas de venta (pedido de Gonzalo: 2 o 3, no mas). Semanas de carga: desde 1 antes de hoy hasta 3 despues.
+  var HORIZ = 3;
+  var semCarga = []; var s0 = domingo(add(HOY, -7));
+  for (var i = 0; i < 2 + HORIZ; i++) semCarga.push(iso(add(s0, i * 7)));
+  var st = JSON.parse(JSON.stringify(base));
+  try { var sv = JSON.parse(localStorage.getItem(LS) || 'null'); if (sv) { ['venta', 'lag', 'cajas', 'conteo', 'minDias'].forEach(function (k) { if (sv[k]) ORIG.forEach(function (o) { if (sv[k][o] !== undefined) st[k][o] = sv[k][o]; }); }); if (sv.conteo && sv.conteo.fecha) st.conteo.fecha = sv.conteo.fecha; if (sv.semanas) st.semanas = sv.semanas; } } catch (e) {}
+  function guardar() { try { localStorage.setItem(LS, JSON.stringify(st)); } catch (e) {} }
+  function nDato(o, k) { return (dato[o][k] || []).length; }
+  function nSem(o, k) { var v = st.semanas[o + '|' + k]; return (v === undefined || v === null || v === '') ? nDato(o, k) : +v; }
+
+  // ---- proyeccion: cada camion a su semana de venta
+  function camionesDe(o, k) {
+    var lista = (dato[o][k] || []).slice().sort(function (a, b) { return a.carga < b.carga ? -1 : 1; });
+    var n = nSem(o, k), out = [];
+    var cajas = st.cajas[o], fCon = d(st.conteo.fecha), lag = +st.lag[o] || 0;
+    // Solo cuentan los camiones que descargan DESPUES del conteo: los anteriores ya estan adentro del numero contado.
+    // Descarga = fecha real si ya descargo; si no, carga + lag (3 dias: lun-mie entra en la semana, vie-sab entra lun-mar).
+    for (var i = 0; i < Math.min(n, lista.length); i++) {
+      var c = lista[i];
+      var desc = c.descarga ? d(c.descarga) : add(d(c.carga), lag);
+      if (desc <= fCon) continue;
+      out.push({ desc: desc, cajas: c.cajas, quien: c.productor, sim: false });
+    }
+    for (var j = lista.length; j < n; j++) { var descS = add(d(k), 2 + lag); if (descS <= fCon) continue; out.push({ desc: descS, cajas: cajas, quien: 'simulado', sim: true }); }   // carga tipica: martes -> entra esa misma semana
+    return out;
+  }
+  function proyectar(o) {
+    var todos = []; semCarga.forEach(function (k) { todos = todos.concat(camionesDe(o, k)); });
+    // semanas de venta: desde la semana del conteo (venta prorrateada por los dias que quedan) hasta 9 semanas despues de hoy
+    var fCon = d(st.conteo.fecha);
+    var ini = lunes(fCon), fin = lunes(add(HOY, HORIZ * 7)), filas = [], saldo = +st.conteo[o] || 0;
+    for (var w = ini; w <= fin; w = add(w, 7)) {
+      var kw = iso(w), llega = todos.filter(function (c) { return iso(lunes(c.desc)) === kw; });
+      var cajas = llega.reduce(function (s, c) { return s + c.cajas; }, 0);
+      var venta = ventaSemana(o, kw);
+      if (kw === iso(ini)) { var diasRest = Math.max(0, Math.min(6, Math.round((add(w, 5) - fCon) / 86400000))); venta = Math.round(venta * diasRest / 6); }
+      saldo += cajas - venta;
+      // para que un camion entre en esta semana hay que cargarlo a mas tardar el miercoles (llega sabado); vie-sab de la semana anterior entra lunes-martes
+      var limite = add(w, Math.max(0, 5 - (+st.lag[o] || 0)));
+      filas.push({ semana: kw, llega: llega, camiones: llega.length, cajas: cajas, venta: venta, saldo: saldo, limite: iso(limite), futura: limite >= HOY, pasada: add(w, 6) < HOY, hoy: (w <= HOY && add(w, 6) >= HOY) });
+    }
+    return filas;
+  }
+  function ventaSemana(o, kw) { var v = st.venta[o]; return isNaN(v) ? 0 : +v; }
+  function diasStock(f, o) { var dia = (+st.venta[o] || 0) / 6; return dia ? f.saldo / dia : null; }
+  function estado(f, o) { var min = minimo(o); if (f.saldo < 0) return ['FALTA', 'bad']; if (f.saldo < min) return ['bajo mínimo (' + Math.round(diasStock(f, o)) + ' días)', 'warn']; return ['ok (' + Math.round(diasStock(f, o)) + ' días)', 'ok']; }
+
+  // ---- sugerencia: camiones que faltan cargar (lun-mie de esa semana) para no bajar del minimo al cierre de la semana
+  function sugerir(o) {
+    var filas = proyectar(o), sug = {}, extra = 0, min = minimo(o);
+    filas.forEach(function (f) {
+      var saldoSim = f.saldo + extra;
+      if (saldoSim < min && f.futura) {
+        var falta = Math.ceil((min - saldoSim) / st.cajas[o]);
+        var dom = iso(domingo(d(f.semana)));   // semana de carga (dom-sab) que contiene el lun-mie de esta semana de venta
+        sug[dom] = (sug[dom] || 0) + falta; extra += falta * st.cajas[o];
+      }
+    });
+    return sug;
+  }
+
+  // ---- render
+  function render() {
+    var meta = document.getElementById('meta');
+    meta.textContent = 'Plan de Cargas: ' + D.plan_cargas.archivo + ' (bajado ' + D.plan_cargas.fecha + ') · plan_compras.xlsx del ' + D.plan_compras.fecha + ' · semanas dictadas: ' + (D.plan_compras.semanas_dictadas || []).map(ddmm).join(', ') + ' · generado ' + D.generado;
+    // parametros
+    function fila(host, lab, key, o, step) { var l = el('label', null, lab); var inp = el('input'); inp.type = 'number'; inp.step = step || 1; inp.value = st[key][o]; inp.onchange = function () { st[key][o] = +inp.value; guardar(); render(); }; host.appendChild(l); host.appendChild(inp); }
+    var pv = document.getElementById('pVenta'); pv.innerHTML = ''; ORIG.forEach(function (o) { fila(pv, '<span class="' + o + '">' + NOM[o] + '</span>', 'venta', o, 50); });
+    document.getElementById('ventaFuente').textContent = 'Arranca con: ' + (ventasBase.fuente || 'ventas_plan') + '.';
+    var pl = document.getElementById('pLag'); pl.innerHTML = ''; ORIG.forEach(function (o) { fila(pl, 'Carga → descarga <span class="' + o + '">' + NOM[o] + '</span>', 'lag', o, 1); }); ORIG.forEach(function (o) { fila(pl, 'Mínimo en cámara, días de venta <span class="' + o + '">' + o + '</span> <span class="mini">(= ' + fmt(minimo(o)) + ' cajas)</span>', 'minDias', o, 1); });
+    var pc = document.getElementById('pConteo'); pc.innerHTML = '';
+    var lf = el('label', null, 'Fecha del conteo'); var inf = el('input'); inf.type = 'date'; inf.value = st.conteo.fecha; inf.onchange = function () { if (inf.value) { st.conteo.fecha = inf.value; guardar(); render(); } }; pc.appendChild(lf); pc.appendChild(inf);
+    ORIG.forEach(function (o) { fila(pc, 'Cajas en cámara <span class="' + o + '">' + NOM[o] + '</span>', 'conteo', o, 100); });
+    document.getElementById('conteoFuente').textContent = C0.fecha ? 'Arranca con el conteo del ' + ddmm(C0.fecha) + ' (' + (C0.fuente || 'plan_compras.xlsx, hoja conteo') + ').' : 'Sin conteo cargado: poné la fecha y las cajas.';
+    var po = document.getElementById('pOtros'); po.innerHTML = ''; ORIG.forEach(function (o) { fila(po, 'Cajas/camión <span class="' + o + '">' + o + '</span>', 'cajas', o, 1); });
+
+    // grilla de cargas
+    var sug = {}; ORIG.forEach(function (o) { sug[o] = sugerir(o); });
+    var t = document.getElementById('tblCargas'); t.innerHTML = '';
+    var thead = el('thead'), tr = el('tr'); tr.appendChild(el('th', null, 'Semana de carga'));
+    semCarga.forEach(function (k) { var dom = d(k), sab = add(dom, 6); var pasada = sab < HOY, hoy = (dom <= HOY && sab >= HOY); tr.appendChild(el('th', 'num' + (hoy ? ' hoy' : ''), ddmm(k) + '–' + ddmm(iso(sab)) + (hoy ? '<br><span class="mini">esta semana</span>' : (pasada ? '<br><span class="mini">pasada</span>' : '')))); });
+    thead.appendChild(tr); t.appendChild(thead);
+    var tb = el('tbody'); var nSimul = 0;
+    ORIG.forEach(function (o) {
+      var r = el('tr'); r.appendChild(el('td', 'origen ' + o, NOM[o]));
+      semCarga.forEach(function (k) {
+        var td = el('td', 'num'); var inp = el('input'); inp.type = 'number'; inp.min = 0; inp.className = 'w'; inp.value = nSem(o, k);
+        var nd = nDato(o, k); var sim = (st.semanas[o + '|' + k] !== undefined && +st.semanas[o + '|' + k] !== nd); if (sim) nSimul++;
+        inp.onchange = function () { st.semanas[o + '|' + k] = inp.value === '' ? undefined : +inp.value; guardar(); render(); };
+        td.appendChild(inp);
+        if (nd) td.appendChild(el('span', 'badge dato', 'dato ' + nd)); if (sim) td.appendChild(el('span', 'badge sim', 'sim'));
+        if (sug[o][k]) td.appendChild(el('div', 'mini', '<span class="bad">+' + sug[o][k] + ' sugerido</span>'));
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+    document.getElementById('estadoSim').textContent = nSimul ? nSimul + ' celda(s) simulada(s).' : 'Todo como está cargado.';
+
+    // salidas por origen
+    var host = document.getElementById('salidas'); host.innerHTML = '';
+    var kp = document.getElementById('kpis'); kp.innerHTML = '';
+    var resumen = [];
+    ORIG.forEach(function (o) {
+      var filas = proyectar(o);
+      var card = el('div', 'card'); card.appendChild(el('h2', o, NOM[o] + ' — venta ' + fmt(st.venta[o]) + ' cajas/semana · mínimo ' + fmt(minimo(o)) + ' cajas (' + st.minDias[o] + ' días)'));
+      var w = el('div', 'tblwrap'); var tt = el('table'); tt.innerHTML = '<thead><tr><th>Semana</th><th class="num">Se vende</th><th class="num">Descargan</th><th class="num">Cajas</th><th class="num">Stock al sábado</th><th>Estado</th><th>Cargar hasta</th><th>Quién descarga</th></tr></thead>';
+      var tbb = el('tbody'); var primeraFalta = null, primeraJusta = null;
+      filas.forEach(function (f) {
+        var e = estado(f, o); if (!primeraFalta && e[1] === 'bad' && !f.pasada) primeraFalta = f; if (!primeraJusta && e[1] === 'warn' && !f.pasada) primeraJusta = f;
+        var quien = {}; f.llega.forEach(function (c) { quien[c.quien] = (quien[c.quien] || 0) + 1; });
+        var qtxt = Object.keys(quien).map(function (q) { return q + (quien[q] > 1 ? ' ' + quien[q] : ''); }).join(', ');
+        var r = el('tr', f.pasada ? 'past' : (f.hoy ? 'hoy' : ''));
+        r.innerHTML = '<td>' + ddmm(f.semana) + '–' + ddmm(iso(add(d(f.semana), 5))) + '</td><td class="num">' + fmt(f.venta) + '</td><td class="num">' + f.camiones + '</td><td class="num">' + fmt(f.cajas) + '</td><td class="num ' + e[1] + '">' + fmt(f.saldo) + '</td><td class="' + e[1] + '">' + e[0] + '</td><td>' + (f.futura ? 'mié ' + ddmm(f.limite) : '<span class="mini">ya pasó</span>') + '</td><td class="mini">' + qtxt + '</td>';
+        tbb.appendChild(r);
+      });
+      tt.appendChild(tbb); w.appendChild(tt); card.appendChild(w);
+      // grafico
+      var plot = el('div', 'plot'); plot.appendChild(grafico(filas, o)); card.appendChild(plot);
+      host.appendChild(card);
+      // kpi
+      var tile = el('div', 'tile'); var txt;
+      if (primeraFalta) { txt = 'se queda sin fruta la semana del ' + ddmm(primeraFalta.semana); }
+      else if (primeraJusta) { txt = 'baja del mínimo (' + st.minDias[o] + ' días) la semana del ' + ddmm(primeraJusta.semana); }
+      else { txt = 'arriba del mínimo en todo el horizonte'; }
+      var s = sug[o], semSug = Object.keys(s).sort(), totalSug = semSug.reduce(function (a, k) { return a + s[k]; }, 0);
+      var diasCam = st.venta[o] ? Math.round((+st.conteo[o] || 0) / (st.venta[o] / 6)) : null;
+      var val = 'ok'; if (semSug.length) { val = s[semSug[0]] + ' camión' + (s[semSug[0]] > 1 ? 'es' : '') + ' · sem. del ' + ddmm(semSug[0]); }
+      var detalle = semSug.length > 1 ? 'después: ' + semSug.slice(1).map(function (k) { return s[k] + ' la sem. del ' + ddmm(k); }).join(', ') + ' (' + totalSug + ' en total hasta el ' + ddmm(iso(lunes(add(HOY, HORIZ * 7)))) + ')' : '';
+      tile.innerHTML = '<div class="lab ' + o + '">' + NOM[o] + ' · en cámara al ' + ddmm(st.conteo.fecha) + ': ' + fmt(st.conteo[o]) + ' cajas' + (diasCam !== null ? ' (' + diasCam + ' días)' : '') + '</div><div class="val ' + (primeraFalta ? 'bad' : (primeraJusta ? 'warn' : 'ok')) + '">' + (semSug.length ? 'cargar ' + val : 'ok') + '</div><div class="dl">' + txt + (detalle ? ' · ' + detalle : '') + '</div>';
+      kp.appendChild(tile);
+      // resumen
+      resumen.push(NOM[o].toUpperCase() + ' (venta ' + fmt(st.venta[o]) + '/sem):');
+      filas.filter(function (f) { return !f.pasada; }).forEach(function (f) { var e = estado(f, o); resumen.push('  sem ' + ddmm(f.semana) + ': descargan ' + f.camiones + ' (' + fmt(f.cajas) + ') · vende ' + fmt(f.venta) + ' · stock al sabado ' + fmt(f.saldo) + ' · ' + e[0] + (f.futura ? ' · cargar hasta mie ' + ddmm(f.limite) : '')); });
+      if (totalSug) resumen.push('  cargar ademas: ' + semSug.map(function (k) { return s[k] + ' camion(es) sem. del ' + ddmm(k); }).join(', '));
+      resumen.push('');
+    });
+    document.getElementById('resumen').value = 'PLAN DE COMPRAS · ' + ddmm(D.hoy) + ' · conteo ' + ddmm(st.conteo.fecha) + ': BR ' + fmt(st.conteo.BR) + ' / PY ' + fmt(st.conteo.PY) + ' / BO ' + fmt(st.conteo.BO) + ' cajas · stock = conteo + descargas - ventas · minimo ' + st.minDias.BR + ' dias de venta' + (nSimul ? ' · ' + nSimul + ' celdas simuladas' : '') + '\n\n' + resumen.join('\n');
+    document.getElementById('notaFuentes').innerHTML = '<strong>De dónde sale:</strong> stock de arranque = conteo físico por cámara (plan_compras.xlsx, hoja conteo). Stock al sábado de cada semana = stock anterior + camiones que descargan esa semana − venta. Camiones: Plan de Cargas (' + D.plan_cargas.archivo + ') para lo ya cargado y pedido, salvo las semanas que dictó Gonzalo en plan_compras.xlsx (' + (D.plan_compras.semanas_dictadas || []).map(ddmm).join(', ') + '), que pisan al Plan en esas fechas; sólo cuentan los que descargan después del conteo. Venta: ' + (ventasBase.fuente || 'ventas_plan') + '. Bolivia no está en el Plan de Cargas: sus camiones se cargan a mano acá.';
+  }
+  function grafico(filas, o) {
+    var W = 900, H = 170, M = { t: 14, r: 10, b: 28, l: 54 }, iw = W - M.l - M.r, ih = H - M.t - M.b;
+    var ns = 'http://www.w3.org/2000/svg'; var svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('preserveAspectRatio', 'none');
+    var vals = filas.map(function (f) { return f.saldo; }); var mx = Math.max.apply(null, vals.concat([minimo(o)])), mn = Math.min.apply(null, vals.concat([0]));
+    var y = function (v) { return M.t + ih - (v - mn) / (mx - mn || 1) * ih; }; var bw = iw / filas.length;
+    function line(x1, y1, x2, y2, col, dash) { var l = document.createElementNS(ns, 'line'); l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2); l.setAttribute('stroke', col); l.setAttribute('stroke-width', 1); if (dash) l.setAttribute('stroke-dasharray', '4 3'); svg.appendChild(l); }
+    function text(x, yy, s, anchor, col) { var t = document.createElementNS(ns, 'text'); t.setAttribute('x', x); t.setAttribute('y', yy); t.setAttribute('font-size', 10); t.setAttribute('text-anchor', anchor || 'middle'); t.setAttribute('fill', col || '#8a95a3'); t.textContent = s; svg.appendChild(t); }
+    line(M.l, y(0), W - M.r, y(0), '#4a5568'); text(M.l - 6, y(0) + 3, '0', 'end');
+    line(M.l, y(minimo(o)), W - M.r, y(minimo(o)), '#a0aec0', true); text(M.l - 6, y(minimo(o)) + 3, 'mín', 'end');
+    filas.forEach(function (f, i) {
+      var e = estado(f, o); var col = e[1] === 'bad' ? '#c53030' : (e[1] === 'warn' ? '#d69e2e' : (f.pasada ? '#cbd5e0' : '#2f855a'));
+      var r = document.createElementNS(ns, 'rect'); var top = Math.min(y(f.saldo), y(0)); r.setAttribute('x', M.l + i * bw + bw * 0.15); r.setAttribute('y', top); r.setAttribute('width', bw * 0.7); r.setAttribute('height', Math.max(1, Math.abs(y(f.saldo) - y(0)))); r.setAttribute('fill', col); r.setAttribute('rx', 2); svg.appendChild(r);
+      text(M.l + i * bw + bw / 2, H - 10, ddmm(f.semana));
+    });
+    return svg;
+  }
+  document.getElementById('btnReset').onclick = function () { try { localStorage.removeItem(LS); } catch (e) {} st = JSON.parse(JSON.stringify(base)); render(); };
+  render();
+})();
+</script>
+</body>
+</html>
