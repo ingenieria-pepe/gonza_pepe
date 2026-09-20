@@ -1,0 +1,11 @@
+Exportaciones de Aloha (boton exportar de la pantalla Plan de cargas), vista PENDIENTES.
+Traen solo los camiones que todavia no descargaron, una hoja 'Plan de cargas' con 26 columnas
+(Semana, Status, Factura, Productor, Fecha carga, Carpeta, AFIDI, Transportista, Exportador, placas,
+chofer, fechas frontera/descarga, TT, Cajas MIC...). Las fechas son fechas reales aunque el formato
+de celda diga DD/MM/YYYY (sale como "DD/09/YYYY" en algunos lectores).
+
+NO van en fuentes\plan_cargas\ directo: el paso 5h de actualizar_precios.ps1 toma el .xlsx mas nuevo
+de esa carpeta y espera el master (hoja 'Cargas'). Esta subcarpeta no la mira.
+
+Sirven para chequear el estado de lo pendiente en una fecha. Para actualizar el Plan entero hace falta
+el master de OneDrive o leer la API de Aloha (config\aloha.json, paso 3b).
