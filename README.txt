@@ -227,6 +227,16 @@ LOG DE CAMBIOS:
                Horizonte 3 semanas (pedido). Con lo dictado: total BR+PY+BO 26.824 cajas al
                19/09, 21.960 al 26/09, 15.264 al 03/10 y 1.584 al 10/10: hay que cargar la
                semana del 28/09 (BR 7, PY 5) y Bolivia ya.
+  20/09/2026 -> Plan de Cargas al dia con la exportacion completa de Aloha (boton exportar
+               de la pantalla Plan de cargas, sin filtro): fuentes/plan_cargas/Plan - Cargas
+               (export Aloha 2026-09-20).xlsx, 2.634 cargas ene/2024-19/09/2026 con estados
+               reales. Formato distinto del master: hoja 'Plan de cargas', encabezado 'Fecha
+               carga', sin columna Productos, rels con Target antes que Id. Read-XlsxHoja y
+               el paso 5h aceptan los dos formatos; manda el .xlsx mas nuevo de la carpeta.
+               Las exportaciones con filtro 'pendientes' (chicas) van aparte en
+               fuentes/plan_cargas/exportaciones_aloha/ (no sirven para 5h). Simulador: las
+               cargas dictadas en plan_compras.xlsx valen solo para fechas POSTERIORES a la
+               ultima carga del Plan (antes 'pisaban' semanas enteras).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

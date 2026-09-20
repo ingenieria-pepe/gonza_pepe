@@ -1546,7 +1546,9 @@ function Read-PentaDetalle {
     $tgt = $null
     foreach ($m in [regex]::Matches($ent['xl/workbook.xml'],'<sheet[^>]*name="([^"]+)"[^>]*r:id="(rId\d+)"')) {
         if ($m.Groups[1].Value -eq 'Detalle') {
-            $rm = [regex]::Match($ent['xl/_rels/workbook.xml.rels'],'Id="'+$m.Groups[2].Value+'"[^>]*Target="([^"]+)"')
+            # el tag Relationship puede traer Target antes que Id (export de Aloha) o despues (Excel): se busca el tag y despues el Target
+            $relTag = [regex]::Match($ent['xl/_rels/workbook.xml.rels'],'<Relationship\b[^>]*\bId="'+$m.Groups[2].Value+'"[^>]*>').Value
+            $rm = [regex]::Match($relTag,'Target="([^"]+)"')
             $tgt = ($rm.Groups[1].Value -replace '^/?(xl/)?','')
         }
     }
@@ -2743,7 +2745,9 @@ function Read-XlsxHoja {
     $tgt = $null
     foreach ($m in [regex]::Matches($ent['xl/workbook.xml'],'<sheet[^>]*name="([^"]+)"[^>]*r:id="(rId\d+)"')) {
         if (-not $Hoja -or $m.Groups[1].Value -eq $Hoja) {
-            $rm = [regex]::Match($ent['xl/_rels/workbook.xml.rels'],'Id="'+$m.Groups[2].Value+'"[^>]*Target="([^"]+)"')
+            # el tag Relationship puede traer Target antes que Id (export de Aloha) o despues (Excel): se busca el tag y despues el Target
+            $relTag = [regex]::Match($ent['xl/_rels/workbook.xml.rels'],'<Relationship\b[^>]*\bId="'+$m.Groups[2].Value+'"[^>]*>').Value
+            $rm = [regex]::Match($relTag,'Target="([^"]+)"')
             $tgt = ($rm.Groups[1].Value -replace '^/?(xl/)?',''); if ($Hoja) { break }
         }
     }
@@ -2970,7 +2974,10 @@ if ($pcXlsx.Count -eq 0) {
   try {
     $pcFile  = $pcXlsx[0]
     $pcFilas = Read-XlsxHoja -Path $pcFile.FullName -Hoja 'Cargas'
-    if ($pcFilas.Count -lt 2) { throw "la hoja 'Cargas' de $($pcFile.Name) esta vacia o no existe" }
+    # Exportacion de Aloha (desde 20/09/2026): misma informacion en la hoja 'Plan de cargas', encabezado 'Fecha carga' (sin 'de'),
+    # sin columna Productos. Se acepta cualquiera de los dos formatos; manda el archivo mas nuevo de la carpeta.
+    if ($pcFilas.Count -lt 2) { $pcFilas = Read-XlsxHoja -Path $pcFile.FullName -Hoja 'Plan de cargas' }
+    if ($pcFilas.Count -lt 2) { throw "ni la hoja 'Cargas' (master) ni 'Plan de cargas' (export Aloha) de $($pcFile.Name) tienen datos" }
     $hdrIdx = -1
     for ($i = 0; $i -lt [math]::Min(15, $pcFilas.Count); $i++) {
         $j = (@($pcFilas[$i]) -join '|'); if ($j -match 'Status' -and $j -match 'Productor') { $hdrIdx = $i; break }
@@ -2978,7 +2985,7 @@ if ($pcXlsx.Count -eq 0) {
     if ($hdrIdx -lt 0) { throw "no encontre la fila de encabezados (Status/Productor) en la hoja Cargas" }
     $hdr = @($pcFilas[$hdrIdx])
     function PC-Col { param($rx) for ($k = 0; $k -lt $hdr.Count; $k++) { if (([string]$hdr[$k]) -match $rx) { return $k } }; return -1 }
-    $cSt = PC-Col '^\s*Status';        $cPr  = PC-Col '^\s*Productor';   $cFc  = PC-Col 'Fecha\s*de\s*Carga'
+    $cSt = PC-Col '^\s*Status';        $cPr  = PC-Col '^\s*Productor';   $cFc  = PC-Col 'Fecha\s*(de\s*)?Carga'
     $cCa = PC-Col 'Carpeta';           $cTr  = PC-Col 'Transportista';   $cFr  = PC-Col '^\s*Frontera'
     $cFa = PC-Col '^\s*Factura';      $cPl = PC-Col '^\s*Placa'    # opcionales (17/09/2026): para la tabla camion por camion; si no estan, quedan vacios
     $cFd = PC-Col 'Fecha\s*Desc';      $cTT  = PC-Col '^\s*TT';          $cMic = PC-Col 'Cajas\s*MIC'
