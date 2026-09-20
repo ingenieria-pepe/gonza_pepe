@@ -273,8 +273,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       var diasCam = st.venta[o] ? Math.round((+st.conteo[o] || 0) / (st.venta[o] / 6)) : null;
       var val = 'ok'; if (semSug.length) { val = s[semSug[0]] + ' camión' + (s[semSug[0]] > 1 ? 'es' : '') + ' · sem. del ' + ddmm(semSug[0]); }
       var detalle = semSug.length > 1 ? 'después: ' + semSug.slice(1).map(function (k) { return s[k] + ' la sem. del ' + ddmm(k); }).join(', ') + ' (' + totalSug + ' en total hasta el ' + ddmm(iso(lunes(add(HOY, HORIZ * 7)))) + ')' : '';
-      var SE = D.stock_erp || {}; var listo = (SE.fecha && SE[o] !== undefined) ? ' · listo para vender al ' + ddmm(SE.fecha) + ': ' + fmt(SE[o]) : '';
-      tile.innerHTML = '<div class="lab ' + o + '">' + NOM[o] + ' · en cámara al ' + ddmm(st.conteo.fecha) + ': ' + fmt(st.conteo[o]) + ' cajas' + (diasCam !== null ? ' (' + diasCam + ' días)' : '') + listo + '</div><div class="val ' + (primeraFalta ? 'bad' : (primeraJusta ? 'warn' : 'ok')) + '">' + (semSug.length ? 'cargar ' + val : 'ok') + '</div><div class="dl">' + txt + (detalle ? ' · ' + detalle : '') + '</div>';
+      tile.innerHTML = '<div class="lab ' + o + '">' + NOM[o] + ' · en cámara al ' + ddmm(st.conteo.fecha) + ': ' + fmt(st.conteo[o]) + ' cajas' + (diasCam !== null ? ' (' + diasCam + ' días)' : '') + '</div><div class="val ' + (primeraFalta ? 'bad' : (primeraJusta ? 'warn' : 'ok')) + '">' + (semSug.length ? 'cargar ' + val : 'ok') + '</div><div class="dl">' + txt + (detalle ? ' · ' + detalle : '') + '</div>';
       kp.appendChild(tile);
       // resumen
       resumen.push(NOM[o].toUpperCase() + ' (venta ' + fmt(st.venta[o]) + '/sem):');
