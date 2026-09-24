@@ -984,6 +984,7 @@ $regionesClima = @(
     @{ id="br_guaramirim"; pais="Brasil";   ciudad="Guaramirim";          bandera="BR"; lat=-26.47; lon=-49.00 },
     @{ id="py_tembiapora"; pais="Paraguay"; ciudad="Tembiapora";          bandera="PY"; lat=-24.92; lon=-55.98 },
     @{ id="py_paraguay_ms"; pais="Paraguay"; ciudad="Paraguay MS (Caaguazu)"; bandera="PY"; lat=-25.345; lon=-55.480 },   # bananal visitado el 11/09/2026, plus code 5866MG49+3V, 69 km de Tembiapora
+    @{ id="py_toro_piru";   pais="Paraguay"; ciudad="Toro Piru (Alvarito, San Pedro)"; bandera="PY"; lat=-24.323; lon=-56.445 },   # finca de Alvaro Saldivar (Paraguay AS), plus code 5875MHG3+PQ dado por Gonzalo el 24/09/2026; depto. San Pedro, ~35 km al norte de Santani
     @{ id="bo_yapacani";   pais="Bolivia";  ciudad="Yapacani (default)";  bandera="BO"; lat=-17.40; lon=-63.85 }
 )
 

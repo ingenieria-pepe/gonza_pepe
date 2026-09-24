@@ -318,6 +318,16 @@ LOG DE CAMBIOS:
                deposito y ultima descarga (eso sigue en los paneles). Ademas
                "CorupÃ¡": la API responde JSON sin charset y PS 5.1 lo decodifica
                ISO-8859-1; 3b ahora lee los bytes crudos y decodifica UTF-8.
+  24/09/2026 -> Alvarito (Paraguay AS, Alvaro Saldivar): Gonzalo paso la direccion de la
+               finca, plus code 5875MHG3+PQ = Toro Piru, depto. San Pedro (lat -24,323
+               lon -56,445, unos 35 km al norte de Santani). Cargada en la ficha
+               (productores.xlsx: Region, Localidad, Lat, Lon, Direccion; respaldo en
+               archivo\productores_backup_2026-09-24_alvarito.xlsx) y zona de clima
+               nueva py_toro_piru en el paso 3.5: entra al resumen de WhatsApp (semana
+               pasada y prox 7 dias) y a los graficos de clima de index_brasil e
+               index_paraguay_bolivia (color agregado; tambien para py_paraguay_ms, que
+               salia gris). Ojo: es San Pedro, no Alto Parana; la zona de Alto Parana
+               sigue pendiente de que Gonzalo diga la localidad.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
