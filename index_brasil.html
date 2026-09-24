@@ -2055,6 +2055,17 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
   else if (promMes <= 1.60) { zonaSig = 0; zonaLabel = 'MEDIA'; }
   else                      { zonaSig = -2; zonaLabel = 'ALTA (estacionalmente caro)'; }
 
+  // ----- Calendario vs precio real (24/09/2026; SYNC con actualizar_precios.ps1, $script:ZONA_DIVERGE_PCT = 12) -----
+  // El 23/09 el score dio -4 (STOP) con Cepea -2 por subir 16% desde el piso (R$ 0,93) y calendario -2
+  // por el septiembre histórico (R$ 1,68), con el precio real 36% POR DEBAJO de ese promedio. Dos reglas:
+  //  1) si el precio real se aparta del promedio del mes más de 12%, el calendario no cuenta (0);
+  //  2) una suba del Cepea no penaliza si el precio sigue más de 12% bajo el histórico del mes (rebote, no pico).
+  const DIVERGE_PCT = 12;
+  const vsHist = promMes ? ((last - promMes) / promMes) * 100 : 0;
+  let zonaAnulada = false, cepeaRebote = false;
+  if (Math.abs(vsHist) >= DIVERGE_PCT) { zonaSig = 0; zonaAnulada = true; zonaLabel += ` — no cuenta: precio real ${fmtPct(vsHist)} vs ese promedio`; }
+  if (cepeaSig < 0 && vsHist <= -DIVERGE_PCT) { cepeaSig = 0; cepeaRebote = true; cepeaLabel += ` desde el piso: sigue ${Math.abs(vsHist).toFixed(0)}% bajo el histórico del mes, no penaliza`; }
+
   // ----- Señal 3: Spread Almar vs Cepea+serv -----
   let spreadSig = 0, spreadLabel = '—', spreadAvg = null;
   if (data.almar && data.almar.semanas && data.almar.semanas.length >= 3) {
@@ -2151,8 +2162,8 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
       return `<span style="background:#e2e8f0;color:#475569;padding:3px 10px;border-radius:10px;font-weight:700;">0</span>`;
     }
     const rows = [
-      { sig: '📡 Cepea (3 sem)', read: `${fmtPct(pctChg3)} · ${cepeaLabel}`, pts: cepeaSig, int: cepeaSig > 0 ? 'Precio cayendo, momento de comprar' : cepeaSig < 0 ? 'Precio subiendo, esperar' : 'Sin cambio relevante' },
-      { sig: '📅 Zona estacional', read: `${zonaLabel} (prom ${promMes.toFixed(2).replace('.', ',')} R$/kg)`, pts: zonaSig, int: zonaSig > 0 ? 'Estacionalmente barato' : zonaSig < 0 ? 'Estacionalmente caro' : 'Mes intermedio' },
+      { sig: '📡 Cepea (3 sem)', read: `${fmtPct(pctChg3)} · ${cepeaLabel}`, pts: cepeaSig, int: cepeaSig > 0 ? 'Precio cayendo, momento de comprar' : cepeaSig < 0 ? 'Precio subiendo, esperar' : cepeaRebote ? 'Rebote desde el piso, no es un pico' : 'Sin cambio relevante' },
+      { sig: '📅 Zona estacional', read: `${zonaLabel} (prom ${promMes.toFixed(2).replace('.', ',')} R$/kg)`, pts: zonaSig, int: zonaSig > 0 ? 'Estacionalmente barato' : zonaSig < 0 ? 'Estacionalmente caro' : zonaAnulada ? 'Calendario y mercado divergen: no cuenta' : 'Mes intermedio' },
       { sig: '⚖️ Spread Almar / Cepea+servicios', read: spreadLabel, pts: spreadSig, int: spreadSig > 0 ? 'Hay margen para negociar bajar' : spreadSig < 0 ? 'Ya estás comprando bien, no presionar más' : 'Alineado' },
       { sig: '🌤️ Clima predictivo (tmax 4 sem atrás BR)', read: climaLabel, pts: climaSig, int: climaSig > 0 ? 'Por correlación r=−0,38, anticipa baja' : climaSig < 0 ? 'Anticipa suba' : 'Sin señal clara' }
     ];

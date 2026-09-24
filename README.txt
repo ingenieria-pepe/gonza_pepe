@@ -269,6 +269,23 @@ LOG DE CAMBIOS:
                $dailyPorRegion en el loop de 3.6 y clima_r2 en el JSON del
                comparativo. Lo hizo la sesion del Excel de Paraguay; parser PS 5.1
                sin errores, commit desde aca.
+  24/09/2026 -> Score de compra: el resumen del 23/09 dio "-4 STOP COMPRA" con Cepea -2
+               (subio 16% en la semana, de R$ 0,93 a 1,08) y calendario -2 (septiembre
+               historico R$ 1,68) mientras el precio real estaba 36% POR DEBAJO de ese
+               promedio, y abajo el mismo mensaje decia "ventana atipica, evaluar
+               compra". Gonzalo: "no estoy de acuerdo". Dos reglas nuevas, con el
+               umbral que ya usaba Get-AccionZona (12%): (1) si el precio real se
+               aparta del historico del mes mas de 12%, la senal calendario no cuenta;
+               (2) una suba del Cepea no penaliza si el precio sigue mas de 12% bajo el
+               historico del mes (rebote desde el piso, no pico). Con eso el 23/09
+               daba "0 NORMAL". Mismo cambio en el JS de index_brasil (bloque
+               ALERTA DE OPORTUNIDAD); el renglon del score en WhatsApp dice cuando
+               una senal se anulo. Clima en el resumen: se agrega la semana PASADA
+               por zona (max/min de Open-Meteo, dias >=32 y <=14; pedido de Gonzalo:
+               "hizo casi 35 grados toda la semana en Tembiapora y no figura") antes
+               de los prox 7 dias; paso 3.5 guarda dias_max32 y dias_min14 en
+               semana_pasada. Ojo: Open-Meteo es modelo, no estacion: para Tembiapora
+               dio 33 el 20-21/09 y un frente frio el 22-23 (min 9), no 35.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -1020,6 +1020,9 @@ foreach ($reg in $regionesClima) {
             tmin_c          = [math]::Round([double]$semTmin,1)
             tmax_c          = [math]::Round([double]$semTmax,1)
             lluvia_total_mm = [math]::Round([double]$semLluvia,1)
+            # [24/09/2026] dias de calor (>=32) y de frio (<=14) de esos 7 dias, para el resumen de WhatsApp
+            dias_max32      = @($pastWeekShort | Where-Object { [double]$_.tmax -ge 32 }).Count
+            dias_min14      = @($pastWeekShort | Where-Object { [double]$_.tmin -le 14 }).Count
         }
         forecast_7d = $forecast
         historico_semanal = $historicoSemanal
@@ -4218,6 +4221,23 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
     elseif ($oppPM -le 1.60) { $oppZonaSig = 0; $zonaAct = "MEDIA" }
     else { $oppZonaSig = -2; $zonaAct = "ALTA" }
 
+    # FIX 24/09/2026 (Gonzalo: "no estoy de acuerdo" con el STOP COMPRA del 23/09).
+    # El score dio -4 con Cepea -2 (subio 16% en la semana) y calendario -2
+    # (septiembre historico R$ 1,68) mientras el precio real estaba 36% POR DEBAJO
+    # de ese mismo promedio: un rebote desde el piso (R$ 0,93, el minimo desde
+    # junio) contado como pico, y un calendario que el propio texto de abajo ya
+    # decia que no aplicaba ("ventana atipica, evaluar compra"). Dos reglas, con
+    # el mismo umbral que usa Get-AccionZona ($script:ZONA_DIVERGE_PCT):
+    #   1) si el precio real se aparta del promedio historico del mes mas que el
+    #      umbral, la senal calendario NO cuenta (0): calendario y mercado divergen.
+    #   2) una SUBA del Cepea no penaliza si el precio sigue por debajo del
+    #      historico del mes mas que el umbral: es rebote desde el piso, no pico.
+    # SYNC con el JS de index_brasil.html (bloque ALERTA DE OPORTUNIDAD).
+    $oppVsHist = if ($oppPM -ne 0) { (($oppLast - $oppPM) / $oppPM) * 100 } else { 0 }
+    $oppZonaAnulada = $false; $oppCepeaRebote = $false
+    if ([math]::Abs($oppVsHist) -ge $script:ZONA_DIVERGE_PCT) { $oppZonaSig = 0; $oppZonaAnulada = $true }
+    if ($oppCepeaSig -lt 0 -and $oppVsHist -le -$script:ZONA_DIVERGE_PCT) { $oppCepeaSig = 0; $oppCepeaRebote = $true }
+
     # SEÑAL 3: Spread Almar vs Cepea
     if ($almarSemanas.Count -ge 3) {
         $ult4 = $almarSemanas | Select-Object -Last 4
@@ -4271,7 +4291,7 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 else { "🔴 STOP COMPRA" }
 
     $tminTxt = if ($null -ne $tminAvgReciente) { $tminAvgReciente.ToString('F1') + '°C' } else { 'n/a' }
-    Write-Host "    Score: $oppScore ($oppLevel) | Cepea[1w:$($pctChg1w.ToString('F1'))%/3w:$($pctChg3w.ToString('F1'))%→ef:$($pctChgEf.ToString('F1'))% sig=$oppCepeaSig] | Zona:$zonaAct(sig=$oppZonaSig) | Spread:$($spreadAvg.ToString('F1'))(sig=$oppSpreadSig) | Clima[tmin2w:$tminTxt sig=$oppClimaSig]" -ForegroundColor Cyan
+    Write-Host "    Score: $oppScore ($oppLevel) | Cepea[1w:$($pctChg1w.ToString('F1'))%/3w:$($pctChg3w.ToString('F1'))%→ef:$($pctChgEf.ToString('F1'))% sig=$oppCepeaSig rebote=$oppCepeaRebote] | Zona:$zonaAct(sig=$oppZonaSig vsHist:$($oppVsHist.ToString('F0'))% anulada=$oppZonaAnulada) | Spread:$($spreadAvg.ToString('F1'))(sig=$oppSpreadSig) | Clima[tmin2w:$tminTxt sig=$oppClimaSig]" -ForegroundColor Cyan
 
     # Cargar score/zona previos
     $prevScore = if ($waState.ContainsKey('ultimo_score')) { [int]$waState['ultimo_score'] } else { 0 }
@@ -4551,10 +4571,35 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
 
             # --- Score con su descomposicion, asi se ve POR QUE da lo que da
             $msg += "*🎯 Score: $oppScore · $oppLevel*`n"
-            $msg += "Cepea $(Get-SigTxt $oppCepeaSig) · calendario $(Get-SigTxt $oppZonaSig) · spread $(Get-SigTxt $oppSpreadSig) · clima $(Get-SigTxt $oppClimaSig)`n`n"
+            # [24/09/2026] si una senal se anulo por divergencia calendario/precio, se dice ahi mismo
+            $cepeaTxt = Get-SigTxt $oppCepeaSig
+            if ($oppCepeaRebote) { $cepeaTxt += " (suba desde el piso, no penaliza)" }
+            $calTxt = Get-SigTxt $oppZonaSig
+            if ($oppZonaAnulada) { $calTxt += " (no cuenta: precio $([math]::Abs([math]::Round($oppVsHist)))% $(if ($oppVsHist -lt 0) { 'bajo' } else { 'sobre' }) el hist.)" }
+            $msg += "Cepea $cepeaTxt · calendario $calTxt · spread $(Get-SigTxt $oppSpreadSig) · clima $(Get-SigTxt $oppClimaSig)`n`n"
 
-            # --- Clima prox 7 dias por zona, con los mismos umbrales que usan las
-            #     alertas del script (frio <=14, helada <=2, calor >=32, lluvia >=50mm)
+            # --- Clima. Primero la semana PASADA por zona (pedido de Gonzalo 24/09/2026:
+            #     "hizo casi 35 grados toda la semana en Tembiapora y no figura"): max/min
+            #     de los ultimos 7 dias segun Open-Meteo (modelo, no estacion), con dias
+            #     >=32 y <=14. Despues los prox 7 dias, con los mismos umbrales que usan
+            #     las alertas del script (frio <=14, helada <=2, calor >=32, lluvia >=50mm).
+            $msg += "*🌡️ Clima*`n"
+            $realLineas = @()
+            foreach ($r in $climaData) {
+                $sp = $r.semana_pasada
+                if ($null -eq $sp -or $null -eq $sp.tmax_c -or $null -eq $sp.tmin_c) { continue }
+                $nHot = 0; $nCold = 0
+                if ($null -ne $sp.dias_max32) { $nHot = [int]$sp.dias_max32 }
+                if ($null -ne $sp.dias_min14) { $nCold = [int]$sp.dias_min14 }
+                $t = "$($r.bandera) $($r.ciudad) " + $(if ($nHot -gt 0) { "🔥" } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + $(if ($nCold -gt 0) { "🥶" } else { "" }) + ([double]$sp.tmin_c).ToString('F0')
+                $det = @()
+                if ($nHot -gt 0)  { $det += "$(Get-DiasTxt $nHot) ≥32" }
+                if ($nCold -gt 0) { $det += "$(Get-DiasTxt $nCold) ≤14" }
+                if ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 50) { $det += "$(([double]$sp.lluvia_total_mm).ToString('F0')) mm" }
+                if ($det.Count -gt 0) { $t += " (" + ($det -join ', ') + ")" }
+                $realLineas += $t
+            }
+            if ($realLineas.Count -gt 0) { $msg += "Semana pasada, máx/mín °C (Open-Meteo): " + ($realLineas -join ' · ') + "`n" }
             $climaLineas = @()
             foreach ($r in $climaData) {
                 $fc = @($r.forecast_7d)
@@ -4573,9 +4618,8 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 if ($lluvia.Count -gt 0) { $partes += "$(Get-DiasTxt $lluvia.Count) lluvia ≥50mm" }
                 if ($partes.Count -gt 0) { $climaLineas += "$($r.bandera) $($r.ciudad): $($partes -join ' · ')" }
             }
-            $msg += "*🌡️ Clima próx 7d*`n"
-            if ($climaLineas.Count -gt 0) { $msg += ($climaLineas -join "`n") + "`n`n" }
-            else { $msg += "sin frío, calor ni lluvia fuerte en las zonas productoras`n`n" }
+            if ($climaLineas.Count -gt 0) { $msg += "Próx 7d:`n" + ($climaLineas -join "`n") + "`n`n" }
+            else { $msg += "Próx 7d: sin frío, calor ni lluvia fuerte en las zonas productoras`n`n" }
 
             # --- Modelo 4 semanas. Se dice de que esta hecho: r² del clima (peso_clim)
             #     y el resto es el promedio historico del mes destino. Sin eso, un
