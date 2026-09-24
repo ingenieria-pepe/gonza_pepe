@@ -347,6 +347,22 @@ LOG DE CAMBIOS:
                a Gonzalo que mande el link del mapa. JSON embebido de las 5 fichas
                actualizado a mano para que se vea ya; respaldo de la planilla en
                archivo\productores_backup_2026-09-24_ec_gm.xlsx.
+  24/09/2026 -> Entradas del dia (las dejo Gonzalo en Descargas, las proceso la sesion del
+               Excel de Paraguay, commit desde aca): captura del stock del ERP del 24/09 y
+               4 filas en fuentes\stock\stock_diario.xlsx (registro, no entra al calculo);
+               exports de Aloha del 24/09 en fuentes\plan_cargas\ (BR/PY, 2.616 cargas) y
+               \otros\ (OTROS, 1.046). Desde el viernes los baja el servidor solo (3b).
+  24/09/2026 -> Plan de compras, regla de las cargas dictadas. Con el export del 24/09 el
+               Plan ya traia cargas del viernes 25/09 (Cassio, Corupa) y la regla vieja
+               ("dictadas solo despues de la ultima carga del Plan") tiraba a Stein,
+               Josemar, Marconi e Ivo del mismo viernes, que Gonzalo dicto y Aloha todavia
+               no tiene: Brasil quedaba con 2 dias de stock al 03/10. Ahora la comparacion
+               es POR PRODUCTOR (nombre o alias de productores.xlsx) y semana de carga: la
+               dictada se omite solo si el Plan ya tiene una carga de ese productor esa
+               semana; si dicto 2 y el Plan tiene 1, queda 1. Resultado: 5 dictadas
+               cuentan, 21 estan en el Plan; Brasil cierra el 03/10 en 7.100 (5 dias),
+               igual que la cuenta a mano del 20/09. generar_datos.ps1, LEEME y la nota del
+               simulador actualizados.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

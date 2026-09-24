@@ -21,8 +21,9 @@
 #    - plan_compras\simulador.html (inyecta el JSON entre los marcadores)
 #
 #  Reglas:
-#    - Las cargas dictadas valen solo para fechas POSTERIORES a la ultima carga
-#      que trae el plan de su origen; cuando Aloha se pone al dia, manda Aloha.
+#    - Las cargas dictadas se cuentan salvo que el Plan ya tenga una carga de ese
+#      productor (nombre o alias) en esa semana: cuando Aloha se pone al dia, manda
+#      Aloha, y lo que Aloha todavia no tiene sigue contando. [24/09/2026]
 #    - Descarga = fecha real si ya descargo; si no, carga + 3 dias (BR, PY) o + 6 (BO).
 # ==========================================================================
 $ErrorActionPreference = 'Stop'
@@ -91,13 +92,37 @@ if ($pcO) {
     }
 }
 
-# ---- dictadas: solo fechas posteriores a la ultima carga del plan de ese origen
+# ---- dictadas: se cuentan salvo que el Plan ya tenga ESA carga  [regla nueva 24/09/2026]
+# Antes valian solo para fechas POSTERIORES a la ultima carga del plan de su origen. Fallaba con
+# Aloha cargado a medias: el 24/09 el plan ya tenia cargas del viernes 25/09 (Cassio, Corupa) y por
+# eso se tiraban Stein, Josemar, Marconi e Ivo del mismo viernes, dictados por Gonzalo y todavia no
+# cargados en Aloha; Brasil aparecia con 2 dias de stock. Ahora se compara POR PRODUCTOR (mismo
+# nombre o alias de fuentes\productores.xlsx) y semana de carga: una dictada se omite si el Plan ya
+# tiene una carga de ese productor esa semana; si dicto 2 y el Plan tiene 1, queda 1 (la ultima).
 $maxPlan = @{}
 foreach ($o in 'BR', 'PY', 'BO') { $maxPlan[$o] = ($camiones | Where-Object { $_.origen -eq $o } | ForEach-Object { [DateTime]$_.carga } | Sort-Object | Select-Object -Last 1) }
+function Norm($s) { $t = ([string]$s).ToLower().Trim().Normalize([Text.NormalizationForm]::FormD); $sb = New-Object Text.StringBuilder; foreach ($ch in $t.ToCharArray()) { if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($ch) -ne [Globalization.UnicodeCategory]::NonSpacingMark) { [void]$sb.Append($ch) } }; return [regex]::Replace($sb.ToString(), '\s+', ' ') }
+$canonMap = @{}
+$prodX = Join-Path $repo 'fuentes\productores.xlsx'
+if (Test-Path $prodX) {
+    foreach ($pr in @(Tabla $prodX 'productores')) {
+        if (-not $pr.productor) { continue }
+        $canonMap[(Norm $pr.productor)] = $pr.productor
+        foreach ($a in ([string]$pr.alias -split ';')) { if ($a.Trim()) { $canonMap[(Norm $a)] = $pr.productor } }
+    }
+}
+function Canon($name) {
+    $n = Norm $name
+    if ($canonMap.ContainsKey($n)) { return $canonMap[$n] }
+    foreach ($k in $canonMap.Keys) { if ($k.Length -ge 4 -and ($n.Contains($k) -or $k.Contains($n))) { return $canonMap[$k] } }
+    return $n
+}
+$enPlan = @{}    # "productor canonico|semana_carga" -> cargas que ya trae el Plan
+foreach ($c in $camiones) { $k = (Canon $c.productor) + '|' + $c.semana_carga; if (-not $enPlan.ContainsKey($k)) { $enPlan[$k] = 0 }; $enPlan[$k]++ }
 $omitidas = 0; $usadas = 0
-foreach ($p in $prog) {
-    $mp = $maxPlan[$p.origen]
-    if ($mp -and ([DateTime]$p.carga -le $mp)) { $omitidas++; continue }
+foreach ($p in ($prog | Sort-Object carga)) {
+    $k = (Canon $p.productor) + '|' + $p.semana_carga
+    if ($enPlan.ContainsKey($k) -and $enPlan[$k] -gt 0) { $enPlan[$k]--; $omitidas++; continue }
     $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = $p.nota }
     $usadas++
 }

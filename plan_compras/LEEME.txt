@@ -25,8 +25,9 @@ COMO SE ACTUALIZA (cada vez que cambie algo)
      (Aloha API).xlsx. A mano sigue valiendo: exportar desde Aloha (Plan de cargas > exportar, sin
      filtro / con fuente OTROS) y dejar el .xlsx en esas carpetas (el script toma el mas nuevo).
   2. Conteo por camara nuevo: una fila por origen en la hoja conteo (fecha, origen, cajas).
-  3. Cargas dictadas: filas en cargas_programadas (solo valen para fechas posteriores a la ultima carga
-     que ya trae el plan de ese origen).
+  3. Cargas dictadas: filas en cargas_programadas. Se cuentan salvo que el Plan de Aloha ya tenga una
+     carga de ese productor (nombre o alias de productores.xlsx) en esa misma semana: lo que Aloha ya
+     tiene manda, lo que todavia no tiene sigue contando (regla del 24/09/2026).
   4. Subir plan_compras.xlsx por git: el servidor lo toma y regenera solo (paso 5j). A mano:
      powershell -ExecutionPolicy Bypass -File plan_compras\generar_datos.ps1
   5. Abrir plan_compras\simulador.html.
