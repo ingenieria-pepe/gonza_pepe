@@ -286,6 +286,30 @@ LOG DE CAMBIOS:
                de los prox 7 dias; paso 3.5 guarda dias_max32 y dias_min14 en
                semana_pasada. Ojo: Open-Meteo es modelo, no estacion: para Tembiapora
                dio 33 el 20-21/09 y un frente frio el 22-23 (min 9), no 35.
+  24/09/2026 -> Fichas: Gonzalo pidio sacar las "Notas" de procedencia de las fichas
+               (columna Notas de productores.xlsx vaciada, salvo Curuca que sigue
+               diciendo COMPRADOR). Fotos de packing: carpeta fuentes\fotos_packing\
+               <productor>\ (hoy paraguay_hf, 9 fotos); el paso 3 las engancha a la
+               ficha por slug/nombre/alias y abrirFicha las muestra como galeria en
+               index_brasil e index_paraguay_bolivia. Lo hizo la sesion del Excel de
+               Paraguay; commit desde aca.
+  24/09/2026 -> "Todo a Uruguay" (pedido de Gonzalo). (1) El paso 3b, ademas de la
+               lista JSON, baja los exportes .xlsx del Plan de Cargas desde la API de
+               Aloha (GET /plan-cargas/export.xlsx?fuente=BR y =OTROS, el mismo boton
+               exportar de la pantalla) a fuentes\plan_cargas\Plan - Cargas (Aloha
+               API).xlsx y fuentes\plan_cargas\otros\Plan - Cargas OTROS (Aloha
+               API).xlsx: nombre fijo, se pisan en cada corrida, en .gitignore y en
+               $preservar de correr_servidor.ps1. Se valida que sea un xlsx con la
+               hoja Plan de cargas; si falla queda el anterior y sale en las fallas.
+               Con eso 5h y el plan de compras dejan de depender de que Gonzalo
+               exporte a mano a Descargas. (2) Paso 5j nuevo: corre
+               plan_compras\generar_datos.ps1 al final de los paneles (sigue por
+               fuera del dashboard). Probado en PS 5.1: parser OK, validador OK con
+               los exportes reales, 5j en 8 s. La bajada real se ve recien en la
+               corrida del viernes 25/09 19:00: el servidor ya tiene config\aloha.json
+               (login probado por la sesion del servidor, 2618 cargas fuente BR) y la
+               tarea programada sincroniza sola (23/09: sync OK 5ef6bef -> 5ee3f30).
+               generar_datos.ps1 pasa a BOM + CRLF.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -26,3 +26,7 @@ respaldos_servidor/
 *.zip
 *.bak
 *.pre-splice.bak
+# exportes del Plan de Cargas que baja el paso 3b desde la API de Aloha (24/09/2026):
+# son del servidor (correr_servidor.ps1 los preserva); en la laptop no existen salvo que haya config/aloha.json
+fuentes/plan_cargas/*(Aloha API).xlsx
+fuentes/plan_cargas/otros/*(Aloha API).xlsx

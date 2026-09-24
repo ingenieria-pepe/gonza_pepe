@@ -747,10 +747,37 @@ if (Test-Path $alohaCfgPath) {
     catch { Add-Falla -Paso 'Plan de Cargas (config)' -Detalle "config\aloha.json ilegible: $($_.Exception.Message)" }
 }
 
+function Test-XlsxAloha {
+    # Devuelve '' si el archivo es un .xlsx con la hoja 'Plan de cargas'; si no,
+    # el motivo. Read-XlsxHoja recien se define en 5g, asi que aca se mira el
+    # zip a mano. [24/09/2026]
+    param([string]$Path)
+    try {
+        $fi = Get-Item -LiteralPath $Path
+        if ($fi.Length -lt 2048) { return "archivo de $($fi.Length) bytes (la API no devolvio un xlsx?)" }
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $zip = [IO.Compression.ZipFile]::OpenRead($Path)
+        try {
+            $wb = $zip.GetEntry('xl/workbook.xml')
+            if ($null -eq $wb) { return 'no es un xlsx (falta xl/workbook.xml)' }
+            $sr = New-Object IO.StreamReader($wb.Open()); $xml = $sr.ReadToEnd(); $sr.Close()
+            if ($xml -notmatch 'Plan de cargas') { return "el xlsx no tiene la hoja 'Plan de cargas'" }
+        } finally { $zip.Dispose() }
+        return ''
+    } catch { return $_.Exception.Message }
+}
+
 function Get-PlanCargasAloha {
-    # Login -> token JWT -> lista del plan -> logout. Tira si algo falla; el que
-    # llama decide si cae al cache.
-    param($cfg)
+    # Login -> token JWT -> lista del plan (JSON) -> exportes .xlsx -> logout.
+    # La lista tira si algo falla (el que llama decide si cae al cache). Los
+    # exportes NO tiran: cada uno vuelve con ok/detalle y, si falla, queda el
+    # archivo anterior.
+    # [24/09/2026] Exportes: GET /plan-cargas/export.xlsx?fuente=BR|OTROS es el
+    # mismo boton "exportar" de la pantalla Plan de cargas (hoja 'Plan de cargas',
+    # 26 columnas, fechas reales). Con eso 5h (tabla de camiones) y
+    # plan_compras\generar_datos.ps1 (Bolivia = fuente OTROS, Pais = BO) dejan de
+    # depender de que Gonzalo exporte a mano y la laptop lo suba por git.
+    param($cfg, $exports = @())
     $apiBase = ([string]$cfg.url).TrimEnd('/')
     if ([string]::IsNullOrWhiteSpace($apiBase)) { throw "falta 'url' en config\aloha.json" }
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
@@ -764,12 +791,28 @@ function Get-PlanCargasAloha {
     $hdr = @{ Authorization = "Bearer $($login.token)" }
     $qs = @('limit=5000')
     if (-not [string]::IsNullOrWhiteSpace([string]$cfg.fuente)) { $qs += "fuente=$([uri]::EscapeDataString([string]$cfg.fuente))" }
+    $resExports = @()
     try {
         $rows = Invoke-RestMethod -Uri "$apiBase/plan-cargas?$($qs -join '&')" -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0"
+        foreach ($ex in @($exports)) {
+            $tmp = [string]$ex.path + '.bajando'
+            try {
+                Invoke-WebRequest -Uri "$apiBase/plan-cargas/export.xlsx?fuente=$([uri]::EscapeDataString([string]$ex.fuente))" -Headers $hdr -OutFile $tmp -UseBasicParsing -TimeoutSec 180 -UserAgent "poronga/1.0"
+                $chk = Test-XlsxAloha -Path $tmp
+                if ($chk) { throw $chk }
+                $dirEx = Split-Path $ex.path -Parent
+                if (-not (Test-Path -LiteralPath $dirEx)) { New-Item -ItemType Directory -Path $dirEx -Force | Out-Null }
+                Move-Item -LiteralPath $tmp -Destination $ex.path -Force
+                $resExports += [PSCustomObject]@{ fuente = $ex.fuente; path = $ex.path; ok = $true; detalle = "$([math]::Round((Get-Item -LiteralPath $ex.path).Length / 1KB)) KB" }
+            } catch {
+                if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue }
+                $resExports += [PSCustomObject]@{ fuente = $ex.fuente; path = $ex.path; ok = $false; detalle = $_.Exception.Message }
+            }
+        }
     } finally {
         try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent "poronga/1.0" | Out-Null } catch {}
     }
-    return @($rows)
+    return [PSCustomObject]@{ rows = @($rows); exports = $resExports }
 }
 
 if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
@@ -778,7 +821,16 @@ if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
     Write-Host "    Falta username/password en config/aloha.json - completar para activar" -ForegroundColor DarkYellow
 } else {
     try {
-        $filasPlan = Get-PlanCargasAloha -cfg $alohaCfg
+        # Exportes .xlsx que reemplazan las bajadas a mano [24/09/2026]. Nombre fijo:
+        # se pisan en cada corrida y quedan como "el mas nuevo" de su carpeta, que es
+        # lo que miran 5h y generar_datos. Estan en .gitignore y en $preservar de
+        # correr_servidor.ps1: son del servidor, no viajan por git.
+        $alohaExports = @(
+            @{ fuente = 'BR';    path = (Join-Path $fuentes 'plan_cargas\Plan - Cargas (Aloha API).xlsx') },
+            @{ fuente = 'OTROS'; path = (Join-Path $fuentes 'plan_cargas\otros\Plan - Cargas OTROS (Aloha API).xlsx') }
+        )
+        $resAloha  = Get-PlanCargasAloha -cfg $alohaCfg -exports $alohaExports
+        $filasPlan = @($resAloha.rows)
         $planCargas = [PSCustomObject]@{
             generado_en = (Get-Date).ToString('yyyy-MM-dd HH:mm')
             origen      = 'aloha'
@@ -787,6 +839,13 @@ if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
         }
         $planCargas | ConvertTo-Json -Depth 6 -Compress | Out-File -FilePath $planCachePath -Encoding UTF8
         Write-Host "    OK: $($filasPlan.Count) cargas del plan (fuente '$($alohaCfg.fuente)')" -ForegroundColor Green
+        foreach ($ex in @($resAloha.exports)) {
+            if ($ex.ok) { Write-Host "    export $($ex.fuente): $($ex.detalle) -> $(Split-Path $ex.path -Leaf)" -ForegroundColor Green }
+            else {
+                Add-Falla -Paso "Plan de Cargas (export $($ex.fuente))" -Detalle "$($ex.detalle) - 5h y plan de compras siguen con el xlsx anterior de la carpeta"
+                Write-Host "    export $($ex.fuente) FALLO: $($ex.detalle)" -ForegroundColor Yellow
+            }
+        }
     } catch {
         $detPlan = $_.Exception.Message
         if (Test-Path $planCachePath) {
@@ -3712,6 +3771,30 @@ if (-not (Test-Path $psXlsx)) {
   } catch {
     Add-Falla -Paso 'Plan semanal (saldo por dia)' -Detalle "$($_.Exception.Message) (linea $($_.InvocationInfo.ScriptLineNumber))"
   }
+}
+
+# ==========================================================================
+# 5j) Plan de compras: plan_compras\generar_datos.ps1  [24/09/2026]
+#     Gonzalo pidio que "todo vaya a Uruguay": el generador del simulador corria
+#     a mano en la laptop. Ahora corre aca, al final de los paneles, y deja al
+#     dia plan_compras\plan_compras.json y plan_compras\simulador.html. Sigue
+#     POR FUERA del dashboard (sin boton ni tarjeta) hasta que Gonzalo diga.
+#     Lee el .xlsx mas nuevo de fuentes\plan_cargas\ y \otros\ (los que baja 3b
+#     desde Aloha, o los subidos por git) y plan_compras\plan_compras.xlsx
+#     (conteo, cargas dictadas, ventas: eso sigue viajando por git).
+# ==========================================================================
+Write-Host "[5j] Plan de compras (plan_compras\generar_datos.ps1)..." -ForegroundColor Cyan
+$genPC = Join-Path $base "plan_compras\generar_datos.ps1"
+if (-not (Test-Path $genPC)) {
+    Write-Host "    (skip) no hay plan_compras\generar_datos.ps1" -ForegroundColor DarkYellow
+} else {
+    try {
+        & $genPC
+        if (-not $?) { throw "generar_datos.ps1 termino con error" }
+    } catch {
+        Add-Falla -Paso 'Plan de compras (generar_datos)' -Detalle "$($_.Exception.Message) (linea $($_.InvocationInfo.ScriptLineNumber))"
+        Write-Host "    FALLO: $($_.Exception.Message)" -ForegroundColor Red
+    }
 }
 
 # ==========================================================================

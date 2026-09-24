@@ -1,16 +1,19 @@
-# ==========================================================================
+﻿# ==========================================================================
 #  plan_compras\generar_datos.ps1  -  datos del simulador del plan de compras
 # ==========================================================================
-#  Se corre A MANO (no es parte de actualizar_precios.ps1): el plan de compras
-#  se trabaja por fuera del dashboard hasta que este listo (Gonzalo, 20/09/2026).
+#  El plan de compras se trabaja por fuera del dashboard hasta que este listo
+#  (Gonzalo, 20/09/2026): sin boton ni tarjeta. Desde el 24/09/2026 lo corre
+#  actualizar_precios.ps1 al final de los paneles (paso 5j) para que en el
+#  servidor quede al dia solo; a mano sigue sirviendo:
 #
 #    powershell -ExecutionPolicy Bypass -File plan_compras\generar_datos.ps1
 #
 #  Lee:
-#    - fuentes\plan_cargas\*.xlsx (el mas nuevo): plan Brasil/Paraguay (master de
-#      OneDrive o export de Aloha), camiones con fecha de carga y de descarga.
+#    - fuentes\plan_cargas\*.xlsx (el mas nuevo): plan Brasil/Paraguay (export de
+#      Aloha o master de OneDrive), camiones con fecha de carga y de descarga. En
+#      el servidor lo baja el paso 3b desde la API de Aloha en cada corrida.
 #    - fuentes\plan_cargas\otros\*.xlsx (el mas nuevo): export de Aloha fuente
-#      OTROS, de donde salen los camiones de BOLIVIA (Pais = BO).
+#      OTROS, de donde salen los camiones de BOLIVIA (Pais = BO). Idem, 3b.
 #    - plan_compras\plan_compras.xlsx: hojas cargas_programadas (lo que dicta
 #      Gonzalo), ventas_plan, conteo.
 #  Escribe:

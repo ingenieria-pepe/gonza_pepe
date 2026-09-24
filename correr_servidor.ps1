@@ -36,6 +36,8 @@ $preservar = @(
     'config/whatsapp.json',
     'config/aloha.json',
     'fuentes/plan_cargas_aloha.json',
+    'fuentes/plan_cargas/Plan - Cargas (Aloha API).xlsx',
+    'fuentes/plan_cargas/otros/Plan - Cargas OTROS (Aloha API).xlsx',
     'fuentes/state_alertas.json',
     'fuentes/state_whatsapp.json',
     'fuentes/precios_py_cache.json',
