@@ -537,7 +537,8 @@ if (Test-Path $cargasFile) {
                     Write-Host "    (fotos) carpeta '$($d.Name)' no coincide con ningun productor de la planilla" -ForegroundColor DarkYellow
                     continue
                 }
-                $fs = @(Get-ChildItem $d.FullName -File | Where-Object { $_.Extension -match '^\.(jpe?g|png|webp)$' } | Sort-Object Name |
+                # [24/09/2026] tambien videos (mp4/webm): van en la misma lista y la ficha los muestra con reproductor
+                $fs = @(Get-ChildItem $d.FullName -File | Where-Object { $_.Extension -match '^\.(jpe?g|png|webp|mp4|webm)$' } | Sort-Object Name |
                         ForEach-Object { 'fuentes/fotos_packing/' + $d.Name + '/' + $_.Name })
                 if ($fs.Count -eq 0) { continue }
                 $almarFichas[$key]['fotos'] = $fs

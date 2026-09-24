@@ -331,6 +331,22 @@ LOG DE CAMBIOS:
                El JSON embebido de las fichas (index_brasil, index_paraguay_bolivia y
                fuentes\plan_cargas.json) se actualizo a mano para que se vea ya; el
                pipeline lo regenera igual desde productores.xlsx.
+  24/09/2026 -> Fotos Y VIDEOS de packing para 4 productores de Paraguay (Gonzalo dejo
+               carpetas en Descargas): paraguay_ec (8 fotos + 5 videos), paraguay_as
+               (8 + 2), paraguay_ms (2), paraguay_hf (+2 fotos y 1 video a las 9 que ya
+               tenia). Fotos achicadas a 1280 px; videos tal cual (mp4 de WhatsApp,
+               2 a 7 MB cada uno, 34 MB en total al repo). El bloque "Fotos de packing"
+               del paso 3 acepta ahora mp4/webm y la ficha (index_brasil e
+               index_paraguay_bolivia, abrirFicha) los muestra con reproductor en la
+               misma galeria. Ubicaciones nuevas en productores.xlsx: Paraguay EC =
+               Banana EC, Asent. Oga Lata, Yrybucua, San Pedro (plus code GR6G+W3 ->
+               5875GR6G+W3, lat -24,48756 lon -56,12481, verificado con geocodificacion
+               inversa); Paraguay GM = Guido (Servi Fel), Zapallo, Mayor Otano, Itapua,
+               SIN coordenadas: el plus code MH5P+JF resuelto contra Mayor Otano cae en
+               Misiones (Argentina) y corrido una celda cae fuera del distrito; se pidio
+               a Gonzalo que mande el link del mapa. JSON embebido de las 5 fichas
+               actualizado a mano para que se vea ya; respaldo de la planilla en
+               archivo\productores_backup_2026-09-24_ec_gm.xlsx.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
