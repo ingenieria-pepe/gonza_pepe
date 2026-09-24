@@ -517,6 +517,35 @@ if (Test-Path $cargasFile) {
             Write-Host "    (sin fichas) falta fuentes\productores.xlsx" -ForegroundColor DarkYellow
         }
 
+        # ---- Fotos de packing: fuentes\fotos_packing\<productor>\*.jpg  [24/09/2026] ----
+        # Una carpeta por productor, nombrada como en la planilla ("Paraguay HF"), como su
+        # slug ("paraguay_hf") o como un alias ("HF"). Las rutas relativas van a ficha.fotos
+        # y la ficha del dashboard (PY y BR) las muestra como galeria. No es columna de
+        # productores.xlsx, asi que las ediciones desde el dashboard no la tocan ni la pisan.
+        $fotosDir = Join-Path $fuentes 'fotos_packing'
+        if (Test-Path $fotosDir) {
+            $slugDe = { param($s) ((([string]$s).ToLower()) -replace '[^a-z0-9]+', '_').Trim('_') }
+            $porSlug = @{}
+            foreach ($k in @($almarFichas.Keys)) { $porSlug[(& $slugDe $k)] = $k }
+            $nFotos = 0; $nCarp = 0
+            foreach ($d in @(Get-ChildItem $fotosDir -Directory | Sort-Object Name)) {
+                $sl = & $slugDe $d.Name
+                $key = $null
+                if ($porSlug.ContainsKey($sl)) { $key = $porSlug[$sl] }
+                elseif ($almarAliases.ContainsKey($d.Name.Trim().ToLower())) { $key = ([string]$almarAliases[$d.Name.Trim().ToLower()]).ToLower() }
+                if (-not $key -or -not $almarFichas.ContainsKey($key)) {
+                    Write-Host "    (fotos) carpeta '$($d.Name)' no coincide con ningun productor de la planilla" -ForegroundColor DarkYellow
+                    continue
+                }
+                $fs = @(Get-ChildItem $d.FullName -File | Where-Object { $_.Extension -match '^\.(jpe?g|png|webp)$' } | Sort-Object Name |
+                        ForEach-Object { 'fuentes/fotos_packing/' + $d.Name + '/' + $_.Name })
+                if ($fs.Count -eq 0) { continue }
+                $almarFichas[$key]['fotos'] = $fs
+                $nFotos += $fs.Count; $nCarp++
+            }
+            if ($nCarp) { Write-Host "    Fotos de packing: $nFotos foto(s) en $nCarp carpeta(s)" -ForegroundColor Green }
+        }
+
         $pkgC = Open-ExcelPackage -Path $cargasFile
         $hojaIdx = 0
         foreach ($wsC in $pkgC.Workbook.Worksheets) {
