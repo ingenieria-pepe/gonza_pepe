@@ -310,6 +310,14 @@ LOG DE CAMBIOS:
                (login probado por la sesion del servidor, 2618 cargas fuente BR) y la
                tarea programada sincroniza sola (23/09: sync OK 5ef6bef -> 5ee3f30).
                generar_datos.ps1 pasa a BOM + CRLF.
+  24/09/2026 -> Primer resumen de WhatsApp con el bloque Plan de Cargas de Aloha (el
+               servidor ya tiene config\aloha.json). Gonzalo: "las cargas no quiero
+               detalles, tenes que decir lo que se pidio y listo". El bloque queda en
+               dos renglones: "Pedido semana del dd/MM: N camiones - N cajas" para
+               esta semana y la que viene; fuera productores, estados, en camino,
+               deposito y ultima descarga (eso sigue en los paneles). Ademas
+               "CorupÃ¡": la API responde JSON sin charset y PS 5.1 lo decodifica
+               ISO-8859-1; 3b ahora lee los bytes crudos y decodifica UTF-8.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

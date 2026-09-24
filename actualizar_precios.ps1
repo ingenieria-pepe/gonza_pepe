@@ -793,7 +793,11 @@ function Get-PlanCargasAloha {
     if (-not [string]::IsNullOrWhiteSpace([string]$cfg.fuente)) { $qs += "fuente=$([uri]::EscapeDataString([string]$cfg.fuente))" }
     $resExports = @()
     try {
-        $rows = Invoke-RestMethod -Uri "$apiBase/plan-cargas?$($qs -join '&')" -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0"
+        # UTF-8 a mano [24/09/2026]: la API responde application/json sin charset y
+        # PS 5.1 decodifica ISO-8859-1: "Corupa" con acento salio como "CorupÃ¡" en el
+        # WhatsApp del 24/09. Se leen los bytes crudos y se decodifican como UTF-8.
+        $wr = Invoke-WebRequest -Uri "$apiBase/plan-cargas?$($qs -join '&')" -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0" -UseBasicParsing
+        $rows = [Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray()) | ConvertFrom-Json
         foreach ($ex in @($exports)) {
             $tmp = [string]$ex.path + '.bajando'
             try {
@@ -4775,44 +4779,24 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $msg += "USD $($ecP.ToString('F2'))/caja · $(Get-PctTxt $ecSpread) vs PMS USD $($script:EC_PMS_USD_CAJA.ToString('F2'))`n`n"
             }
 
-            # --- Plan de Cargas (Aloha): lo que VIENE, no lo que se pago. Se lee
-            #     de la API del ERP en el paso 3b; si fallo, se dice que es cache y
-            #     de cuando. Solo aparecen las lineas con algo que contar.
+            # --- Plan de Cargas (Aloha): SOLO lo que se pidio, sin detalle. Gonzalo,
+            #     24/09/2026, sobre el primer resumen con el bloque: "las cargas no
+            #     quiero detalles, tenes que decir lo que se pidio y listo". Camiones y
+            #     cajas por semana de carga (esta semana y la que viene), y nada mas:
+            #     sin productores, sin estados, sin en camino / deposito / ultima
+            #     descarga. Eso queda en los paneles. Se lee de la API en el paso 3b;
+            #     si fallo, se dice que es cache y de cuando.
             if ($null -ne $planResumen) {
                 $pcTag = if ($planResumen.origen -eq 'cache') { "cache del $(Get-FechaCorta $planResumen.generado_en)" } else { "Aloha $(Get-FechaCorta $planResumen.generado_en)" }
-                function Get-ProdTxt { param($lista, [int]$max = 4)
-                    $l = @($lista); if ($l.Count -eq 0) { return '' }
-                    if ($l.Count -le $max) { return ' · ' + ($l -join ', ') }
-                    return ' · ' + (($l | Select-Object -First $max) -join ', ') + " +$($l.Count - $max)"
-                }
                 function Get-CamTxt { param([int]$n) if ($n -eq 1) { "1 camión" } else { "$n camiones" } }
-                function Get-StatusTxt { param($h)
-                    if ($null -eq $h -or $h.Count -eq 0) { return '' }
-                    $partes = @(); foreach ($k in $h.Keys) { $partes += "$(([string]$k).ToLower()) $($h[$k])" }
-                    return ' (' + ($partes -join ' · ') + ')'
-                }
                 $msg += "*🚛 Plan de Cargas* ($pcTag)`n"
-                if ($planResumen.semana_actual) {
-                    $sa = $planResumen.semana_actual
-                    $msg += "Semana del $(Get-FechaCorta $sa.semana_lunes): $(Get-CamTxt $sa.camiones) · $(([int]$sa.cajas).ToString('N0')) cajas$(Get-ProdTxt $sa.productores)`n"
-                } else {
-                    $msg += "Esta semana: sin cargas en el plan`n"
-                }
-                if ($planResumen.en_camino.camiones -gt 0) {
-                    $msg += "En camino: $(Get-CamTxt $planResumen.en_camino.camiones) · $(([int]$planResumen.en_camino.cajas).ToString('N0')) cajas$(Get-StatusTxt $planResumen.en_camino.por_status)`n"
-                }
-                if ($planResumen.por_venir.camiones -gt 0) {
-                    $msg += "Por venir: $(Get-CamTxt $planResumen.por_venir.camiones) · $(([int]$planResumen.por_venir.cajas).ToString('N0')) cajas$(Get-StatusTxt $planResumen.por_venir.por_status)`n"
-                }
-                if ($planResumen.arribados.camiones -gt 0) {
-                    $msg += "En depósito sin descargar: $(Get-CamTxt $planResumen.arribados.camiones)`n"
-                }
-                if ($planResumen.ultima_descarga) {
-                    $ud = $planResumen.ultima_descarga
-                    $msg += "Última descarga $(Get-FechaCorta $ud.fecha)"
-                    if ($ud.productor) { $msg += " · $($ud.productor)" }
-                    if ($ud.cajas -gt 0) { $msg += " · $(([int]$ud.cajas).ToString('N0')) cajas" }
-                    $msg += "`n"
+                $lunesPc = (Get-Date).Date
+                $lunesPc = $lunesPc.AddDays(-((([int]$lunesPc.DayOfWeek) + 6) % 7))
+                foreach ($offPc in 0, 7) {
+                    $kSem = $lunesPc.AddDays($offPc).ToString('yyyy-MM-dd')
+                    $sw = @($planResumen.semanas | Where-Object { $_.semana_lunes -eq $kSem }) | Select-Object -First 1
+                    if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) · $(([int]$sw.cajas).ToString('N0')) cajas`n" }
+                    else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada todavía`n" }
                 }
                 $msg += "`n"
             }
