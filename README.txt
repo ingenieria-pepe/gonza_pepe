@@ -328,6 +328,9 @@ LOG DE CAMBIOS:
                index_paraguay_bolivia (color agregado; tambien para py_paraguay_ms, que
                salia gris). Ojo: es San Pedro, no Alto Parana; la zona de Alto Parana
                sigue pendiente de que Gonzalo diga la localidad.
+               El JSON embebido de las fichas (index_brasil, index_paraguay_bolivia y
+               fuentes\plan_cargas.json) se actualizo a mano para que se vea ya; el
+               pipeline lo regenera igual desde productores.xlsx.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
