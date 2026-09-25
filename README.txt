@@ -363,6 +363,19 @@ LOG DE CAMBIOS:
                cuentan, 21 estan en el Plan; Brasil cierra el 03/10 en 7.100 (5 dias),
                igual que la cuenta a mano del 20/09. generar_datos.ps1, LEEME y la nota del
                simulador actualizados.
+  25/09/2026 -> Cargas de Gonzalo (dos capturas de sus notas, dejadas en Descargas):
+               (a) fuentes\cargas 2026.xlsx, hoja Setiembre: semana 38 (14-19/09: Fisher,
+               Cassio, Ivo, sin precio), semana 39 (21-26/09: Fisher R$ 38 Amaro, Cassio
+               36 Axt/Alianza, Agrocurupa precio ilegible, Gilson 42 Nilton) y semana 40
+               (28/09-03/10: 11 camiones planificados, sin precio). Despachante Etimex
+               para Amaro/Nilton como en la semana 37, Alianza para Axt, vacio para
+               Chabat. Respaldo en archivo\cargas_2026_backup_2026-09-25.xlsx.
+               (b) plan_compras.xlsx, cargas_programadas: lo dictado desde el 20/09 se
+               reemplaza por la nota (semana 21-26: BR 4 camiones, no 9; PY Franco 3,
+               Alvarito 2, Milciades 2) y se agrega la semana 28/09-03/10 (BR 11: Fisher 2,
+               Agro 2, Ivo 2, Cassio, Gilson, Josemar, Stein, Marconi; PY Milciades 1,
+               Diego 2, Alvarito 1, dia supuesto lunes/martes). Stein, Josemar y Marconi
+               NO cargan el 25/09: pasan al viernes 02/10. Regenerado el simulador.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
