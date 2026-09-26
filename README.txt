@@ -389,6 +389,13 @@ LOG DE CAMBIOS:
                Se conservan los respaldos de datos (xlsx/csv), archivo\importaciones_uy
                (lo lee 5c), index_ecuador_legacy, bloques_fijos, la guia v3.3 e index.html
                (redireccion a index_brasil).
+  26/09/2026 -> Conteo de camaras del 26/09 (fotos de las 3 tablas + listado del ERP por camara
+               pegado por Gonzalo): fuentes\stock\2026-09-26_conteo_camaras.xlsx (hojas
+               banana_br_py, ecuador_zac, bolivia, zac_erp_por_camara) y las 3 fotos. Para el
+               plan: BR 9709 (ZAC 8701 + CR cam 5 1.008, supuesto Brasil), PY 15617 (ZAC 13673 +
+               CR cam 2 1.944, supuesto Paraguay), BO 1646 (ZAC), EC 6833 (solo ZAC). Bolivia: la
+               foto dice CAM 2 = 423 y el ERP 23 (la camara 2 tiene 111 en total): se tomo el ERP,
+               a confirmar. Regenerado el simulador: arranca del 26/09.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
