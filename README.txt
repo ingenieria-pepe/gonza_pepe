@@ -401,6 +401,15 @@ LOG DE CAMBIOS:
                esta solo en ZAC. Conteo 26/09 definitivo: BR 11653, PY 13673, BO 1646, EC 21737. Hoja
                cr_erp_por_camara en el xlsx del conteo. Queda abierta la camara 2 de Bolivia
                (foto 423 / ERP 23).
+  26/09/2026 -> Curuca resuelto ("soluciona curuca"): cruce de las 6 cargas "Curuca" de la
+               planilla cargas 2026 contra el Plan de Cargas por semana, transportista y
+               carpeta. Sem 14: Marangoni 03/04 + Wagner 04/04 (BRB035-26); sem 15:
+               Marangoni 10/04 + Wagner 10/04 (BRB036-26); sem 16: "Banana Combinada" 15/04
+               (BRB036-26, alternativa Furlani); sem 5: Valdemar 24/01 o Marconi 30/01 (FG),
+               sin definir. Curuca fue el intermediario de Marangoni y Wagner hasta la sem 15;
+               desde la 16 figuran por su nombre. Todo en la nota de la ficha de Curuca
+               (productores.xlsx + JSON embebido de los paneles). Guion del cruce:
+               scratchpad curuca_analisis.ps1 / curuca_nombres.ps1 (no van al repo).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
