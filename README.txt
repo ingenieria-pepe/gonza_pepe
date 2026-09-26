@@ -376,6 +376,19 @@ LOG DE CAMBIOS:
                Agro 2, Ivo 2, Cassio, Gilson, Josemar, Stein, Marconi; PY Milciades 1,
                Diego 2, Alvarito 1, dia supuesto lunes/martes). Stein, Josemar y Marconi
                NO cargan el 25/09: pasan al viernes 02/10. Regenerado el simulador.
+  26/09/2026 -> Limpieza (Gonzalo abrio una copia vieja de index_brasil y vio las notas de
+               las fichas otra vez: "borra las cosas viejas y deja lo actualizado"). Fuera
+               del arbol (siguen en el historial de git): la carpeta "fuentes - copia";
+               las paginas viejas de archivo\ (index_backup_*, index_brasil_backup_*,
+               index_paraguay_bolivia_backup_*, index_mercado_backup_*,
+               index_proyeccion_backup_*); los 4 actualizar_precios_backup_*.ps1; las guias
+               de corte v1/v2.5/v3/v3.1; los zips para-uruguay (locales); y en
+               fuentes\plan_cargas\ los planes superados (master de OneDrive del 08/09 y
+               15/09, export del 20/09, otros del 20/09, exportaciones_aloha\). Queda solo
+               el export de Aloha del 24/09 en cada carpeta (el servidor baja el suyo).
+               Se conservan los respaldos de datos (xlsx/csv), archivo\importaciones_uy
+               (lo lee 5c), index_ecuador_legacy, bloques_fijos, la guia v3.3 e index.html
+               (redireccion a index_brasil).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
