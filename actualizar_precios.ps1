@@ -3813,7 +3813,7 @@ Write-Host "[5e] Portada..." -ForegroundColor Cyan
 $inicioHtml = Join-Path $base "inicio.html"
 
 $panelesDef = @(
-    @{ f='index_brasil.html';           t='Brasil — detalle';            d='Oportunidad, forecast, correlacion clima-precio, plan de cargas con ranking y fichas, mercado BR en aduana y seguimiento del ano.'; ico='🇧🇷' },
+    @{ f='index_brasil.html';           t='Brasil — detalle';            d='Oportunidad, forecast, correlacion clima-precio, plan de cargas con ranking y fichas y seguimiento del ano.'; ico='🇧🇷' },
     @{ f='index_paraguay_bolivia.html'; t='Paraguay y Bolivia';          d='Precio mayorista Carape, plan de cargas Paraguay y aduana Penta: Almar, mercado y competidores en Paraguay y Bolivia, mas indicadores de los 4 origenes.'; ico='🇵🇾' },
     @{ f='index_ecuador.html';          t='Ecuador FOB';                 d='Precio FOB de exportacion de Ecuador.'; ico='🇪🇨' },
     @{ f='index_mercado.html';          t='Mercado UY multi-origen';     d='Quien importa que, de donde y cuanto. Datos de aduana.'; ico='🌎' },

@@ -410,6 +410,23 @@ LOG DE CAMBIOS:
                desde la 16 figuran por su nombre. Todo en la nota de la ficha de Curuca
                (productores.xlsx + JSON embebido de los paneles). Guion del cruce:
                scratchpad curuca_analisis.ps1 / curuca_nombres.ps1 (no van al repo).
+  26/09/2026 -> Panel Brasil (pedidos de Gonzalo, hechos por la sesion del Excel de Paraguay,
+               commit desde aca). FUERA: "Compra Almar vs Cepea - Spread y productores"
+               (ya estaba roto: escribia en #almar-cargas-value, id inexistente), "Almar BR
+               en aduana" y "Despachantes 2026 (planilla de cargas)", que Gonzalo habia
+               pedido sacar el 18/09 y volvio con la restauracion del ranking ("ya lo
+               habiamos hablado para sacar"). Items de menu #cepea-vs-almar y #historico
+               fuera; queda "Concentracion operativa" de Real BR (usa A.despachantes, las
+               fichas siguen con sus chips). NUEVO: seccion "Almar vs competencia - banana
+               de Brasil en aduana UY" (#competencia, antes de Comparativa): "preciso
+               graficos de bananas brasil, no tengo nada para comparar mi competencia".
+               Mismos datos MERCADO_BR (marcadores __MERCADO_BR_JSON__ repuestos, 5c-BR los
+               inyecta igual): 4 KPIs (cuota Almar 54,6 % vs 49,9 % en 2025, #1 de 8,
+               9.197 t, USD/kg 0,527 vs mercado 0,529), toneladas por mes 2026 por empresa,
+               barras 100 % de cuota por anio, ranking con deltas, lecturas automaticas y
+               fuente con el corte (31/08/2026). Descripcion del panel actualizada en el
+               script, inicio.html y portada.json. Parser PS 5.1 OK, BOM/CRLF OK, render
+               headless OK (11 canvas).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

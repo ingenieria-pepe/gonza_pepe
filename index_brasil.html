@@ -293,9 +293,8 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   <a href="#regiones">🗺️ Regiones</a>
   <a href="#cepea">📡 Cepea</a>
   <a href="#clima">🌤️ Clima</a>
-  <a href="#cepea-vs-almar">⚖️ Almar vs Cepea</a>
   <a href="#real2026">📈 Real BR</a>
-  <a href="#historico">🛃 Aduana BR</a>
+  <a href="#competencia">🥊 Competencia BR</a>
   <a href="#comparativa">🔄 Comparativa</a>
 </nav>
 
@@ -678,41 +677,34 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   })();
   </script>
 
-  <h2 id="cepea-vs-almar">⚖️ Compra Almar vs Cepea — Spread y productores</h2>
-  <div class="kpi-grid">
-    <div class="kpi" id="almar-kpi-precio">
-      <div class="label">Precio promedio Almar (4 sem)</div>
-      <div class="value" id="almar-precio-value">—</div>
-      <div class="sub" id="almar-precio-sub">—</div>
-    </div>
-    <div class="kpi" id="almar-kpi-spread">
-      <div class="label">Spread vs Cepea (4 sem)</div>
-      <div class="value" id="almar-spread-value">—</div>
-      <div class="sub" id="almar-spread-sub">—</div>
-    </div>
-    <div class="kpi" id="almar-kpi-ultima">
-      <div class="label">Última semana cargada</div>
-      <div class="value" id="almar-ultima-value">—</div>
-      <div class="sub" id="almar-ultima-sub">—</div>
-    </div>
+  <h2 id="competencia">🥊 Almar vs competencia — banana de Brasil en aduana UY</h2>
+  <p id="cbr-intro" style="font-size:13px;color:#4a5568;margin:-6px 0 14px 0;">Cargando…</p>
+  <div id="cbr-root">
+  <div class="kpi-grid" style="margin-bottom:20px;">
+    <div class="kpi" id="cbr-k1-card"><div class="label" id="cbr-k1-l">Cuota Almar</div><div class="value" id="cbr-k1">—</div><div class="sub" id="cbr-k1-s">—</div></div>
+    <div class="kpi" id="cbr-k2-card"><div class="label" id="cbr-k2-l">Posición</div><div class="value" id="cbr-k2">—</div><div class="sub" id="cbr-k2-s">—</div></div>
+    <div class="kpi" id="cbr-k3-card"><div class="label" id="cbr-k3-l">Toneladas Almar</div><div class="value" id="cbr-k3">—</div><div class="sub" id="cbr-k3-s">—</div></div>
+    <div class="kpi" id="cbr-k4-card"><div class="label" id="cbr-k4-l">USD/kg declarado</div><div class="value" id="cbr-k4">—</div><div class="sub" id="cbr-k4-s">—</div></div>
   </div>
   <div class="chart-card">
-    <h3>Almar pagado vs Cepea referencia — R$/kg semanal 2026</h3>
-    <div class="chart-container"><canvas id="almarVsCepeaChart"></canvas></div>
-    <p style="font-size:12px;color:#718096;margin:8px 0 0 0;"><strong>Cómo leer:</strong> Cepea solo cotiza el <em>cacho</em> al productor (línea gris punteada). Para comparar con lo que pagás, hay que sumarle <strong>R$ 16/caja</strong> de envalado + paletizado + flete interno → eso da la <strong>línea roja</strong> ("caja equivalente"). La <strong>línea azul Almar</strong> debería seguir de cerca a la roja: si está por debajo, comprás bien.</p>
+    <h3 id="cbr-h1">Toneladas por mes — Almar contra los grandes</h3>
+    <div class="chart-container"><canvas id="cbrChartMes"></canvas></div>
+    <p id="cbr-n1" style="font-size:12px;color:#718096;margin:8px 0 0 0;"></p>
   </div>
-
-  <h2 id="historico">🇧🇷 Almar BR en aduana</h2>
-  <div id="mbr-estado" style="font-size:13px;color:#4a5568;margin:-6px 0 14px 0;">Cargando…</div>
-  <div id="mbr-root">
-  <div class="kpi-grid" style="margin-bottom:24px;">
-    <div class="kpi green" id="mbr-k1-card"><div class="label" id="mbr-k1-l">Toneladas Almar BR</div><div class="value" id="mbr-k1">—</div><div class="sub" id="mbr-k1-s">—</div></div>
-    <div class="kpi" id="mbr-k2-card"><div class="label" id="mbr-k2-l">Cuota Almar BR</div><div class="value" id="mbr-k2">—</div><div class="sub" id="mbr-k2-s">—</div></div>
-    <div class="kpi" id="mbr-k3-card"><div class="label" id="mbr-k3-l">USD/kg Almar BR</div><div class="value" id="mbr-k3">—</div><div class="sub" id="mbr-k3-s">—</div></div>
-    <div class="kpi" id="mbr-k4-card"><div class="label" id="mbr-k4-l">Operaciones Almar BR</div><div class="value" id="mbr-k4">—</div><div class="sub" id="mbr-k4-s">—</div></div>
+  <div class="chart-card">
+    <h3 id="cbr-h2">Cuota de mercado, año contra año</h3>
+    <div class="chart-container" style="height:300px;"><canvas id="cbrChartCuota"></canvas></div>
+    <p id="cbr-n2" style="font-size:12px;color:#718096;margin:8px 0 0 0;"></p>
   </div>
-
-  <p style="font-size:13px;color:#4a5568;margin:0 0 8px 0;">Toneladas por año, cuota de mercado, ranking de importadores y competidores: <a href="index_mercado.html">🌎 Mercado UY</a> (mismos datos de aduana, todos los orígenes).</p>
+  <div class="chart-card">
+    <h3 id="cbr-h3">Ranking de importadores de banana de Brasil</h3>
+    <div style="overflow-x:auto;"><table>
+      <thead><tr><th>#</th><th>Importador</th><th class="num" id="cbr-th-t">t</th><th class="num">Cuota</th><th class="num">USD/kg</th><th class="num" id="cbr-th-tp">t año anterior</th><th class="num">Δ t</th><th class="num">Δ cuota</th></tr></thead>
+      <tbody id="cbr-rank"></tbody>
+    </table></div>
+    <ul id="cbr-lectura" style="font-size:13px;color:#4a5568;margin:12px 0 0 16px;padding:0;line-height:1.6;"></ul>
+    <p id="cbr-fuente" style="font-size:12px;color:#718096;margin:10px 0 0 0;"></p>
+  </div>
   </div>
 
   <h2 id="comparativa">Comparativa histórica 2024 → 2025 → 2026</h2>
@@ -749,301 +741,6 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   </div>
 
 
-<!-- MERCADO-BR-DATA (no editar a mano — lo inyecta actualizar_precios.ps1, paso 5c-BR, desde los extractos Penta) -->
-<script id="mercado-br-data">
-window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 17:44","fuente":"Penta Transaction · NCM 0803.90 · importaciones Uruguay · origen Brasil","origen":"Brasil","archivos":["detalle_UYimport_2026-8-5-10711.xlsx (237 filas)","detalle_UYimport_2026-8-5-92812.xlsx (400 filas)","detalle_UYimport_2026-4-2-133245.xlsx (417 filas)","detalle_UYimport_2026-4-2-133319.xlsx (296 filas)","detalle_UYimport_2026-4-2-135127.xlsx (761 filas)","detalle_UYimport_2026-4-2-135143.xlsx (580 filas)","detalle_UYimport_2026-4-2-13528.xlsx (226 filas)","detalle_UYimport_2026-4-2-143410.xlsx (382 filas)","detalle_UYimport_2026-4-2-143425.xlsx (348 filas)","detalle_UYimport_2026-4-2-143440.xlsx (143 filas)"],"registros":918,"anio":2026,"corte":"2026-08-31","ventana":{"mesHasta":8,"diaHasta":31,"mesCompleto":true},"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","porAnio":{"2024":{"ultimoDato":"2024-12-30","completo":true,"cubreVentana":true,"mercado":{"t":24322.6,"usd":16398945,"ops":296,"usdKg":0.674,"kgOp":82171,"cuota":100,"tV":14218.4,"usdV":9553434,"opsV":187,"usdKgV":0.672,"kgOpV":76034,"cuotaV":100,"mensualT":[1262.5,1103.3,1091,2172.9,2280.3,2084.9,2207.4,2016.1,2235.2,2869,3561.9,1438.1],"mensualOps":[22,19,17,29,28,21,27,24,27,29,36,17]}},"2025":{"ultimoDato":"2025-12-30","completo":true,"cubreVentana":true,"mercado":{"t":36222.2,"usd":21442987,"ops":417,"usdKg":0.592,"kgOp":86864,"cuota":100,"tV":23839.7,"usdV":13860402,"opsV":260,"usdKgV":0.581,"kgOpV":91691,"cuotaV":100,"mensualT":[1870.4,2850.7,3200.8,4063.6,3054.4,3162.5,3046.8,2590.5,3309.1,3388.3,2890.9,2794.2],"mensualOps":[23,31,34,41,32,35,37,27,43,42,37,35]}},"2026":{"ultimoDato":"2026-08-31","completo":false,"cubreVentana":true,"mercado":{"t":16856.7,"usd":8921008,"ops":205,"usdKg":0.529,"kgOp":82228,"cuota":100,"tV":16856.7,"usdV":8921008,"opsV":205,"usdKgV":0.529,"kgOpV":82228,"cuotaV":100,"mensualT":[2523.5,2090.7,3661.4,1787.7,2021.8,1690.3,1529.6,1551.6,0,0,0,0],"mensualOps":[28,23,36,26,26,21,19,26,0,0,0,0]}}},"importadores":[{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":13013.2,"usd":8947528,"ops":146,"usdKg":0.688,"kgOp":89131,"cuota":53.5,"tV":7802.2,"usdV":5330167,"opsV":90,"usdKgV":0.683,"kgOpV":86691,"cuotaV":54.87,"mensualT":[533.5,551.4,556.9,1104.8,1184.6,1529.3,1333.2,1008.4,1282.5,1524.9,1806,597.6],"mensualOps":[8,10,10,11,11,14,14,12,14,15,19,8]},"2025":{"t":17947.4,"usd":10753792,"ops":185,"usdKg":0.599,"kgOp":97013,"cuota":49.55,"tV":11899.7,"usdV":6872702,"opsV":109,"usdKgV":0.578,"kgOpV":109172,"cuotaV":49.92,"mensualT":[727.8,1437.8,1774.5,1806.6,1591.2,1881.2,1404.7,1275.9,1729.2,1735.3,1417.8,1165.5],"mensualOps":[11,12,17,16,13,18,12,10,22,19,18,17]},"2026":{"t":9196.9,"usd":4847017,"ops":97,"usdKg":0.527,"kgOp":94813,"cuota":54.56,"tV":9196.9,"usdV":4847017,"opsV":97,"usdKgV":0.527,"kgOpV":94813,"cuotaV":54.56,"mensualT":[1340.4,1166.2,1776.1,1067,853.5,1169.7,995.5,828.5,0,0,0,0],"mensualOps":[14,10,17,11,9,13,11,12,0,0,0,0]}}},{"nombre":"GARMIN S.R.L.","porAnio":{"2024":{"t":4213.4,"usd":2821035,"ops":34,"usdKg":0.67,"kgOp":123925,"cuota":17.32,"tV":2749.8,"usdV":1831688,"opsV":23,"usdKgV":0.666,"kgOpV":119558,"cuotaV":19.34,"mensualT":[221.8,177.4,354.8,399.2,399.2,399.2,399.2,399.2,399.2,266.1,532.2,266.1],"mensualOps":[3,2,3,3,3,3,3,3,3,2,4,2]},"2025":{"t":5566.2,"usd":3333450,"ops":50,"usdKg":0.599,"kgOp":111324,"cuota":15.37,"tV":3858.6,"usdV":2234855,"opsV":29,"usdKgV":0.579,"kgOpV":133056,"cuotaV":16.19,"mensualT":[399.2,399.2,399.2,665.3,532.2,532.2,532.2,399.2,487.9,399.2,421.3,399.2],"mensualOps":[3,3,3,5,4,4,4,3,7,7,4,3]},"2026":{"t":3459.5,"usd":1839028,"ops":39,"usdKg":0.532,"kgOp":88704,"cuota":20.52,"tV":3459.5,"usdV":1839028,"opsV":39,"usdKgV":0.532,"kgOpV":88704,"cuotaV":20.52,"mensualT":[421.3,399.2,510,532.2,598.8,354.8,310.5,332.6,0,0,0,0],"mensualOps":[4,6,6,6,6,4,3,4,0,0,0,0]}}},{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":5583,"usd":3636326,"ops":61,"usdKg":0.651,"kgOp":91524,"cuota":22.95,"tV":2286.4,"usdV":1489510,"opsV":28,"usdKgV":0.651,"kgOpV":81656,"cuotaV":16.08,"mensualT":[419.4,283.4,134.9,271,430.1,0,296,451.5,528.9,1078,1136.7,553],"mensualOps":[6,2,2,4,6,0,3,5,7,12,8,6]},"2025":{"t":10129.6,"usd":5925693,"ops":80,"usdKg":0.585,"kgOp":126619,"cuota":27.97,"tV":6286.3,"usdV":3760258,"opsV":48,"usdKgV":0.598,"kgOpV":130965,"cuotaV":26.37,"mensualT":[737.9,884.7,831.8,1256.2,649.7,465.5,750.9,709.7,872.3,1078,834.8,1058.2],"mensualOps":[7,9,6,7,5,2,7,5,6,10,7,9]},"2026":{"t":3401.2,"usd":1810231,"ops":34,"usdKg":0.532,"kgOp":100035,"cuota":20.18,"tV":3401.2,"usdV":1810231,"opsV":34,"usdKgV":0.532,"kgOpV":100035,"cuotaV":20.18,"mensualT":[611.9,425.7,1270,16.6,395.9,145.2,173,362.8,0,0,0,0],"mensualOps":[4,3,9,2,4,3,2,7,0,0,0,0]}}},{"nombre":"EXPERTEX SA","porAnio":{"2024":{"t":284.8,"usd":189571,"ops":8,"usdKg":0.666,"kgOp":35604,"cuota":1.17,"tV":263.7,"usdV":175002,"opsV":7,"usdKgV":0.664,"kgOpV":37674,"cuotaV":1.85,"mensualT":[42.2,0,0,130.8,46.4,0,44.3,0,0,0,21.1,0],"mensualOps":[1,0,0,3,1,0,2,0,0,0,1,0]},"2025":{"t":759.9,"usd":438402,"ops":32,"usdKg":0.577,"kgOp":23746,"cuota":2.1,"tV":549,"usdV":312577,"opsV":23,"usdKgV":0.569,"kgOpV":23868,"cuotaV":2.3,"mensualT":[0,63.3,84.5,105.6,84.5,84.5,63.3,63.3,0,20.6,83.9,106.4],"mensualOps":[0,3,4,5,3,2,3,3,0,1,4,4]},"2026":{"t":297.8,"usd":159728,"ops":13,"usdKg":0.536,"kgOp":22907,"cuota":1.77,"tV":297.8,"usdV":159728,"opsV":13,"usdKgV":0.536,"kgOpV":22907,"cuotaV":1.77,"mensualT":[41.2,20.6,41.2,85.5,88.7,20.6,0,0,0,0,0,0],"mensualOps":[2,1,2,4,3,1,0,0,0,0,0,0]}}},{"nombre":"JEMI SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":42.1,"usd":21880,"ops":2,"usdKg":0.52,"kgOp":21038,"cuota":0.12,"tV":42.1,"usdV":21880,"opsV":2,"usdKgV":0.52,"kgOpV":21038,"cuotaV":0.18,"mensualT":[0,0,0,0,0,20.9,0,21.2,0,0,0,0],"mensualOps":[0,0,0,0,0,1,0,1,0,0,0,0]},"2026":{"t":215.3,"usd":112738,"ops":13,"usdKg":0.524,"kgOp":16560,"cuota":1.28,"tV":215.3,"usdV":112738,"opsV":13,"usdKgV":0.524,"kgOpV":16560,"cuotaV":1.28,"mensualT":[0,34.7,19.7,42,40.7,0,50.7,27.6,0,0,0,0],"mensualOps":[0,2,1,2,2,0,3,3,0,0,0,0]}}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","porAnio":{"2024":{"t":21.8,"usd":15028,"ops":1,"usdKg":0.69,"kgOp":21780,"cuota":0.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,21.8,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,1,0]},"2025":{"t":872.8,"usd":468120,"ops":21,"usdKg":0.536,"kgOp":41561,"cuota":2.41,"tV":562.3,"usdV":306678,"opsV":14,"usdKgV":0.545,"kgOpV":40166,"cuotaV":2.36,"mensualT":[0,0,84,144.1,123.6,41.2,125.1,44.4,88.7,88.7,88.7,44.4],"mensualOps":[0,0,2,4,3,1,3,1,2,2,2,1]},"2026":{"t":177.4,"usd":92252,"ops":4,"usdKg":0.52,"kgOp":44352,"cuota":1.05,"tV":177.4,"usdV":92252,"opsV":4,"usdKgV":0.52,"kgOpV":44352,"cuotaV":1.05,"mensualT":[44.4,44.4,44.4,44.4,0,0,0,0,0,0,0,0],"mensualOps":[1,1,1,1,0,0,0,0,0,0,0,0]}}},{"nombre":"RINALIR SOCIEDAD ANONIMA","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":327,"usd":182962,"ops":15,"usdKg":0.56,"kgOp":21801,"cuota":0.9,"tV":217.7,"usdV":113210,"opsV":10,"usdKgV":0.52,"kgOpV":21771,"cuotaV":0.91,"mensualT":[0,0,0,21.6,42.4,64.9,66.5,22.2,0,44.4,44.4,20.6],"mensualOps":[0,0,0,1,2,3,3,1,0,2,2,1]},"2026":{"t":87.6,"usd":48972,"ops":4,"usdKg":0.559,"kgOp":21888,"cuota":0.52,"tV":87.6,"usdV":48972,"opsV":4,"usdKgV":0.559,"kgOpV":21888,"cuotaV":0.52,"mensualT":[43.2,0,0,0,44.4,0,0,0,0,0,0,0],"mensualOps":[2,0,0,0,2,0,0,0,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":234.7,"usd":157192,"ops":12,"usdKg":0.67,"kgOp":19556,"cuota":0.96,"tV":211.8,"usdV":141090,"opsV":10,"usdKgV":0.666,"kgOpV":21181,"cuotaV":1.49,"mensualT":[19.8,0,0,63.1,85.4,21.8,21.8,0,1.1,0,21.8,0],"mensualOps":[1,0,0,3,4,1,1,0,1,0,1,0]},"2025":{"t":311.3,"usd":179256,"ops":18,"usdKg":0.576,"kgOp":17292,"cuota":0.86,"tV":244.7,"usdV":144625,"opsV":15,"usdKgV":0.591,"kgOpV":16315,"cuotaV":1.03,"mensualT":[3.2,65.7,26.9,64.2,30.9,22.2,0,31.7,44.4,22.2,0,0],"mensualOps":[1,4,2,3,2,1,0,2,2,1,0,0]},"2026":{"t":21.1,"usd":11042,"ops":1,"usdKg":0.523,"kgOp":21120,"cuota":0.13,"tV":21.1,"usdV":11042,"opsV":1,"usdKgV":0.523,"kgOpV":21120,"cuotaV":0.13,"mensualT":[21.1,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":163.5,"usd":109732,"ops":12,"usdKg":0.671,"kgOp":13624,"cuota":0.67,"tV":140,"usdV":91462,"opsV":9,"usdKgV":0.653,"kgOpV":15556,"cuotaV":0.98,"mensualT":[25.8,91.1,0,0,0,0,23.1,0,1.2,0,22.3,0],"mensualOps":[3,5,0,0,0,0,1,0,1,0,2,0]},"2025":{"t":219.2,"usd":114001,"ops":11,"usdKg":0.52,"kgOp":19930,"cuota":0.61,"tV":176.9,"usdV":91978,"opsV":9,"usdKgV":0.52,"kgOpV":19653,"cuotaV":0.74,"mensualT":[0,0,0,0,0,49.9,104,23,42.4,0,0,0],"mensualOps":[0,0,0,0,0,3,5,1,2,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"BANPY SAS","porAnio":{"2024":{"t":21.4,"usd":14755,"ops":1,"usdKg":0.69,"kgOp":21384,"cuota":0.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,21.4],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":2.4,"usd":1639,"ops":1,"usdKg":0.69,"kgOp":2376,"cuota":0.01,"tV":2.4,"usdV":1639,"opsV":1,"usdKgV":0.69,"kgOpV":2376,"cuotaV":0.01,"mensualT":[2.4,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":740.5,"usd":476575,"ops":18,"usdKg":0.644,"kgOp":41140,"cuota":3.04,"tV":718.1,"usdV":463312,"opsV":17,"usdKgV":0.645,"kgOpV":42240,"cuotaV":5.05,"mensualT":[0,0,0,202,134.6,134.6,89.8,157.1,22.4,0,0,0],"mensualOps":[0,0,0,4,3,3,3,4,1,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"CRUFI S A","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0.1,"usd":729,"ops":1,"usdKg":12.144,"kgOp":60,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0.1,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"TEDIBLER S A","porAnio":{"2024":{"t":22.2,"usd":14414,"ops":1,"usdKg":0.65,"kgOp":22176,"cuota":0.09,"tV":22.2,"usdV":14414,"opsV":1,"usdKgV":0.65,"kgOpV":22176,"cuotaV":0.16,"mensualT":[0,0,22.2,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IROLDI BERMUDEZ NATALIA GIMENA","porAnio":{"2024":{"t":2,"usd":2375,"ops":1,"usdKg":1.187,"kgOp":2000,"cuota":0.01,"tV":2,"usdV":2375,"opsV":1,"usdKgV":1.187,"kgOpV":2000,"cuotaV":0.01,"mensualT":[0,0,0,2,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,1,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"LA 5TA SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":44.4,"usd":23063,"ops":1,"usdKg":0.52,"kgOp":44352,"cuota":0.12,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,44.4,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"GRINOLAND S.A.","porAnio":{"2024":{"t":22.2,"usd":14414,"ops":1,"usdKg":0.65,"kgOp":22176,"cuota":0.09,"tV":22.2,"usdV":14414,"opsV":1,"usdKgV":0.65,"kgOpV":22176,"cuotaV":0.16,"mensualT":[0,0,22.2,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]}/*__END_MERCADO_BR__*/;
-</script>
-<script>
-(function(){
-  const D = window.MERCADO_BR;
-  const $ = id => document.getElementById(id);
-  const fail = msg => {
-    ['mbr-estado', 'mbr-fuente', 'mbr-int-intro'].forEach(id => { const e = $(id); if (e) e.innerHTML = '<span style="color:#c53030;font-weight:600;">' + msg + '</span>'; });
-    ['mbr-root', 'mbr-root2', 'mbr-root3'].forEach(id => { const e = $(id); if (e) e.style.display = 'none'; });
-  };
-  if (!D || !D.anios || !D.anios.length || !D.importadores || !D.importadores.length || !D.porAnio) {
-    fail('Sin datos de aduana para Brasil. Tirá los detalle_UYimport_*.xlsx de Penta en <code>penta\\</code> y corré actualizar_precios.ps1.');
-    return;
-  }
-
-  // ---- helpers
-  const nz = n => (n === null || n === undefined || isNaN(n));
-  const fmtD = (n, d) => nz(n) ? '—' : n.toLocaleString('es-UY', { minimumFractionDigits: d, maximumFractionDigits: d });
-  const fmtI = n => fmtD(n, 0), fmt1 = n => fmtD(n, 1), fmt2 = n => fmtD(n, 2), fmt3 = n => fmtD(n, 3);
-  const fmtM = n => nz(n) ? '—' : 'USD ' + fmtD(n / 1e6, 2) + ' M';
-  const pct = (a, b) => (nz(a) || nz(b) || !b) ? null : (a - b) / b * 100;
-  const sgn = (n, d) => nz(n) ? '—' : (n > 0 ? '+' : '') + fmtD(n, d === undefined ? 1 : d);
-  const sgnP = n => nz(n) ? '—' : sgn(n, 1) + ' %';
-  const fmtF = s => s ? s.substring(8, 10) + '/' + s.substring(5, 7) + '/' + s.substring(0, 4) : '—';
-  const colOf = n => nz(n) ? '#4a5568' : (n > 0 ? '#2f855a' : (n < 0 ? '#c53030' : '#718096'));
-  const b = (s, c) => '<strong style="color:' + (c || '#1e3a5f') + ';">' + s + '</strong>';
-  const MES  = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Set', 'Oct', 'Nov', 'Dic'];
-  const MESS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
-  const MESL = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'setiembre', 'octubre', 'noviembre', 'diciembre'];
-
-  const anios = D.anios.map(String);                       // ascendente
-  const A  = anios[anios.length - 1];
-  const P  = anios.length >= 2 ? anios[anios.length - 2] : null;
-  const PP = anios.length >= 3 ? anios[anios.length - 3] : null;
-  const V  = D.ventana || { mesHasta: 12, diaHasta: 31, mesCompleto: true };
-  const cM = V.mesHasta;
-  const vLabel = V.mesCompleto ? (cM === 1 ? 'enero' : 'ene–' + MESS[cM - 1]) : '1/1 al ' + V.diaHasta + '/' + cM;
-  const ZERO = { t: 0, usd: 0, ops: 0, usdKg: null, kgOp: null, cuota: 0, tV: 0, usdV: 0, opsV: 0, usdKgV: null, kgOpV: null, cuotaV: 0, mensualT: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], mensualOps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
-  const pk = (imp, a) => (a && imp && imp.porAnio && imp.porAnio[a]) ? imp.porAnio[a] : ZERO;
-  const mk = a => (a && D.porAnio[a] && D.porAnio[a].mercado) ? D.porAnio[a].mercado : ZERO;
-  const IMP = D.importadores.slice().sort((x, y) => (pk(y, A).tV - pk(x, A).tV) || (pk(y, P).tV - pk(x, P).tV));
-  const almar = IMP.find(i => /ALMAR/i.test(i.nombre)) || IMP[0];
-  const short = n => n.replace(/\s+(S\.?\s?R\.?\s?L\.?|S\.?\s?A\.?|SAS|LTDA|SOCIEDAD ANONIMA)\s*$/i, '').trim();
-  const cap = s => s.toLowerCase().replace(/(^|\s)(\S)/g, (m, p, c) => p + c.toUpperCase());
-  const nom = i => (i === almar) ? 'Almar' : cap(short(i.nombre));
-  const PAL = ['#c53030', '#d69e2e', '#3182ce', '#805ad5', '#dd6b20', '#0987a0', '#a0aec0', '#cbd5e0', '#b8c2cf', '#a4b0bd', '#9aa6b2', '#90a0ad', '#869aa9', '#7c93a4', '#728ca0'];
-  const COLOR = {}; let ci = 0;
-  IMP.forEach(i => { COLOR[i.nombre] = (i === almar) ? '#2f855a' : PAL[Math.min(ci++, PAL.length - 1)]; });
-  const YC = ['#1e3a5f', '#2f855a', '#d69e2e', '#a0aec0', '#805ad5'];   // posicional: el año más nuevo primero
-
-  const aA = pk(almar, A), aP = pk(almar, P), aPP = pk(almar, PP);
-  const mA = mk(A), mP = mk(P), mPP = mk(PP);
-  const dCuota = P ? aA.cuotaV - aP.cuotaV : null;
-  const vT = P ? pct(aA.tV, aP.tV) : null;
-  const vU = P ? pct(aA.usdKgV, aP.usdKgV) : null;
-
-  // ================= HISTÓRICO =================
-  const nArch = (D.archivos || []).length;
-  let estTxt = 'Fuente <strong>' + (D.fuente || 'Penta Transaction') + '</strong> · ' + fmtI(D.registros) + ' operaciones de origen Brasil en ' + nArch + ' extractos (' + anios.join(', ') + ') · último dato <strong>' + fmtF(D.corte) + '</strong> · cada año se compara en la misma ventana: <strong>' + vLabel + '</strong>' + (V.mesCompleto ? '' : ' (' + MESL[cM - 1] + ' incompleto)') + ' · generado ' + (D.generado || '') + '.';
-  const noCubre = anios.filter(a => D.porAnio[a] && D.porAnio[a].cubreVentana === false);
-  if (noCubre.length) estTxt += ' <span style="color:#b7791f;font-weight:600;">⚠️ ' + noCubre.join(', ') + ' no cubre toda la ventana (último dato ' + noCubre.map(a => fmtF(D.porAnio[a].ultimoDato)).join(', ') + '): su comparación queda corta.</span>';
-  $('mbr-estado').innerHTML = estTxt;
-  if (D && D.corte) { const hH = Document.prototype.getElementById.call(document, 'historico'); if (hH) hH.textContent = '🇧🇷 Almar BR en aduana — datos al ' + fmtF(D.corte); }
-
-  $('mbr-k1-l').textContent = 'Toneladas Almar BR ' + A + ' (' + vLabel + ')';
-  $('mbr-k1').textContent = fmtI(aA.tV) + ' t';
-  $('mbr-k1-s').innerHTML = P ? ('vs ' + fmtI(aP.tV) + ' t en ' + vLabel + ' ' + P + ' · ' + b(sgnP(vT), colOf(vT)) + (PP ? ' · ' + PP + ': ' + fmtI(aPP.tV) + ' t' : '')) : 'sin año anterior para comparar';
-  $('mbr-k1-card').className = 'kpi ' + (nz(vT) ? '' : (vT < -10 ? 'red' : (vT > 10 ? 'green' : '')));
-  $('mbr-k2-l').textContent = 'Cuota Almar BR (' + vLabel + ')';
-  $('mbr-k2').textContent = fmt1(aA.cuotaV) + ' %';
-  $('mbr-k2-s').innerHTML = anios.map(a => a + ': ' + fmt1(pk(almar, a).cuotaV) + ' %').join(' → ') + (P ? ' · ' + b(sgn(dCuota, 1) + ' pp', colOf(dCuota)) + ' vs ' + P : '');
-  $('mbr-k2-card').className = 'kpi ' + (nz(dCuota) ? '' : (dCuota < -0.5 ? 'red' : (dCuota > 0.5 ? 'green' : '')));
-  $('mbr-k3-l').textContent = 'USD/kg declarado Almar BR ' + A;
-  $('mbr-k3').textContent = fmt3(aA.usdKgV);
-  $('mbr-k3-s').innerHTML = (P ? 'vs ' + fmt3(aP.usdKgV) + ' en ' + P + ' (' + sgnP(vU) + ') · ' : '') + 'mercado BR ' + A + ': ' + fmt3(mA.usdKgV);
-  $('mbr-k4-l').textContent = 'Operaciones Almar BR ' + A + ' (' + vLabel + ')';
-  $('mbr-k4').textContent = fmtI(aA.opsV);
-  $('mbr-k4-s').innerHTML = fmtI(aA.kgOpV) + ' kg por operación' + (P ? ' · ' + P + ': ' + fmtI(aP.opsV) + ' op. de ' + fmtI(aP.kgOpV) + ' kg' : '');
-
-  $('mbr-h-anios').textContent = 'Almar en Brasil, año por año (' + vLabel + ' de cada año, y el año completo cuando cerró)';
-  $('mbr-anios-head').innerHTML = '<tr><th>Año</th><th class="num">t ' + vLabel + '</th><th class="num">USD VNA ' + vLabel + '</th><th class="num">Op. ' + vLabel + '</th><th class="num">USD/kg</th><th class="num">Cuota BR</th><th class="num">Δ cuota (pp)</th><th class="num">t año completo</th><th class="num">USD año completo</th><th class="num">Op. año</th></tr>';
-  let prevC = null;
-  $('mbr-anios-body').innerHTML = anios.map(a => {
-    const k = pk(almar, a), y = D.porAnio[a] || {};
-    const d = prevC === null ? null : k.cuotaV - prevC; prevC = k.cuotaV;
-    const full = !!y.completo;
-    const style = a === A ? 'background:#f0fdf4;font-weight:600;' : '';
-    return '<tr style="' + style + '"><td><strong>' + a + (a === A ? ' (en curso)' : '') + '</strong></td><td class="num">' + fmtI(k.tV) + '</td><td class="num">' + fmtI(k.usdV) + '</td><td class="num">' + fmtI(k.opsV) + '</td><td class="num">' + fmt3(k.usdKgV) + '</td><td class="num" style="font-weight:700;">' + fmt1(k.cuotaV) + ' %</td><td class="num" style="color:' + colOf(d) + ';font-weight:700;">' + (d === null ? '(base)' : sgn(d, 1)) + '</td><td class="num">' + (full ? fmtI(k.t) : '—') + '</td><td class="num">' + (full ? fmtI(k.usd) : '—') + '</td><td class="num">' + (full ? fmtI(k.ops) : '—') + '</td></tr>';
-  }).join('');
-  $('mbr-anios-nota').innerHTML = 'Toneladas netas y USD VNA (valor declarado en aduana) de <strong>' + (D.almar || 'Almar') + '</strong>, origen Brasil. La ventana comparable es <strong>' + vLabel + '</strong> porque ' + A + ' tiene datos hasta el ' + fmtF(D.corte) + '; comparar un año entero contra ' + cM + ' meses daba conclusiones falsas. Cuota = toneladas de Almar sobre el total de banana brasileña que entró a Uruguay en esa ventana. Las columnas "año completo" sólo se llenan para los años cerrados. Una operación = una línea de DUA.';
-
-  const ordenDesc = anios.slice().reverse();
-  const dsAlmar = ordenDesc.map((a, i) => {
-    const v = pk(almar, a).mensualT.slice();
-    if (a === A) { for (let k = cM; k < 12; k++) v[k] = null; }
-    return { label: a + ' (' + fmt1(pk(almar, a).cuotaV) + ' % cuota ' + vLabel + ')', data: v, borderColor: YC[i % YC.length], backgroundColor: YC[i % YC.length] + '22', borderWidth: i === 0 ? 3 : 2, pointRadius: i === 0 ? 5 : 3, tension: 0.3, spanGaps: false, fill: i === 0, borderDash: i === 0 ? [] : [6, 4] };
-  });
-  $('mbr-h-mes').textContent = 'Toneladas Almar BR por mes, ' + anios.join(' · ');
-  new Chart($('mbr-chart-almar-mes').getContext('2d'), { type: 'line', data: { labels: MES, datasets: dsAlmar }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: c => c.dataset.label.split(' (')[0] + ': ' + fmtI(c.parsed.y) + ' t' } } }, scales: { y: { beginAtZero: true, title: { display: true, text: 't netas / mes' } } } } });
-  $('mbr-mes-nota').innerHTML = 'Toneladas netas de Almar de origen Brasil por mes de la operación en aduana. ' + A + ' va hasta ' + MESL[cM - 1] + (V.mesCompleto ? '' : ' (incompleto)') + '; los años cerrados muestran los 12 meses.';
-
-  const peak = (arr, upto) => { let bi = -1, bv = -1; for (let k = 0; k < (upto || 12); k++) { if (arr[k] > bv) { bv = arr[k]; bi = k; } } return { i: bi, v: bv }; };
-  const low  = (arr, upto) => { let bi = -1, bv = Infinity; for (let k = 0; k < (upto || 12); k++) { if (arr[k] < bv) { bv = arr[k]; bi = k; } } return { i: bi, v: bv }; };
-  const obs = [];
-  if (P) {
-    let verdict;
-    if (dCuota > 0.5) verdict = 'estás recuperando cuota'; else if (dCuota < -0.5) verdict = 'seguís perdiendo cuota'; else verdict = 'la cuota está estable';
-    obs.push(b('Cuota ' + anios.join(' → ') + ' (' + vLabel + '): ' + anios.map(a => fmt1(pk(almar, a).cuotaV) + ' %').join(' → ') + '.') + ' ' + (PP ? 'De ' + PP + ' a ' + P + ' ' + sgn(aP.cuotaV - aPP.cuotaV, 1) + ' pp; de ' + P + ' a ' + A + ' ' + sgn(dCuota, 1) + ' pp: ' : 'De ' + P + ' a ' + A + ' ' + sgn(dCuota, 1) + ' pp: ') + verdict + '.');
-    const vM = pct(mA.tV, mP.tV);
-    let rel = '';
-    if (nz(vT) || nz(vM)) rel = '';
-    else if (vT >= 0 && vM < 0) rel = 'Creciste con el mercado cayendo: por eso ganaste cuota';
-    else if (vT < 0 && vM < 0 && vT > vM) rel = 'Caíste menos que el mercado: por eso ganaste cuota aunque bajaste volumen';
-    else if (vT < 0 && vM < 0) rel = 'Caíste más que el mercado: por eso perdiste cuota';
-    else if (vT >= 0 && vM >= 0 && vT > vM) rel = 'Creciste más que el mercado: ganaste cuota';
-    else if (vT >= 0 && vM >= 0) rel = 'Creciste menos que el mercado: perdiste cuota aunque subiste volumen';
-    else rel = 'Bajaste con el mercado subiendo: perdiste cuota';
-    obs.push(b('Tu volumen BR ' + A + ' (' + vLabel + '): ' + sgnP(vT) + ' vs ' + P + '; el mercado BR total ' + sgnP(vM) + '.') + ' ' + fmtI(aA.tV) + ' t contra ' + fmtI(aP.tV) + ' t tuyas; ' + fmtI(mA.tV) + ' t contra ' + fmtI(mP.tV) + ' t del mercado. ' + (rel ? rel + '.' : ''));
-  }
-  const dPr = pct(aA.usdKgV, mA.usdKgV);
-  obs.push(b('USD/kg declarado ' + A + ': Almar ' + fmt3(aA.usdKgV) + ' vs mercado BR ' + fmt3(mA.usdKgV) + '.') + ' ' + (nz(dPr) ? '' : (Math.abs(dPr) < 3 ? 'Estás en el promedio del mercado' : (dPr > 0 ? 'Declarás ' + fmt1(dPr) + ' % por encima del promedio' : 'Declarás ' + fmt1(-dPr) + ' % por debajo del promedio')) + '.') + (P ? ' Contra ' + P + ' tu USD/kg fue ' + sgnP(vU) + '.' : '') + ' Es valor en aduana, no el precio al productor (para eso está el Cepea más arriba).');
-  if (P) {
-    const vOp = pct(aA.kgOpV, aP.kgOpV);
-    obs.push(b('Operativa ' + A + ': ' + fmtI(aA.opsV) + ' operaciones de ' + fmtI(aA.kgOpV) + ' kg.') + ' En ' + P + ' (' + vLabel + ') fueron ' + fmtI(aP.opsV) + ' de ' + fmtI(aP.kgOpV) + ' kg' + (nz(vOp) ? '' : (Math.abs(vOp) < 5 ? ': mismo tamaño de carga' : (vOp > 0 ? ': cargas ' + fmt1(vOp) + ' % más grandes' : ': cargas ' + fmt1(-vOp) + ' % más chicas'))) + '.');
-  }
-  const lastFull = anios.slice().reverse().find(a => D.porAnio[a] && D.porAnio[a].completo);
-  if (lastFull) {
-    const k = pk(almar, lastFull), pk1 = peak(k.mensualT), lo = low(k.mensualT);
-    const prevFull = anios[anios.indexOf(lastFull) - 1];
-    obs.push(b('Estacionalidad de tus compras BR en ' + lastFull + ':') + ' pico en ' + MESL[pk1.i] + ' (' + fmtI(pk1.v) + ' t) y valle en ' + MESL[lo.i] + ' (' + fmtI(lo.v) + ' t). Año completo: ' + fmtI(k.t) + ' t · ' + fmtM(k.usd) + ' · ' + fmtI(k.ops) + ' operaciones' + (prevFull && D.porAnio[prevFull] && D.porAnio[prevFull].completo ? ' (' + sgnP(pct(k.t, pk(almar, prevFull).t)) + ' t vs ' + prevFull + ')' : '') + '.');
-  }
-  if (cM >= 2) {
-    const pkA = peak(aA.mensualT, cM), loA = low(aA.mensualT, cM);
-    obs.push(b('En ' + A + ' hasta ahora:') + ' tu mejor mes fue ' + MESL[pkA.i] + ' (' + fmtI(pkA.v) + ' t) y el más flojo ' + MESL[loA.i] + ' (' + fmtI(loA.v) + ' t).' + (P ? ' El mismo mes de ' + P + ': ' + fmtI(aP.mensualT[loA.i]) + ' t.' : ''));
-  }
-  $('mbr-obs').innerHTML = obs.map(o => '<li>' + o + '</li>').join('');
-
-  // ================= MERCADO UY =================
-  $('mbr-fuente').innerHTML = 'Fuente: Penta-Transaction · NCM 0803.90 (bananas frescas) · origen Brasil · ranking por importador en Uruguay · toneladas netas, <strong>' + vLabel + '</strong> de cada año · último dato ' + fmtF(D.corte) + '.';
-  const rankA = IMP.filter(i => pk(i, A).tV > 0);
-  const pos = i => rankA.indexOf(i) + 1;
-  const n2 = rankA.find(i => i !== almar), n3 = rankA.filter(i => i !== almar)[1];
-  $('mbr-m1-l').textContent = P ? 'Cuota Almar ' + P + ' (' + vLabel + ')' : 'Cuota Almar';
-  $('mbr-m1').textContent = P ? fmt1(aP.cuotaV) + ' %' : '—';
-  $('mbr-m1-s').textContent = P ? fmtM(aP.usdV) + ' · ' + fmtI(aP.tV) + ' t' : '';
-  $('mbr-m2-l').textContent = 'Cuota Almar ' + A + ' (' + vLabel + ')';
-  $('mbr-m2').textContent = fmt1(aA.cuotaV) + ' %';
-  $('mbr-m2-s').innerHTML = (P ? b(sgn(dCuota, 1) + ' pp vs ' + P, colOf(dCuota)) + ' · ' : '') + fmtM(aA.usdV) + ' · ' + fmtI(aA.tV) + ' t · puesto #' + pos(almar);
-  const compCard = (n, i) => {
-    if (!i) { $('mbr-m' + n + '-l').textContent = '—'; $('mbr-m' + n).textContent = '—'; $('mbr-m' + n + '-s').textContent = 'sin más competidores con volumen en ' + A; return; }
-    const k = pk(i, A), d = P ? k.cuotaV - pk(i, P).cuotaV : null;
-    let est, col, border;
-    if (nz(d)) { est = 'sin año anterior'; col = '#4a5568'; border = '#a0aec0'; }
-    else if (d > 0.5) { est = 'creciendo · amenaza'; col = '#b7791f'; border = '#d69e2e'; }
-    else if (d < -0.5) { est = 'perdiendo'; col = '#c53030'; border = '#c53030'; }
-    else { est = 'estable'; col = '#718096'; border = '#a0aec0'; }
-    $('mbr-m' + n + '-card').style.borderLeftColor = border;
-    $('mbr-m' + n + '-l').textContent = '#' + pos(i) + ' ' + nom(i) + ' ' + A;
-    $('mbr-m' + n).textContent = fmt1(k.cuotaV) + ' %';
-    $('mbr-m' + n).style.color = col;
-    $('mbr-m' + n + '-s').innerHTML = '<span style="color:' + col + ';font-weight:600;">' + (nz(d) ? '' : sgn(d, 1) + ' pp · ') + est + '</span> · ' + fmtI(k.tV) + ' t';
-  };
-  compCard(3, n2); compCard(4, n3);
-
-  const donut = (canvasId, a, titleId) => {
-    if (!a) { $(titleId).textContent = 'Sin año anterior para comparar'; return; }
-    const rows = IMP.filter(i => pk(i, a).tV > 0).sort((x, y) => pk(y, a).tV - pk(x, a).tV);
-    $(titleId).textContent = 'Cuota de mercado BR — ' + a + ' (' + vLabel + ')';
-    new Chart($(canvasId).getContext('2d'), { type: 'doughnut', data: { labels: rows.map(i => nom(i).length > 22 ? nom(i).substring(0, 22) + '…' : nom(i)), datasets: [{ data: rows.map(i => pk(i, a).cuotaV), backgroundColor: rows.map(i => COLOR[i.nombre]), borderWidth: 1, borderColor: '#ffffff' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12 } }, tooltip: { callbacks: { label: c => rows[c.dataIndex].nombre + ': ' + fmt2(c.parsed) + ' % · ' + fmtI(pk(rows[c.dataIndex], a).tV) + ' t' } } } } });
-  };
-  donut('mbr-chart-d1', P, 'mbr-h-d1'); donut('mbr-chart-d2', A, 'mbr-h-d2');
-
-  $('mbr-h-rank').textContent = 'Ranking comparado ' + (P ? P + ' → ' : '') + A + ' (' + vLabel + ')';
-  $('mbr-rank-head').innerHTML = '<tr><th>#</th><th>Importador</th>' + (P ? '<th class="num">t ' + P + '</th><th class="num">% ' + P + '</th>' : '') + '<th class="num">t ' + A + '</th><th class="num">% ' + A + '</th>' + (P ? '<th class="num">Δ pp</th>' : '') + '<th>Estado</th></tr>';
-  const enTabla = IMP.filter(i => pk(i, A).tV > 0 || (P && pk(i, P).tV > 0));
-  const salieron = [], nuevos = [];
-  let rk = 0;
-  const vMkt = P ? pct(mA.tV, mP.tV) : null;
-  $('mbr-rank-body').innerHTML = enTabla.map(i => {
-    const k = pk(i, A), kp = P ? pk(i, P) : ZERO;
-    const d = (P && kp.tV > 0 && k.tV > 0) ? k.cuotaV - kp.cuotaV : null;
-    let est, col;
-    if (k.tV === 0) { est = '⚫ Salió: operó ' + P + ', no ' + A; col = '#718096'; salieron.push(i); }
-    else if (P && kp.tV === 0) { est = '🆕 Nuevo en Brasil ' + A; col = '#2f855a'; nuevos.push(i); }
-    else if (nz(d)) { est = '—'; col = '#4a5568'; }
-    else if (d > 0.5) { est = '🟢 Creciendo'; col = '#2f855a'; }
-    else if (d < -0.5) { est = '🔴 Perdiendo'; col = '#c53030'; }
-    else { est = '⚪ Estable'; col = '#718096'; }
-    const rank = k.tV > 0 ? (++rk) : '—';
-    const isA = i === almar;
-    return '<tr style="' + (isA ? 'background:#f0fdf4;font-weight:600;' : '') + '"><td><strong>' + rank + '</strong></td><td style="font-size:13px;">' + (isA && pos(almar) === 1 ? '🥇 ' : '') + i.nombre + '</td>' + (P ? '<td class="num">' + (kp.tV > 0 ? fmtI(kp.tV) : '—') + '</td><td class="num">' + (kp.tV > 0 ? fmt2(kp.cuotaV) + ' %' : '—') + '</td>' : '') + '<td class="num">' + (k.tV > 0 ? fmtI(k.tV) : '—') + '</td><td class="num">' + (k.tV > 0 ? fmt2(k.cuotaV) + ' %' : '—') + '</td>' + (P ? '<td class="num" style="color:' + colOf(d) + ';font-weight:700;">' + (nz(d) ? '—' : sgn(d, 2)) + '</td>' : '') + '<td style="color:' + col + ';font-weight:600;font-size:13px;">' + est + '</td></tr>';
-  }).join('') + '<tr style="border-top:2px solid #cbd5e0;font-weight:700;"><td></td><td>Total mercado BR</td>' + (P ? '<td class="num">' + fmtI(mP.tV) + '</td><td class="num">100 %</td>' : '') + '<td class="num">' + fmtI(mA.tV) + '</td><td class="num">100 %</td>' + (P ? '<td class="num" style="color:' + colOf(vMkt) + ';">' + sgnP(vMkt) + '</td>' : '') + '<td style="font-size:13px;color:#4a5568;font-weight:400;">' + fmtI(mA.opsV) + ' operaciones · ' + fmtM(mA.usdV) + '</td></tr>';
-  $('mbr-rank-nota').innerHTML = 'Toneladas netas de origen Brasil, ' + vLabel + ' de cada año, ordenado por ' + A + '. Estado: 🟢 gana más de 0,5 pp · 🔴 pierde más de 0,5 pp · ⚪ estable' + (P ? ' · 🆕 no operaba Brasil en ' + P + ' · ⚫ operó en ' + P + ' y no en ' + A : '') + '.';
-
-  const an = [];
-  const top3 = rankA.slice(0, 3);
-  const top3Share = a => top3.reduce((s, i) => s + pk(i, a).cuotaV, 0);
-  if (pos(almar) === 1 && n2) an.push(b('Liderazgo: sos #1 con ' + fmt1(aA.cuotaV) + ' % del mercado BR en ' + A + ' (' + vLabel + ').') + ' Hacés ' + fmt1(aA.tV / pk(n2, A).tV) + '× lo que ' + nom(n2) + ' (' + fmt1(pk(n2, A).cuotaV) + ' %).');
-  else if (rankA[0]) an.push(b(nom(rankA[0]) + ' lidera con ' + fmt1(pk(rankA[0], A).cuotaV) + ' %; Almar está #' + pos(almar) + ' con ' + fmt1(aA.cuotaV) + ' %.'));
-  if (P) {
-    const conD = IMP.filter(i => pk(i, A).tV > 0 && pk(i, P).tV > 0).map(i => ({ i: i, d: pk(i, A).cuotaV - pk(i, P).cuotaV })).sort((x, y) => y.d - x.d);
-    if (conD.length >= 2) {
-      const g = conD[0], l = conD[conD.length - 1];
-      an.push(b('El que más cuota ganó: ' + nom(g.i) + ' (' + sgn(g.d, 1) + ' pp); el que más perdió: ' + nom(l.i) + ' (' + sgn(l.d, 1) + ' pp).') + (g.i !== almar && g.d > 0.5 ? ' ' + nom(g.i) + ' es la amenaza a seguir.' : '') + (l.i !== almar && l.d < -0.5 ? ' Los productores y clientes de ' + nom(l.i) + ' pueden estar disponibles.' : ''));
-    }
-    const s3A = top3Share(A), s3P = top3Share(P);
-    an.push(b('Top 3 = ' + fmt1(s3A) + ' % del mercado BR en ' + A) + ' (vs ' + fmt1(s3P) + ' % en ' + P + '): mercado ' + (s3A - s3P > 0.5 ? 'cada vez más concentrado' : (s3A - s3P < -0.5 ? 'algo menos concentrado' : 'igual de concentrado')) + ' en tres jugadores.');
-    if (salieron.length || nuevos.length) an.push(b('Movimientos ' + A + ':') + (salieron.length ? ' salieron de Brasil ' + salieron.map(nom).join(', ') + ' (operaron en ' + P + ').' : '') + (nuevos.length ? ' Entraron ' + nuevos.map(nom).join(', ') + '.' : ''));
-    else an.push(b('Sin entradas ni salidas:') + ' los mismos importadores de ' + P + ' siguen operando Brasil en ' + A + '.');
-    an.push(b('Mercado BR ' + vLabel + ': ' + fmtI(mP.tV) + ' t en ' + P + ' → ' + fmtI(mA.tV) + ' t en ' + A + ' (' + sgnP(vMkt) + ').') + ' Comparado en la misma ventana, así que no es estacionalidad.' + (!nz(vMkt) && Math.abs(vMkt) > 10 ? ' Lo que Brasil ' + (vMkt < 0 ? 'perdió se repartió entre otros orígenes' : 'ganó se lo sacó a otros orígenes') + ': mirá <a href="index_mercado.html" style="color:#2a78d6;font-weight:600;">index_mercado.html</a>.' : ''));
-  }
-  if (top3.length >= 2) {
-    const prs = top3.map(i => pk(i, A).usdKgV).filter(v => !nz(v));
-    const spread = prs.length ? (Math.max.apply(null, prs) - Math.min.apply(null, prs)) / Math.min.apply(null, prs) * 100 : null;
-    an.push(b('USD/kg declarado ' + A + ': ' + top3.map(i => nom(i) + ' ' + fmt3(pk(i, A).usdKgV)).join(' · ') + '.') + (nz(spread) ? '' : (spread < 5 ? ' Mismo segmento de precio (spread ' + fmt1(spread) + ' %): la competencia es por calidad, canal y cliente, no por precio.' : ' Spread de ' + fmt1(spread) + ' %: hay diferencia de segmento o de declaración.')));
-  }
-  $('mbr-analisis').innerHTML = an.map(o => '<li>' + o + '</li>').join('');
-
-  // ================= INTELIGENCIA =================
-  $('mbr-int-intro').innerHTML = 'Análisis DUA por DUA de Penta-Transaction, origen Brasil, ' + fmtI(D.registros) + ' operaciones ' + anios[0] + '–' + A + '. Los tres grandes de ' + A + ' (' + vLabel + '): ' + top3.map(nom).join(', ') + ' = ' + fmt1(top3Share(A)) + ' % del mercado.';
-  const setK = (n, l, v, s, col, border) => { $('mbr-i' + n + '-l').textContent = l; $('mbr-i' + n).textContent = v; $('mbr-i' + n).style.color = col || '#1e3a5f'; $('mbr-i' + n + '-s').innerHTML = s; $('mbr-i' + n + '-card').style.borderLeftColor = border || '#a0aec0'; };
-  if (PP && P) {
-    const d1 = aP.cuotaV - aPP.cuotaV;
-    setK(1, 'Cuota Almar ' + PP + ' → ' + P, sgn(d1, 1) + ' pp', fmt1(aPP.cuotaV) + ' % → ' + fmt1(aP.cuotaV) + ' % (' + vLabel + ')', colOf(d1), colOf(d1));
-    const gM = pct(mP.tV, mPP.tV);
-    setK(2, 'Mercado BR ' + P + ' vs ' + PP, sgnP(gM), fmtI(mPP.tV) + ' → ' + fmtI(mP.tV) + ' t (' + vLabel + ')', '#1e3a5f', '#2c5282');
-    const capt = IMP.map(i => ({ i: i, dt: pk(i, P).tV - pk(i, PP).tV, p: pct(pk(i, P).tV, pk(i, PP).tV) })).sort((x, y) => y.dt - x.dt)[0];
-    if (capt) setK(3, nom(capt.i) + ' capturó en ' + P, sgn(capt.dt, 0) + ' t', fmtI(pk(capt.i, PP).tV) + ' → ' + fmtI(pk(capt.i, P).tV) + ' t (' + sgnP(capt.p) + ')' + (capt.i === almar ? ' · fuiste vos' : ''), capt.i === almar ? '#2f855a' : '#c53030', capt.i === almar ? '#2f855a' : '#c53030');
-  } else {
-    setK(1, 'Cuota Almar ' + A, fmt1(aA.cuotaV) + ' %', vLabel, '#1e3a5f');
-    setK(2, 'Mercado BR ' + A, fmtI(mA.tV) + ' t', vLabel, '#1e3a5f');
-    setK(3, '—', '—', 'faltan años para comparar', '#4a5568');
-  }
-  if (P) setK(4, 'Almar ' + P + ' → ' + A, sgn(dCuota, 1) + ' pp', fmt1(aP.cuotaV) + ' % → ' + fmt1(aA.cuotaV) + ' % (' + vLabel + ')' + (dCuota > 0.5 ? ' · recuperando' : (dCuota < -0.5 ? ' · perdiendo' : ' · estable')), colOf(dCuota), colOf(dCuota));
-  else setK(4, '—', '—', '', '#4a5568');
-
-  $('mbr-h-top3').textContent = 'Tabla comparativa — los 3 grandes de ' + A + ' (' + vLabel + ')';
-  $('mbr-top3-head').innerHTML = '<tr><th>Métrica</th>' + top3.map(i => '<th class="num">' + nom(i) + '</th>').join('') + '<th>Lectura</th></tr>';
-  const maxBy = f => top3.reduce((m, i) => (nz(f(i)) ? m : (m === null || f(i) > f(m) ? i : m)), null);
-  const minBy = f => top3.reduce((m, i) => (nz(f(i)) ? m : (m === null || f(i) < f(m) ? i : m)), null);
-  const filas = [];
-  const row = (lab, f, fmt, lectura, style, colorize) => filas.push('<tr' + (style ? ' style="' + style + '"' : '') + '><td>' + lab + '</td>' + top3.map(i => '<td class="num"' + (colorize ? ' style="color:' + colOf(f(i)) + ';font-weight:700;"' : '') + '>' + fmt(f(i)) + '</td>').join('') + '<td>' + lectura + '</td></tr>');
-  const t0 = pk(top3[0], A), tA1 = top3[1] ? pk(top3[1], A) : null;
-  row('Toneladas netas', i => pk(i, A).tV, fmtI, tA1 && tA1.tV ? nom(top3[0]) + ' = ' + fmt1(t0.tV / tA1.tV) + '× ' + nom(top3[1]) : '', 'background:#f0fdf4;font-weight:600;');
-  row('USD VNA', i => pk(i, A).usdV, fmtI, 'Top 3 = ' + fmt1(top3Share(A)) + ' % del mercado BR');
-  row('Operaciones', i => pk(i, A).opsV, fmtI, tA1 && tA1.opsV ? nom(top3[0]) + ' hace ' + fmt1(t0.opsV / tA1.opsV) + '× los viajes de ' + nom(top3[1]) : '');
-  const big = maxBy(i => pk(i, A).kgOpV);
-  row('Kg por operación', i => pk(i, A).kgOpV, fmtI, big ? b(nom(big) + ' lleva las cargas más grandes') : '');
-  const prs2 = top3.map(i => pk(i, A).usdKgV).filter(v => !nz(v));
-  const sp2 = prs2.length ? (Math.max.apply(null, prs2) - Math.min.apply(null, prs2)) / Math.min.apply(null, prs2) * 100 : null;
-  row('USD/kg declarado', i => pk(i, A).usdKgV, fmt3, nz(sp2) ? '' : (sp2 < 5 ? 'Mismo segmento de precio (commodity)' : nom(maxBy(i => pk(i, A).usdKgV)) + ' declara más caro (spread ' + fmt1(sp2) + ' %)'));
-  if (P) {
-    const res = maxBy(i => pct(pk(i, A).tV, pk(i, P).tV));
-    row('Δ toneladas vs ' + P, i => pct(pk(i, A).tV, pk(i, P).tV), sgnP, res ? nom(res) + ' fue el más resistente' : '', '', true);
-    if (PP) {
-      const w1 = maxBy(i => pk(i, P).cuotaV - pk(i, PP).cuotaV);
-      row('Δ cuota ' + PP + ' → ' + P + ' (pp)', i => pk(i, P).cuotaV - pk(i, PP).cuotaV, v => sgn(v, 1), w1 ? nom(w1) + ' capturó el crecimiento de ' + P : '', '', true);
-    }
-    const w2 = maxBy(i => pk(i, A).cuotaV - pk(i, P).cuotaV), l2 = minBy(i => pk(i, A).cuotaV - pk(i, P).cuotaV);
-    row('Δ cuota ' + P + ' → ' + A + ' (pp)', i => pk(i, A).cuotaV - pk(i, P).cuotaV, v => sgn(v, 1), (w2 && l2 && w2 !== l2) ? nom(w2) + ' gana, ' + nom(l2) + ' pierde' : '', '', true);
-  }
-  $('mbr-top3-body').innerHTML = filas.join('');
-
-  const dsT = [];
-  top3.forEach(i => {
-    const vA = pk(i, A).mensualT.slice(); for (let k = cM; k < 12; k++) vA[k] = null;
-    dsT.push({ label: nom(i) + ' ' + A, data: vA, borderColor: COLOR[i.nombre], backgroundColor: COLOR[i.nombre] + '22', borderWidth: i === almar ? 3 : 2, pointRadius: 4, tension: 0.3, spanGaps: false, fill: i === almar });
-    if (P) dsT.push({ label: nom(i) + ' ' + P, data: pk(i, P).mensualT, borderColor: COLOR[i.nombre], borderWidth: 1.5, borderDash: [5, 4], pointRadius: 2, tension: 0.3, fill: false });
-  });
-  $('mbr-h-top3-mes').textContent = 'Toneladas por mes · top 3 importadores · ' + A + ' (línea llena)' + (P ? ' vs ' + P + ' (punteada)' : '');
-  new Chart($('mbr-chart-top3-mes').getContext('2d'), { type: 'line', data: { labels: MES, datasets: dsT }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + fmtI(c.parsed.y) + ' t' } } }, scales: { y: { beginAtZero: true, title: { display: true, text: 't netas / mes' } } } } });
-  $('mbr-top3-nota').innerHTML = 'Cuándo compra cada uno en Brasil. Sirve para ver si un competidor se descuelga en un mes (por calidad, por precio o porque se fue a otro origen) y si vos lo acompañás o no.';
-
-  const cc = [];
-  if (PP && P) {
-    const d1 = aP.cuotaV - aPP.cuotaV;
-    cc.push(b('Cuota Almar BR ' + PP + ' → ' + P + ' → ' + A + ': ' + fmt1(aPP.cuotaV) + ' % → ' + fmt1(aP.cuotaV) + ' % → ' + fmt1(aA.cuotaV) + ' %.') + ' ' + (d1 < -0.5 ? 'Perdiste ' + fmt1(-d1) + ' pp entre ' + PP + ' y ' + P : (d1 > 0.5 ? 'Ganaste ' + fmt1(d1) + ' pp entre ' + PP + ' y ' + P : 'Cuota estable entre ' + PP + ' y ' + P)) + (dCuota > 0.5 ? ' y en ' + A + ' estás recuperando (' + sgn(dCuota, 1) + ' pp).' : (dCuota < -0.5 ? ' y en ' + A + ' seguís cediendo (' + sgn(dCuota, 1) + ' pp).' : ' y en ' + A + ' te mantenés (' + sgn(dCuota, 1) + ' pp).')));
-    const gM = pct(mP.tV, mPP.tV), gA = pct(aP.tV, aPP.tV);
-    const capt = IMP.map(i => ({ i: i, dt: pk(i, P).tV - pk(i, PP).tV })).sort((x, y) => y.dt - x.dt)[0];
-    if (!nz(gM) && !nz(gA)) cc.push(b('El mercado BR ' + (gM >= 0 ? 'creció' : 'cayó') + ' ' + fmt1(Math.abs(gM)) + ' % de ' + PP + ' a ' + P + ' (' + vLabel + ');') + ' vos ' + (gA >= 0 ? 'creciste' : 'caíste') + ' ' + fmt1(Math.abs(gA)) + ' %' + (capt && capt.i !== almar && capt.dt > 0 ? ' y quien más volumen sumó fue ' + nom(capt.i) + ' (' + sgn(capt.dt, 0) + ' t).' : '.') + (gM > gA + 5 ? ' Crecer menos que el mercado es perder cuota aunque el número absoluto suba.' : ''));
-  }
-  if (P) {
-    const movs = top3.map(i => ({ i: i, p: pct(pk(i, A).tV, pk(i, P).tV) })).filter(x => !nz(x.p));
-    const worst = movs.slice().sort((x, y) => x.p - y.p)[0], best = movs.slice().sort((x, y) => y.p - x.p)[0];
-    if (worst && best) cc.push(b('En ' + A + ' (' + vLabel + ') el mercado BR va ' + sgnP(vMkt) + ' vs ' + P + '.') + ' Entre los grandes, ' + nom(worst.i) + ' es el que más cayó (' + sgnP(worst.p) + ') y ' + nom(best.i) + ' el que mejor aguantó (' + sgnP(best.p) + ').' + (worst.i !== almar && worst.p < -30 ? ' Cuando un competidor se descuelga así, sus productores quedan disponibles.' : ''));
-    const dPm = pct(mA.usdKgV, mP.usdKgV);
-    if (!nz(dPm)) cc.push(b('Precio declarado del mercado BR: ' + fmt3(mP.usdKgV) + ' → ' + fmt3(mA.usdKgV) + ' USD/kg (' + sgnP(dPm) + ').') + (Math.abs(dPm) < 5 ? ' Casi no se movió: lo que cambió en el volumen no se explica por precio.' : ' Se movió bastante: el precio sí es parte de la explicación.'));
-  }
-  if (big && tA1) cc.push(b('Operativa distinta:') + ' ' + nom(big) + ' lleva cargas de ' + fmtI(pk(big, A).kgOpV) + ' kg por operación' + (big !== almar ? ' contra ' + fmtI(aA.kgOpV) + ' kg tuyos: menos viajes, más grandes, más eficiente por operación; vos tenés más flexibilidad pero más overhead.' : ': hacés menos viajes y más grandes que los otros dos.'));
-  cc.push(b('Dato del terreno (Gonzalo, 04/09/2026), no calculado:') + ' Ciro Gentile tuvo problemas de calidad en Brasil y salió a Paraguay buscando calidad. El desplazamiento entre orígenes y la cartera multi-origen de cada importador están en <a href="index_mercado.html" style="color:#2a78d6;font-weight:600;">index_mercado.html</a>.');
-  $('mbr-concl').innerHTML = cc.map(o => '<li>' + o + '</li>').join('');
-})();
-</script>
 
   <h2 id="real2026">🇧🇷 Real BR — seguimiento del año</h2>
   <p id="real2026-intro" style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">Datos reales 2026 — se completa con los datos del script.</p>
@@ -1062,17 +759,6 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 17:44","fuent
   </div>
 
   <p id="real2026-rank-puntero" style="font-size:13px;color:#4a5568;margin:0 0 24px 0;">El ranking de productores está más arriba, en <a href="#real2026-rank-title">Plan de cargas Brasil</a>, junto a la tabla de camiones, cajas, tránsito y faltantes.</p>
-
-  <h3 id="r26-h-dt" style="font-size:16px;color:#4a5568;margin-bottom:12px;">Despachantes del año (planilla de cargas)</h3>
-  <p style="font-size:12px;color:#718096;margin:-6px 0 12px 0;">Transportistas y fronteras: en <a href="#cargas">Plan de cargas Brasil</a>.</p>
-  <div style="max-width:560px;margin-bottom:8px;">
-    <div class="chart-card">
-      <h3>Despachantes</h3>
-      <table>
-        <thead><tr><th>Despachante</th><th class="num">Cargas</th><th class="num">%</th></tr></thead><tbody id="r26-desp-body"></tbody>
-      </table>
-    </div>
-  </div>
 
   <h2>Notas y supuestos</h2>
   <div class="chart-card" style="font-size:14px;line-height:1.7;">
@@ -1232,7 +918,7 @@ new Chart(ctx, {
   const hh = document.getElementById('cmp-h-mensual'); if (hh) hh.textContent = 'Carretas mensuales BR · ' + anios.join(' vs ') + ' (camiones descargados, Plan de Cargas)';
   new Chart(el.getContext('2d'), { type: 'line', data: { labels: mesesLabels, datasets: ds }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'Camiones/mes' } } } } });
 })();
-// (Ranking mercado UY, donuts y toneladas mensuales de Almar: ahora salen del bloque MERCADO_BR, mas arriba)
+// (El bloque "Almar BR en aduana" se saco del panel el 26/09/2026 a pedido de Gonzalo; lo reemplaza "Almar vs competencia", mismos datos MERCADO_BR)
 
 // ============ CHART: Evolución productores top (Plan de Cargas: camiones descargados por año) ============
 (function(){
@@ -1246,7 +932,160 @@ new Chart(ctx, {
   const hh = document.getElementById('r26-h-evo'); if (hh) hh.textContent = 'Tus 5 productores más grandes de ' + aMax + ' · camiones por año (' + aMax + ' hasta el ' + corte.substring(8, 10) + '/' + corte.substring(5, 7) + ', sin anualizar)';
   new Chart(el.getContext('2d'), { type: 'line', data: { labels: anios.map(a => a === aMax ? a + ' (parcial)' : a), datasets: top.map((p, i) => ({ label: p.nombre, data: anios.map(a => p.porAnio[a] || 0), borderColor: cols[i], backgroundColor: cols[i] + '20', borderWidth: 2.5, tension: 0.25, pointRadius: 6, pointHoverRadius: 9 })) }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true, title: { display: true, text: 'camiones descargados' } } } } });
 })();
-// (Chart de los 3 grandes y tabla de mercado: ahora salen del bloque MERCADO_BR)
+// (idem: reemplazado por "Almar vs competencia" el 26/09/2026)
+</script>
+
+<!-- MERCADO-BR-DATA (no editar a mano — lo inyecta actualizar_precios.ps1, paso 5c-BR, desde los extractos Penta) -->
+<script id="mercado-br-data">
+window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 17:44","fuente":"Penta Transaction · NCM 0803.90 · importaciones Uruguay · origen Brasil","origen":"Brasil","archivos":["detalle_UYimport_2026-8-5-10711.xlsx (237 filas)","detalle_UYimport_2026-8-5-92812.xlsx (400 filas)","detalle_UYimport_2026-4-2-133245.xlsx (417 filas)","detalle_UYimport_2026-4-2-133319.xlsx (296 filas)","detalle_UYimport_2026-4-2-135127.xlsx (761 filas)","detalle_UYimport_2026-4-2-135143.xlsx (580 filas)","detalle_UYimport_2026-4-2-13528.xlsx (226 filas)","detalle_UYimport_2026-4-2-143410.xlsx (382 filas)","detalle_UYimport_2026-4-2-143425.xlsx (348 filas)","detalle_UYimport_2026-4-2-143440.xlsx (143 filas)"],"registros":918,"anio":2026,"corte":"2026-08-31","ventana":{"mesHasta":8,"diaHasta":31,"mesCompleto":true},"anios":[2024,2025,2026],"almar":"ALMAR S.R.L.","porAnio":{"2024":{"ultimoDato":"2024-12-30","completo":true,"cubreVentana":true,"mercado":{"t":24322.6,"usd":16398945,"ops":296,"usdKg":0.674,"kgOp":82171,"cuota":100,"tV":14218.4,"usdV":9553434,"opsV":187,"usdKgV":0.672,"kgOpV":76034,"cuotaV":100,"mensualT":[1262.5,1103.3,1091,2172.9,2280.3,2084.9,2207.4,2016.1,2235.2,2869,3561.9,1438.1],"mensualOps":[22,19,17,29,28,21,27,24,27,29,36,17]}},"2025":{"ultimoDato":"2025-12-30","completo":true,"cubreVentana":true,"mercado":{"t":36222.2,"usd":21442987,"ops":417,"usdKg":0.592,"kgOp":86864,"cuota":100,"tV":23839.7,"usdV":13860402,"opsV":260,"usdKgV":0.581,"kgOpV":91691,"cuotaV":100,"mensualT":[1870.4,2850.7,3200.8,4063.6,3054.4,3162.5,3046.8,2590.5,3309.1,3388.3,2890.9,2794.2],"mensualOps":[23,31,34,41,32,35,37,27,43,42,37,35]}},"2026":{"ultimoDato":"2026-08-31","completo":false,"cubreVentana":true,"mercado":{"t":16856.7,"usd":8921008,"ops":205,"usdKg":0.529,"kgOp":82228,"cuota":100,"tV":16856.7,"usdV":8921008,"opsV":205,"usdKgV":0.529,"kgOpV":82228,"cuotaV":100,"mensualT":[2523.5,2090.7,3661.4,1787.7,2021.8,1690.3,1529.6,1551.6,0,0,0,0],"mensualOps":[28,23,36,26,26,21,19,26,0,0,0,0]}}},"importadores":[{"nombre":"ALMAR S.R.L.","porAnio":{"2024":{"t":13013.2,"usd":8947528,"ops":146,"usdKg":0.688,"kgOp":89131,"cuota":53.5,"tV":7802.2,"usdV":5330167,"opsV":90,"usdKgV":0.683,"kgOpV":86691,"cuotaV":54.87,"mensualT":[533.5,551.4,556.9,1104.8,1184.6,1529.3,1333.2,1008.4,1282.5,1524.9,1806,597.6],"mensualOps":[8,10,10,11,11,14,14,12,14,15,19,8]},"2025":{"t":17947.4,"usd":10753792,"ops":185,"usdKg":0.599,"kgOp":97013,"cuota":49.55,"tV":11899.7,"usdV":6872702,"opsV":109,"usdKgV":0.578,"kgOpV":109172,"cuotaV":49.92,"mensualT":[727.8,1437.8,1774.5,1806.6,1591.2,1881.2,1404.7,1275.9,1729.2,1735.3,1417.8,1165.5],"mensualOps":[11,12,17,16,13,18,12,10,22,19,18,17]},"2026":{"t":9196.9,"usd":4847017,"ops":97,"usdKg":0.527,"kgOp":94813,"cuota":54.56,"tV":9196.9,"usdV":4847017,"opsV":97,"usdKgV":0.527,"kgOpV":94813,"cuotaV":54.56,"mensualT":[1340.4,1166.2,1776.1,1067,853.5,1169.7,995.5,828.5,0,0,0,0],"mensualOps":[14,10,17,11,9,13,11,12,0,0,0,0]}}},{"nombre":"GARMIN S.R.L.","porAnio":{"2024":{"t":4213.4,"usd":2821035,"ops":34,"usdKg":0.67,"kgOp":123925,"cuota":17.32,"tV":2749.8,"usdV":1831688,"opsV":23,"usdKgV":0.666,"kgOpV":119558,"cuotaV":19.34,"mensualT":[221.8,177.4,354.8,399.2,399.2,399.2,399.2,399.2,399.2,266.1,532.2,266.1],"mensualOps":[3,2,3,3,3,3,3,3,3,2,4,2]},"2025":{"t":5566.2,"usd":3333450,"ops":50,"usdKg":0.599,"kgOp":111324,"cuota":15.37,"tV":3858.6,"usdV":2234855,"opsV":29,"usdKgV":0.579,"kgOpV":133056,"cuotaV":16.19,"mensualT":[399.2,399.2,399.2,665.3,532.2,532.2,532.2,399.2,487.9,399.2,421.3,399.2],"mensualOps":[3,3,3,5,4,4,4,3,7,7,4,3]},"2026":{"t":3459.5,"usd":1839028,"ops":39,"usdKg":0.532,"kgOp":88704,"cuota":20.52,"tV":3459.5,"usdV":1839028,"opsV":39,"usdKgV":0.532,"kgOpV":88704,"cuotaV":20.52,"mensualT":[421.3,399.2,510,532.2,598.8,354.8,310.5,332.6,0,0,0,0],"mensualOps":[4,6,6,6,6,4,3,4,0,0,0,0]}}},{"nombre":"CIRO GENTILE S.A.","porAnio":{"2024":{"t":5583,"usd":3636326,"ops":61,"usdKg":0.651,"kgOp":91524,"cuota":22.95,"tV":2286.4,"usdV":1489510,"opsV":28,"usdKgV":0.651,"kgOpV":81656,"cuotaV":16.08,"mensualT":[419.4,283.4,134.9,271,430.1,0,296,451.5,528.9,1078,1136.7,553],"mensualOps":[6,2,2,4,6,0,3,5,7,12,8,6]},"2025":{"t":10129.6,"usd":5925693,"ops":80,"usdKg":0.585,"kgOp":126619,"cuota":27.97,"tV":6286.3,"usdV":3760258,"opsV":48,"usdKgV":0.598,"kgOpV":130965,"cuotaV":26.37,"mensualT":[737.9,884.7,831.8,1256.2,649.7,465.5,750.9,709.7,872.3,1078,834.8,1058.2],"mensualOps":[7,9,6,7,5,2,7,5,6,10,7,9]},"2026":{"t":3401.2,"usd":1810231,"ops":34,"usdKg":0.532,"kgOp":100035,"cuota":20.18,"tV":3401.2,"usdV":1810231,"opsV":34,"usdKgV":0.532,"kgOpV":100035,"cuotaV":20.18,"mensualT":[611.9,425.7,1270,16.6,395.9,145.2,173,362.8,0,0,0,0],"mensualOps":[4,3,9,2,4,3,2,7,0,0,0,0]}}},{"nombre":"EXPERTEX SA","porAnio":{"2024":{"t":284.8,"usd":189571,"ops":8,"usdKg":0.666,"kgOp":35604,"cuota":1.17,"tV":263.7,"usdV":175002,"opsV":7,"usdKgV":0.664,"kgOpV":37674,"cuotaV":1.85,"mensualT":[42.2,0,0,130.8,46.4,0,44.3,0,0,0,21.1,0],"mensualOps":[1,0,0,3,1,0,2,0,0,0,1,0]},"2025":{"t":759.9,"usd":438402,"ops":32,"usdKg":0.577,"kgOp":23746,"cuota":2.1,"tV":549,"usdV":312577,"opsV":23,"usdKgV":0.569,"kgOpV":23868,"cuotaV":2.3,"mensualT":[0,63.3,84.5,105.6,84.5,84.5,63.3,63.3,0,20.6,83.9,106.4],"mensualOps":[0,3,4,5,3,2,3,3,0,1,4,4]},"2026":{"t":297.8,"usd":159728,"ops":13,"usdKg":0.536,"kgOp":22907,"cuota":1.77,"tV":297.8,"usdV":159728,"opsV":13,"usdKgV":0.536,"kgOpV":22907,"cuotaV":1.77,"mensualT":[41.2,20.6,41.2,85.5,88.7,20.6,0,0,0,0,0,0],"mensualOps":[2,1,2,4,3,1,0,0,0,0,0,0]}}},{"nombre":"JEMI SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":42.1,"usd":21880,"ops":2,"usdKg":0.52,"kgOp":21038,"cuota":0.12,"tV":42.1,"usdV":21880,"opsV":2,"usdKgV":0.52,"kgOpV":21038,"cuotaV":0.18,"mensualT":[0,0,0,0,0,20.9,0,21.2,0,0,0,0],"mensualOps":[0,0,0,0,0,1,0,1,0,0,0,0]},"2026":{"t":215.3,"usd":112738,"ops":13,"usdKg":0.524,"kgOp":16560,"cuota":1.28,"tV":215.3,"usdV":112738,"opsV":13,"usdKgV":0.524,"kgOpV":16560,"cuotaV":1.28,"mensualT":[0,34.7,19.7,42,40.7,0,50.7,27.6,0,0,0,0],"mensualOps":[0,2,1,2,2,0,3,3,0,0,0,0]}}},{"nombre":"ALBEZ IBARRA RUBEN ALEJANDRO","porAnio":{"2024":{"t":21.8,"usd":15028,"ops":1,"usdKg":0.69,"kgOp":21780,"cuota":0.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,21.8,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,1,0]},"2025":{"t":872.8,"usd":468120,"ops":21,"usdKg":0.536,"kgOp":41561,"cuota":2.41,"tV":562.3,"usdV":306678,"opsV":14,"usdKgV":0.545,"kgOpV":40166,"cuotaV":2.36,"mensualT":[0,0,84,144.1,123.6,41.2,125.1,44.4,88.7,88.7,88.7,44.4],"mensualOps":[0,0,2,4,3,1,3,1,2,2,2,1]},"2026":{"t":177.4,"usd":92252,"ops":4,"usdKg":0.52,"kgOp":44352,"cuota":1.05,"tV":177.4,"usdV":92252,"opsV":4,"usdKgV":0.52,"kgOpV":44352,"cuotaV":1.05,"mensualT":[44.4,44.4,44.4,44.4,0,0,0,0,0,0,0,0],"mensualOps":[1,1,1,1,0,0,0,0,0,0,0,0]}}},{"nombre":"RINALIR SOCIEDAD ANONIMA","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":327,"usd":182962,"ops":15,"usdKg":0.56,"kgOp":21801,"cuota":0.9,"tV":217.7,"usdV":113210,"opsV":10,"usdKgV":0.52,"kgOpV":21771,"cuotaV":0.91,"mensualT":[0,0,0,21.6,42.4,64.9,66.5,22.2,0,44.4,44.4,20.6],"mensualOps":[0,0,0,1,2,3,3,1,0,2,2,1]},"2026":{"t":87.6,"usd":48972,"ops":4,"usdKg":0.559,"kgOp":21888,"cuota":0.52,"tV":87.6,"usdV":48972,"opsV":4,"usdKgV":0.559,"kgOpV":21888,"cuotaV":0.52,"mensualT":[43.2,0,0,0,44.4,0,0,0,0,0,0,0],"mensualOps":[2,0,0,0,2,0,0,0,0,0,0,0]}}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","porAnio":{"2024":{"t":234.7,"usd":157192,"ops":12,"usdKg":0.67,"kgOp":19556,"cuota":0.96,"tV":211.8,"usdV":141090,"opsV":10,"usdKgV":0.666,"kgOpV":21181,"cuotaV":1.49,"mensualT":[19.8,0,0,63.1,85.4,21.8,21.8,0,1.1,0,21.8,0],"mensualOps":[1,0,0,3,4,1,1,0,1,0,1,0]},"2025":{"t":311.3,"usd":179256,"ops":18,"usdKg":0.576,"kgOp":17292,"cuota":0.86,"tV":244.7,"usdV":144625,"opsV":15,"usdKgV":0.591,"kgOpV":16315,"cuotaV":1.03,"mensualT":[3.2,65.7,26.9,64.2,30.9,22.2,0,31.7,44.4,22.2,0,0],"mensualOps":[1,4,2,3,2,1,0,2,2,1,0,0]},"2026":{"t":21.1,"usd":11042,"ops":1,"usdKg":0.523,"kgOp":21120,"cuota":0.13,"tV":21.1,"usdV":11042,"opsV":1,"usdKgV":0.523,"kgOpV":21120,"cuotaV":0.13,"mensualT":[21.1,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"FRUTTARA SAS","porAnio":{"2024":{"t":163.5,"usd":109732,"ops":12,"usdKg":0.671,"kgOp":13624,"cuota":0.67,"tV":140,"usdV":91462,"opsV":9,"usdKgV":0.653,"kgOpV":15556,"cuotaV":0.98,"mensualT":[25.8,91.1,0,0,0,0,23.1,0,1.2,0,22.3,0],"mensualOps":[3,5,0,0,0,0,1,0,1,0,2,0]},"2025":{"t":219.2,"usd":114001,"ops":11,"usdKg":0.52,"kgOp":19930,"cuota":0.61,"tV":176.9,"usdV":91978,"opsV":9,"usdKgV":0.52,"kgOpV":19653,"cuotaV":0.74,"mensualT":[0,0,0,0,0,49.9,104,23,42.4,0,0,0],"mensualOps":[0,0,0,0,0,3,5,1,2,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"BANPY SAS","porAnio":{"2024":{"t":21.4,"usd":14755,"ops":1,"usdKg":0.69,"kgOp":21384,"cuota":0.09,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,21.4],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,1]},"2025":{"t":2.4,"usd":1639,"ops":1,"usdKg":0.69,"kgOp":2376,"cuota":0.01,"tV":2.4,"usdV":1639,"opsV":1,"usdKgV":0.69,"kgOpV":2376,"cuotaV":0.01,"mensualT":[2.4,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[1,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"NALIA S A","porAnio":{"2024":{"t":740.5,"usd":476575,"ops":18,"usdKg":0.644,"kgOp":41140,"cuota":3.04,"tV":718.1,"usdV":463312,"opsV":17,"usdKgV":0.645,"kgOpV":42240,"cuotaV":5.05,"mensualT":[0,0,0,202,134.6,134.6,89.8,157.1,22.4,0,0,0],"mensualOps":[0,0,0,4,3,3,3,4,1,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"CRUFI S A","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":0.1,"usd":729,"ops":1,"usdKg":12.144,"kgOp":60,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0.1,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"TEDIBLER S A","porAnio":{"2024":{"t":22.2,"usd":14414,"ops":1,"usdKg":0.65,"kgOp":22176,"cuota":0.09,"tV":22.2,"usdV":14414,"opsV":1,"usdKgV":0.65,"kgOpV":22176,"cuotaV":0.16,"mensualT":[0,0,22.2,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"IROLDI BERMUDEZ NATALIA GIMENA","porAnio":{"2024":{"t":2,"usd":2375,"ops":1,"usdKg":1.187,"kgOp":2000,"cuota":0.01,"tV":2,"usdV":2375,"opsV":1,"usdKgV":1.187,"kgOpV":2000,"cuotaV":0.01,"mensualT":[0,0,0,2,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,1,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"LA 5TA SAS","porAnio":{"2024":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2025":{"t":44.4,"usd":23063,"ops":1,"usdKg":0.52,"kgOp":44352,"cuota":0.12,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,44.4,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,1,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}},{"nombre":"GRINOLAND S.A.","porAnio":{"2024":{"t":22.2,"usd":14414,"ops":1,"usdKg":0.65,"kgOp":22176,"cuota":0.09,"tV":22.2,"usdV":14414,"opsV":1,"usdKgV":0.65,"kgOpV":22176,"cuotaV":0.16,"mensualT":[0,0,22.2,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,1,0,0,0,0,0,0,0,0,0]},"2025":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]},"2026":{"t":0,"usd":0,"ops":0,"usdKg":null,"kgOp":null,"cuota":0,"tV":0,"usdV":0,"opsV":0,"usdKgV":null,"kgOpV":null,"cuotaV":0,"mensualT":[0,0,0,0,0,0,0,0,0,0,0,0],"mensualOps":[0,0,0,0,0,0,0,0,0,0,0,0]}}}]}/*__END_MERCADO_BR__*/;
+</script>
+<script>
+// ============ ALMAR vs COMPETENCIA — banana de Brasil en aduana UY (26/09/2026) ============
+// Reemplaza al bloque "Almar BR en aduana" (sacado a pedido de Gonzalo). Mismos datos: window.MERCADO_BR,
+// sidecar fuentes/mercado_br.json que arma el paso 5c-BR del script con los extractos de Penta.
+// Series fijas: Almar (azul), competidores con >= 3 % de cuota en el año (naranja, aqua, amarillo), resto "Otros" (gris).
+// El color sigue a la empresa en los dos gráficos y en la tabla, nunca a la posición.
+(function(){
+  const D = window.MERCADO_BR;
+  const $ = id => document.getElementById(id);
+  const intro = $('cbr-intro'), root = $('cbr-root');
+  if (!D || !D.importadores || !D.importadores.length || !D.porAnio) {
+    if (intro) intro.innerHTML = '<span style="color:#c53030;font-weight:600;">Sin datos de aduana.</span> Tirá los extractos de Penta en la carpeta <code>penta</code> y corré actualizar_precios.ps1.';
+    if (root) root.style.display = 'none';
+    return;
+  }
+  const nz = v => v === null || v === undefined || isNaN(v);
+  const fmtI = n => nz(n) ? '—' : Math.round(n).toLocaleString('es-UY');
+  const fmt1 = n => nz(n) ? '—' : Number(n).toLocaleString('es-UY', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fmt3 = n => nz(n) ? '—' : Number(n).toLocaleString('es-UY', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const sgnP = v => nz(v) ? '—' : (v > 0 ? '+' : '') + fmt1(v) + ' %';
+  const sgnPP = v => nz(v) ? '—' : (v > 0 ? '+' : '') + fmt1(v) + ' pp';
+  const colDe = v => nz(v) ? '#4a5568' : (v > 0 ? '#2f855a' : (v < 0 ? '#c53030' : '#4a5568'));
+  const fmtF = s => s ? s.substring(8, 10) + '/' + s.substring(5, 7) + '/' + s.substring(0, 4) : '—';
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const MESL = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'set', 'oct', 'nov', 'dic'];
+
+  const A = String(D.anio);
+  const anios = (D.anios || []).map(String).sort();
+  const P = anios.filter(a => a < A).slice(-1)[0] || null;
+  const v = D.ventana || {};
+  const mesHasta = Math.min(12, Math.max(1, Number(v.mesHasta) || 12));
+  const vLabel = (mesHasta >= 12 && v.mesCompleto) ? 'año completo' : ('ene–' + MESL[mesHasta - 1] + (v.mesCompleto ? '' : ' parcial'));
+  const cero = { t: 0, tV: 0, usdV: 0, opsV: 0, usdKgV: null, cuotaV: 0, mensualT: [] };
+  const pk = (i, y) => (i.porAnio && i.porAnio[y]) ? i.porAnio[y] : cero;
+  const mk = y => (D.porAnio && D.porAnio[y] && D.porAnio[y].mercado) ? D.porAnio[y].mercado : cero;
+  const IMP = D.importadores.slice();
+  const almar = IMP.find(i => i.nombre === D.almar) || IMP[0];
+  const corto = n => String(n).replace(/\s+(S\.?\s?R\.?\s?L\.?|S\.?\s?A\.?\s?S?\.?|LTDA\.?|SOCIEDAD ANONIMA|SAS)\s*$/i, '').trim()
+    .split(/\s+/).map(w => w.length > 2 ? w[0] + w.slice(1).toLowerCase() : w).join(' ');
+  const nombre = i => i === almar ? 'Almar' : corto(i.nombre);
+
+  // ranking del año y series fijas
+  const rankA = IMP.filter(i => pk(i, A).tV > 0).sort((x, y) => pk(y, A).tV - pk(x, A).tV);
+  const comp = rankA.filter(i => i !== almar && pk(i, A).cuotaV >= 3).slice(0, 3);
+  const otros = IMP.filter(i => i !== almar && comp.indexOf(i) < 0);
+  const COLORES = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100'];   // paleta categórica validada, orden fijo
+  const GRIS = '#a0aec0', SURF = '#ffffff';
+  const series = [{ nombre: 'Almar', imp: [almar], color: COLORES[0] }]
+    .concat(comp.map((c, i) => ({ nombre: nombre(c), imp: [c], color: COLORES[i + 1] })))
+    .concat(otros.length ? [{ nombre: 'Otros (' + otros.length + ')', imp: otros, color: GRIS }] : []);
+  const colorDe = i => { const s = series.find(x => x.imp.length === 1 && x.imp[0] === i); return s ? s.color : GRIS; };
+  const sumT = (imps, y) => imps.reduce((s, i) => s + (Number(pk(i, y).tV) || 0), 0);
+  const sumMes = (imps, y, m) => imps.reduce((s, i) => s + (Number((pk(i, y).mensualT || [])[m]) || 0), 0);
+  const cuotaDe = (imps, y) => { const m = Number(mk(y).tV) || 0; return m ? sumT(imps, y) / m * 100 : 0; };
+
+  const aA = pk(almar, A), aP = P ? pk(almar, P) : cero, mA = mk(A), mP = P ? mk(P) : cero;
+  const pos = rankA.indexOf(almar) + 1;
+  const vT = (P && aP.tV) ? (aA.tV - aP.tV) / aP.tV * 100 : null;
+  const vM = (P && mP.tV) ? (mA.tV - mP.tV) / mP.tV * 100 : null;
+  const dCuota = P ? aA.cuotaV - aP.cuotaV : null;
+  const dUsd = (!nz(aA.usdKgV) && !nz(mA.usdKgV) && mA.usdKgV) ? (aA.usdKgV - mA.usdKgV) / mA.usdKgV * 100 : null;
+  const top3 = rankA.slice(0, 3).reduce((s, i) => s + pk(i, A).cuotaV, 0);
+
+  // ---- intro
+  intro.innerHTML = 'Importaciones uruguayas de banana de origen Brasil según aduana (Penta, NCM 0803.90), ' + A + ' hasta ' + fmtF(D.corte) +
+    '. Todos los años se comparan en la misma ventana (<strong>' + vLabel + '</strong>) para que el año en curso no quede corto contra años cerrados.';
+
+  // ---- KPIs
+  const setK = (k, l, val, sub, cls) => { $('cbr-' + k + '-l').textContent = l; $('cbr-' + k).textContent = val; $('cbr-' + k + '-s').innerHTML = sub; $('cbr-' + k + '-card').className = 'kpi ' + (cls || ''); };
+  const b = (s, c) => '<strong style="color:' + c + ';">' + s + '</strong>';
+  setK('k1', 'Cuota Almar ' + A + ' (' + vLabel + ')', fmt1(aA.cuotaV) + ' %',
+    P ? 'vs ' + fmt1(aP.cuotaV) + ' % en ' + P + ' (' + vLabel + ') · ' + b(sgnPP(dCuota), colDe(dCuota)) : 'sin año anterior para comparar',
+    nz(dCuota) ? '' : (dCuota < -0.5 ? 'red' : (dCuota > 0.5 ? 'green' : '')));
+  const n2 = rankA.filter(i => i !== almar)[0], n3 = rankA.filter(i => i !== almar)[1];
+  setK('k2', 'Posición en ' + A, pos ? '#' + pos + ' de ' + rankA.length : '—',
+    (n2 ? (pos === 1 ? '2°' : 'líder') + ': ' + esc(nombre(n2)) + ' ' + fmt1(pk(n2, A).cuotaV) + ' %' : '') + (n3 ? ' · 3°: ' + esc(nombre(n3)) + ' ' + fmt1(pk(n3, A).cuotaV) + ' %' : ''),
+    pos === 1 ? 'green' : '');
+  setK('k3', 'Toneladas Almar ' + A + ' (' + vLabel + ')', fmtI(aA.tV) + ' t',
+    P ? 'vs ' + fmtI(aP.tV) + ' t en ' + P + ' (' + b(sgnP(vT), colDe(vT)) + ') · el mercado ' + b(sgnP(vM), colDe(vM)) : fmtI(aA.opsV) + ' operaciones',
+    nz(vT) ? '' : (vT < -10 ? 'red' : (vT > 10 ? 'green' : '')));
+  setK('k4', 'USD/kg declarado Almar ' + A, fmt3(aA.usdKgV),
+    'mercado ' + fmt3(mA.usdKgV) + (nz(dUsd) ? '' : ' (' + b(sgnP(dUsd), dUsd > 0 ? '#c53030' : '#2f855a') + ')') + comp.map(c => ' · ' + esc(nombre(c)) + ' ' + fmt3(pk(c, A).usdKgV)).join(''),
+    nz(dUsd) ? '' : (dUsd > 3 ? 'red' : (dUsd < -3 ? 'green' : '')));
+
+  // ---- gráfico 1: toneladas por mes del año en curso, una línea por serie
+  const meses = []; for (let m = 0; m < mesHasta; m++) meses.push(m);
+  $('cbr-h1').textContent = 'Toneladas por mes en ' + A + ' — Almar contra los grandes';
+  $('cbr-n1').textContent = 'Toneladas netas por mes de importación (' + MESL[0] + ' a ' + MESL[mesHasta - 1] + ' ' + A + '). Pasá el mouse por un mes para ver todas las empresas.';
+  if (window.Chart && $('cbrChartMes')) new Chart($('cbrChartMes').getContext('2d'), {
+    type: 'line',
+    data: { labels: meses.map(m => MESL[m] + ' ' + A.slice(2)), datasets: series.map(s => ({
+      label: s.nombre, data: meses.map(m => sumMes(s.imp, A, m)),
+      borderColor: s.color, backgroundColor: s.color, borderWidth: s.imp[0] === almar ? 2.5 : 2,
+      pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: s.color, pointBorderColor: SURF, pointBorderWidth: 2,
+      tension: 0.2, fill: false, spanGaps: true })) },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, color: '#4a5568', font: { size: 12 } } },
+        tooltip: { callbacks: { label: c => ' ' + c.dataset.label + ': ' + fmtI(c.parsed.y) + ' t' } } },
+      scales: { x: { grid: { display: false }, ticks: { color: '#718096' } },
+        y: { beginAtZero: true, grid: { color: '#edf2f7' }, ticks: { color: '#718096', callback: v => fmtI(v) + ' t' } } } }
+  });
+
+  // ---- gráfico 2: cuota por año (misma ventana), barras apiladas al 100 %
+  $('cbr-h2').textContent = 'Cuota de mercado por año (' + vLabel + ' de cada año)';
+  $('cbr-n2').textContent = 'Participación en toneladas sobre el total de banana brasileña importada en la misma ventana de cada año. Los valores exactos están en la tabla de abajo.';
+  if (window.Chart && $('cbrChartCuota')) new Chart($('cbrChartCuota').getContext('2d'), {
+    type: 'bar',
+    data: { labels: anios.map(y => y + (y === A ? ' (en curso)' : '')), datasets: series.map(s => ({
+      label: s.nombre, data: anios.map(y => cuotaDe(s.imp, y)),
+      backgroundColor: s.color, borderColor: SURF, borderWidth: { top: 2, left: 0, right: 0, bottom: 0 }, borderSkipped: false,
+      maxBarThickness: 84 })) },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, color: '#4a5568', font: { size: 12 } } },
+        tooltip: { callbacks: { label: c => { const s = series[c.datasetIndex], y = anios[c.dataIndex]; return ' ' + s.nombre + ': ' + fmt1(c.parsed.y) + ' % (' + fmtI(sumT(s.imp, y)) + ' t)'; } } } },
+      scales: { x: { stacked: true, grid: { display: false }, ticks: { color: '#718096' } },
+        y: { stacked: true, min: 0, max: 100, grid: { color: '#edf2f7' }, ticks: { color: '#718096', callback: v => v + ' %' } } } }
+  });
+
+  // ---- tabla: ranking del año en curso, con el año anterior al lado
+  $('cbr-th-t').textContent = 't ' + A + ' (' + vLabel + ')';
+  $('cbr-th-tp').textContent = P ? 't ' + P + ' (' + vLabel + ')' : 't año anterior';
+  const filas = IMP.filter(i => pk(i, A).tV > 0 || (P && pk(i, P).tV > 0)).sort((x, y) => pk(y, A).tV - pk(x, A).tV || pk(y, P).tV - pk(x, P).tV);
+  const sw = c => '<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:' + c + ';margin-right:6px;vertical-align:baseline;"></span>';
+  $('cbr-rank').innerHTML = filas.map((i, k) => {
+    const a = pk(i, A), p = P ? pk(i, P) : cero;
+    const dt = (P && p.tV) ? (a.tV - p.tV) / p.tV * 100 : null, dc = P ? a.cuotaV - p.cuotaV : null;
+    const es = i === almar;
+    return '<tr' + (es ? ' style="background:#ebf8ff;font-weight:700;"' : '') + '><td>' + (a.tV > 0 ? k + 1 : '—') + '</td>' +
+      '<td>' + sw(colorDe(i)) + esc(nombre(i)) + '</td>' +
+      '<td class="num">' + fmtI(a.tV) + '</td><td class="num">' + fmt1(a.cuotaV) + ' %</td><td class="num">' + fmt3(a.usdKgV) + '</td>' +
+      '<td class="num" style="color:#718096;">' + fmtI(p.tV) + '</td>' +
+      '<td class="num" style="color:' + colDe(dt) + ';">' + sgnP(dt) + '</td><td class="num" style="color:' + colDe(dc) + ';">' + sgnPP(dc) + '</td></tr>';
+  }).join('') + '<tr style="border-top:2px solid #cbd5e0;color:#4a5568;"><td></td><td>Mercado (todos)</td><td class="num">' + fmtI(mA.tV) + '</td><td class="num">100 %</td><td class="num">' + fmt3(mA.usdKgV) +
+    '</td><td class="num">' + fmtI(mP.tV) + '</td><td class="num" style="color:' + colDe(vM) + ';">' + sgnP(vM) + '</td><td class="num"></td></tr>';
+
+  // ---- lectura
+  const L = [];
+  L.push(b('Almar es el ' + fmt1(aA.cuotaV) + ' % de la banana brasileña que entra a Uruguay en ' + A + ' (' + vLabel + ').', '#1e3a5f') +
+    (comp.length ? ' ' + comp.map(c => esc(nombre(c)) + ' ' + fmt1(pk(c, A).cuotaV) + ' %').join(' y ') + (comp.length > 1 ? ' suman ' + fmt1(comp.reduce((s, c) => s + pk(c, A).cuotaV, 0)) + ' %' : '') + '; los tres primeros, ' + fmt1(top3) + ' %.' : ''));
+  if (P && aP.tV) L.push('Contra ' + P + ' (' + vLabel + '): Almar ' + b(sgnP(vT), colDe(vT)) + ' en toneladas (' + fmtI(aP.tV) + ' → ' + fmtI(aA.tV) + ' t) y el mercado ' + b(sgnP(vM), colDe(vM)) +
+    ': ' + (dCuota >= 0 ? 'ganó ' : 'perdió ') + fmt1(Math.abs(dCuota)) + ' pp de cuota.' +
+    (comp.length ? ' Competencia: ' + comp.map(c => { const p = pk(c, P), a = pk(c, A); const d = p.tV ? (a.tV - p.tV) / p.tV * 100 : null; return esc(nombre(c)) + ' ' + sgnP(d); }).join(', ') + '.' : ''));
+  if (!nz(dUsd)) L.push('Precio declarado en aduana: Almar USD ' + fmt3(aA.usdKgV) + '/kg contra USD ' + fmt3(mA.usdKgV) + ' del mercado (' + b(sgnP(dUsd), dUsd > 0 ? '#c53030' : '#2f855a') + '): ' +
+    (Math.abs(dUsd) < 2 ? 'paga prácticamente lo mismo que la competencia.' : (dUsd > 0 ? 'declara más caro que la competencia.' : 'declara más barato que la competencia.')));
+  $('cbr-lectura').innerHTML = L.map(x => '<li>' + x + '</li>').join('');
+  $('cbr-fuente').textContent = 'Fuente: ' + (D.fuente || 'Penta Transaction') + ' · datos al ' + fmtF(D.corte) + ' (' + fmtI(D.registros) + ' operaciones, ' + ((D.archivos || []).length) + ' extractos). Para extender la serie: tirar el detalle nuevo de Penta en la carpeta penta y correr actualizar_precios.ps1.';
+})();
 </script>
 
 <!-- CEPEA-DATA-START (no editar a mano — se actualiza con actualizar_precios.ps1) -->
@@ -1647,227 +1486,6 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
 })();
 </script>
 
-<script>
-// ============ ALMAR vs CEPEA ============
-(function(){
-  const data = window.CEPEA_DATA;
-  if (!data || !data.almar || !data.almar.semanas || data.almar.semanas.length === 0) {
-    console.warn('Almar: sin datos de compras');
-    return;
-  }
-
-  const cepeaSerie = data.serie.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
-  const almar = data.almar;
-  const semanasAlmar = almar.semanas.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha));
-  const productores = almar.productores;
-  const KG = almar.kg_caja_neto || 22;
-  const SERVICIOS = almar.servicios_caja || 16;  // R$/caja extra (envalado + paletizado + flete interno)
-  const SERV_KG = SERVICIOS / KG;                // ~R$ 0,73/kg equivalente
-
-  // Cepea cacho + servicios = lo que costaría una caja completa al precio Cepea
-  function cepeaFullKg(precioKg) { return precioKg + SERV_KG; }
-
-  function fmt(n,d){ return n.toFixed(d!==undefined?d:2).replace('.', ','); }
-  function sign(n,d){ return (n>=0?'+':'')+fmt(n,d||1)+'%'; }
-  function fmtFecha(s) { return s.substring(8,10)+'/'+s.substring(5,7)+'/'+s.substring(0,4); }
-
-  // Helper: encontrar Cepea price para fecha (closest dentro de 5 dias)
-  function cepeaForDate(fecha) {
-    let best = null; let bestDiff = Infinity;
-    const target = new Date(fecha+'T12:00:00').getTime();
-    for (const c of cepeaSerie) {
-      const t = new Date(c.fecha+'T12:00:00').getTime();
-      const d = Math.abs(t - target);
-      if (d < bestDiff) { bestDiff = d; best = c; }
-    }
-    return (bestDiff <= 6*86400000) ? best : null;
-  }
-
-  // ---- Promedio Cepea YTD 2026 (raw del cacho)
-  const cepeaYTD2026 = cepeaSerie.filter(c => c.anio === 2026);
-  const cepeaYTDAvgCacho = cepeaYTD2026.length > 0
-    ? cepeaYTD2026.reduce((s,x)=>s+x.precio,0)/cepeaYTD2026.length
-    : null;
-  // Cepea YTD comparable a Almar (cacho + servicios)
-  const cepeaYTDAvg = cepeaYTDAvgCacho !== null ? cepeaFullKg(cepeaYTDAvgCacho) : null;
-
-  // ---- Métricas para KPIs
-  const totalCargas = almar.total_cargas;
-  const ultimaSemana = semanasAlmar[semanasAlmar.length-1];
-
-  // 4 últimas semanas
-  const ult4 = semanasAlmar.slice(-4);
-  const sumCargasUlt4 = ult4.reduce((s,w)=>s+w.cargas,0);
-  const sumValorUlt4 = ult4.reduce((s,w)=>s+w.precio_avg_caja*w.cargas,0);
-  const almarAvg4Caja = sumCargasUlt4 > 0 ? sumValorUlt4/sumCargasUlt4 : 0;
-  const almarAvg4Kg = almarAvg4Caja / KG;
-
-  // Cepea promedio mismas 4 semanas (cacho + servicios para comparar)
-  let cepeaSumKgCacho = 0, cepeaCnt = 0;
-  ult4.forEach(w => {
-    const c = cepeaForDate(w.fecha);
-    if (c) { cepeaSumKgCacho += c.precio; cepeaCnt++; }
-  });
-  const cepeaAvg4Cacho = cepeaCnt > 0 ? cepeaSumKgCacho/cepeaCnt : null;
-  const cepeaAvg4Kg = cepeaAvg4Cacho !== null ? cepeaFullKg(cepeaAvg4Cacho) : null;
-  const cepeaAvg4Caja = cepeaAvg4Cacho !== null ? cepeaAvg4Cacho * KG + SERVICIOS : null;
-
-  const spreadKg = cepeaAvg4Kg !== null ? almarAvg4Kg - cepeaAvg4Kg : null;
-  const spreadPct = cepeaAvg4Kg !== null && cepeaAvg4Kg > 0
-    ? ((almarAvg4Kg - cepeaAvg4Kg)/cepeaAvg4Kg)*100
-    : null;
-
-  // ============ KPIs render ============
-  document.getElementById('almar-cargas-value').textContent = fmt(totalCargas, 1) + ' cargas';
-  document.getElementById('almar-cargas-sub').innerHTML =
-    productores.length + ' productores activos · ' +
-    (semanasAlmar.length) + ' semanas operadas';
-
-  document.getElementById('almar-precio-value').textContent = 'R$ ' + fmt(almarAvg4Caja) + '/caja';
-  document.getElementById('almar-precio-sub').innerHTML =
-    '≈ R$ ' + fmt(almarAvg4Kg) + '/kg · USD ' + fmt(almarAvg4Caja/5.20) + '/caja';
-
-  if (cepeaAvg4Kg !== null) {
-    const sEl = document.getElementById('almar-spread-value');
-    const spreadCaja = almarAvg4Caja - cepeaAvg4Caja;
-    sEl.textContent = (spreadCaja>=0?'+':'') + 'R$ ' + fmt(spreadCaja) + '/caja';
-    sEl.style.color = spreadCaja > 2 ? '#c53030' : (spreadCaja < -1 ? '#2f855a' : '#1e3a5f');
-    document.getElementById('almar-kpi-spread').style.borderLeftColor = sEl.style.color;
-    document.getElementById('almar-spread-sub').innerHTML =
-      'Cepea + servicios: R$ ' + fmt(cepeaAvg4Caja) + '/caja · ' + sign(spreadPct) + ' vs referencia';
-  } else {
-    document.getElementById('almar-spread-value').textContent = '—';
-    document.getElementById('almar-spread-sub').textContent = 'Sin match con Cepea';
-  }
-
-  if (ultimaSemana) {
-    document.getElementById('almar-ultima-value').textContent =
-      ultimaSemana.cargas + ' cargas · R$ ' + fmt(ultimaSemana.precio_avg_caja) + '/caja';
-    document.getElementById('almar-ultima-sub').textContent =
-      'Semana ' + fmtFecha(ultimaSemana.fecha) + ' · ≈ R$ ' + fmt(ultimaSemana.precio_avg_kg) + '/kg';
-  }
-
-  // ============ Productores table ============
-  const tbody = document.getElementById('almar-productores-tbody');
-  const totalCargas2 = productores.reduce((s,p)=>s+p.cargas,0);
-  if (tbody) productores.forEach((p, i) => {
-    const vol = (p.cargas/totalCargas2*100);
-    const vsRef = cepeaYTDAvg ? ((p.precio_avg_kg - cepeaYTDAvg)/cepeaYTDAvg*100) : null;
-    const vsColor = vsRef === null ? '#4a5568' : (vsRef > 50 ? '#c53030' : vsRef > 20 ? '#d69e2e' : '#2f855a');
-    const vsTxt = vsRef === null ? '—' : sign(vsRef);
-    const isFav = i < 3;
-    tbody.insertAdjacentHTML('beforeend', `<tr style="border-bottom:1px solid #e2e8f0;${isFav?'background:#f0fff4;':''}">
-      <td style="padding:7px 8px;font-weight:600;">${i+1}</td>
-      <td style="padding:7px 8px;font-weight:${isFav?'700':'500'};">${p.productor}</td>
-      <td style="padding:7px 8px;text-align:right;font-weight:600;">${fmt(p.cargas,1)}</td>
-      <td style="padding:7px 8px;text-align:right;color:#4a5568;">${fmt(vol,1)}%</td>
-      <td style="padding:7px 8px;text-align:right;">${fmt(p.precio_avg_caja)}</td>
-      <td style="padding:7px 8px;text-align:right;">${fmt(p.precio_avg_kg)}</td>
-      <td style="padding:7px 8px;text-align:right;color:#718096;font-size:12px;">${fmt(p.precio_min)} - ${fmt(p.precio_max)}</td>
-      <td style="padding:7px 8px;text-align:right;color:${vsColor};font-weight:700;">${vsTxt}</td>
-    </tr>`);
-  });
-
-  // ============ Chart Almar vs Cepea (R$/kg) ============
-  function dayOfYear(dateStr) {
-    const parts = dateStr.split('-');
-    const d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
-    const start = new Date(d.getFullYear(), 0, 0);
-    return Math.floor((d - start) / 86400000);
-  }
-
-  const cepea2026Cacho = cepeaYTD2026.map(c => ({ x: dayOfYear(c.fecha), y: c.precio }));
-  const cepea2026Full = cepeaYTD2026.map(c => ({ x: dayOfYear(c.fecha), y: cepeaFullKg(c.precio) }));
-  const almar2026 = semanasAlmar.map(s => ({ x: dayOfYear(s.fecha), y: s.precio_avg_kg }));
-
-  const monthTicks2 = [1,32,60,91,121,152,182,213,244,274,305,335];
-  const MESES2 = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-
-  new Chart(document.getElementById('almarVsCepeaChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      datasets: [
-        {
-          label: 'Almar pagado (R$/kg en caja)',
-          data: almar2026.sort((a,b)=>a.x-b.x),
-          borderColor: '#2c5282',
-          backgroundColor: 'rgba(44,82,130,0.10)',
-          borderWidth: 3.5,
-          tension: 0.25,
-          pointRadius: 5,
-          fill: false
-        },
-        {
-          label: 'Cepea + servicios (caja equivalente)',
-          data: cepea2026Full.sort((a,b)=>a.x-b.x),
-          borderColor: '#c53030',
-          backgroundColor: 'rgba(197,48,48,0.08)',
-          borderWidth: 2.5,
-          tension: 0.25,
-          pointRadius: 3,
-          fill: false
-        },
-        {
-          label: 'Cepea solo cacho (al productor)',
-          data: cepea2026Cacho.sort((a,b)=>a.x-b.x),
-          borderColor: '#a0aec0',
-          borderDash: [6,4],
-          borderWidth: 1.8,
-          tension: 0.25,
-          pointRadius: 2,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'nearest', intersect: false },
-      plugins: {
-        legend: { position: 'top' },
-        tooltip: {
-          callbacks: {
-            title: function(items) {
-              if (!items.length) return '';
-              const dy = items[0].parsed.x;
-              const d = new Date(2026, 0, dy);
-              return d.toLocaleDateString('es-UY', { day: '2-digit', month: 'short' });
-            },
-            label: function(item) {
-              return item.dataset.label + ': R$ ' + fmt(item.parsed.y) + '/kg';
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          type: 'linear',
-          min: 1,
-          max: 366,
-          ticks: {
-            callback: function(v) {
-              const idx = monthTicks2.indexOf(v);
-              return idx >= 0 ? MESES2[idx+1] : '';
-            },
-            stepSize: 1,
-            autoSkip: false,
-            maxRotation: 0
-          },
-          grid: {
-            color: function(ctx) {
-              return monthTicks2.indexOf(ctx.tick.value) >= 0 ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0)';
-            }
-          }
-        },
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: 'R$/kg (al productor)' }
-        }
-      }
-    }
-  });
-})();
-</script>
 
 <script>
 // ============ CLIMA ============
@@ -2524,14 +2142,6 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
   setK('r26-k3', 'Mayor dependencia ' + anio, top1 ? top1.productor + ' · ' + f1(r26sh(top1)) + ' %' : '—', (top2 ? '2°: ' + top2.productor + ' ' + f1(r26sh(top2)) + ' % · ' : '') + 'los 3 primeros = ' + f1(top3) + ' % del año', (r26sh(top1) > 25) ? '#b7791f' : '#2f855a');
   setK('r26-k4', 'Precio promedio ' + anio, pT ? 'R$ ' + f2(pT) + '/caja' : '—', cepT ? 'Cepea + servicios del mismo período: R$ ' + f2(cepT) + ' · <strong>' + fP(vsCep) + '</strong>' : 'sin Cepea del período', colVs(vsCep, true));
 
-  // despachantes y transportistas (agregados del paso 3 del script)
-  const fillDT = (id, arr) => { const r26b = $(id); if (!r26b) return;
-    if (!arr || !arr.length) { r26b.innerHTML = '<tr><td colspan="3" style="color:#718096;">Sin dato en la planilla de cargas (columna vacía).</td></tr>'; return; }
-    const tot = arr.reduce((s, x) => s + x.cargas, 0);
-    r26b.innerHTML = arr.slice(0, 8).map((x, i) => '<tr><td>' + (i === 0 ? '<strong>' + x.nombre + '</strong>' : x.nombre) + '</td><td class="num"' + (i === 0 ? ' style="font-weight:700;"' : '') + '>' + f1(x.cargas) + '</td><td class="num"' + (i === 0 ? ' style="font-weight:700;"' : '') + '>' + f1(tot ? x.cargas / tot * 100 : null) + ' %</td></tr>').join('')
-      + (arr.length > 8 ? '<tr><td colspan="3" style="color:#718096;font-size:12px;">… y ' + (arr.length - 8) + ' más con menos cargas</td></tr>' : ''); };
-  fillDT('r26-desp-body', A.despachantes);   // transportistas: solo en Plan de cargas (18/09/2026)
-  const hdt = $('r26-h-dt'); if (hdt) hdt.textContent = 'Despachantes ' + anio + ' (planilla de cargas, ' + f1(A.total_cargas) + ' cargas)';
 
   // lecturas calculadas
   const lec = $('r26-lecturas');
