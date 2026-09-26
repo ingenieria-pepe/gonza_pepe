@@ -396,6 +396,11 @@ LOG DE CAMBIOS:
                CR cam 2 1.944, supuesto Paraguay), BO 1646 (ZAC), EC 6833 (solo ZAC). Bolivia: la
                foto dice CAM 2 = 423 y el ERP 23 (la camara 2 tiene 111 en total): se tomo el ERP,
                a confirmar. Regenerado el simulador: arranca del 26/09.
+  26/09/2026 -> Correccion con el listado del ERP de Coronel Raiz (pegado por Gonzalo): la
+               camara 2 de CR (1.944) es BRASIL, no Paraguay, y la 5 (1.008) Brasil; Paraguay
+               esta solo en ZAC. Conteo 26/09 definitivo: BR 11653, PY 13673, BO 1646, EC 21737. Hoja
+               cr_erp_por_camara en el xlsx del conteo. Queda abierta la camara 2 de Bolivia
+               (foto 423 / ERP 23).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
