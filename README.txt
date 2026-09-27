@@ -474,6 +474,14 @@ LOG DE CAMBIOS:
                Descripcion del panel en $panelesDef, inicio.html y portada.json. Render
                headless: 12 canvas, 3 donas por origen, Paraguay Almar #1 de 8 (45,6 % en t),
                Bolivia Almar #2 de 3 (Ciro Gentile primero).
+  27/09/2026 -> Plan de compras: venta de la semana 28/09-03/10 = 16.000 ("se pide vender
+               16000, 1 carga de Bolivia, el resto PY y Brasil, no importa el orden"): BO 1.050,
+               BR 8.640 + PY 6.310 (el resto repartido con el mix BR/PY del ERP). Las semanas
+               siguientes quedan en 17.000 como supuesto. Cargas de la semana confirmadas por
+               Gonzalo, iguales a las del 25/09. Escenarios corridos (scratchpad
+               escenarios_2809b.ps1): Brasil con Gilson y Josemar al martes cierra el 03/10 con
+               7 dias; para el 10/10 faltan 2-3 camiones; Paraguay necesita 3 el viernes/sabado;
+               Bolivia cubierta esta semana, necesita 2 para la que viene.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
