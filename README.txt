@@ -427,6 +427,26 @@ LOG DE CAMBIOS:
                fuente con el corte (31/08/2026). Descripcion del panel actualizada en el
                script, inicio.html y portada.json. Parser PS 5.1 OK, BOM/CRLF OK, render
                headless OK (11 canvas).
+  26/09/2026 -> Curuca fuera del ranking ("Ranking de productores 2026, ordenado por camiones:
+               por que esta Curuca?"). Hoja nueva "reasignaciones" en productores.xlsx
+               (comprador + mes + semana -> productor_real, cargas) y en el paso 3 del script
+               las filas de la planilla a nombre de un comprador pasan al productor real al
+               parsear (via = comprador en el registro). Las 6 cargas de Curuca: Marconi 1
+               (sem 5), Marangoni 2 y Wagner 2 (sem 14-15), Furlani 1 (sem 16). Curuca
+               conserva la ficha sin cargas. Corrida completa local (21:10) para regenerar.
+  26/09/2026 -> Panel Brasil, dos pedidos de Gonzalo: (1) "Resumen ejecutivo dejalo mas abajo,
+               abajo de BR real": la seccion #resumen paso despues de Real BR (antes de Notas
+               y supuestos) y el item del menu tambien. (2) "usa la grafica que usa Penta":
+               la seccion Almar vs competencia toma el formato del reporte "Ranking por
+               Importador" de Penta Transaction: una DONA por anio (2024, 2025, 2026, misma
+               ventana ene-ago) con los importadores medidos en U$S VNA y "Valor total: N"
+               arriba, leyenda comun, recuadro "Totales y Parametros" (U$S VNA, Kgs. Netos,
+               toneladas, operaciones, USD/kg, NCM 0803.90, origen, periodo) y tabla
+               Importador | U$S VNA | % Inc. | Kgs. Netos | U$S VNA anio anterior | delta pp,
+               encabezado celeste y filas cebra como Penta. Paleta Material de Penta por
+               ranking del anio en curso, el color sigue a la empresa. Quedan los 4 KPIs y el
+               grafico de toneladas por mes; fuera las barras apiladas de cuota (las
+               reemplazan las donas). Mismos datos MERCADO_BR y mismos marcadores.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

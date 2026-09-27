@@ -517,6 +517,40 @@ if (Test-Path $cargasFile) {
             Write-Host "    (sin fichas) falta fuentes\productores.xlsx" -ForegroundColor DarkYellow
         }
 
+        # ---- Reasignaciones: compras via COMPRADOR (Curuca) -> productor real  [26/09/2026] ----
+        # La planilla cargas 2026 registra "Curuca" en 6 cargas, pero Curuca es un comprador que
+        # revende fruta de otros: en el Plan de Cargas esos camiones van con el productor real.
+        # Gonzalo: "Ranking de productores 2026, ordenado por camiones: por que esta Curuca?".
+        # Hoja 'reasignaciones' de productores.xlsx: comprador + mes (hoja) + semana -> productor_real,
+        # cargas. Al parsear la planilla se consume una fila por carga; lo que no tenga fila queda a
+        # nombre del comprador. El registro guarda via = comprador para no perder el dato.
+        $almarReasig = @()
+        if (Test-Path $fichasFile) {
+            $pkgR = $null
+            try {
+                $pkgR = Open-ExcelPackage -Path $fichasFile
+                $wsR = $pkgR.Workbook.Worksheets['reasignaciones']
+                if ($null -ne $wsR -and $null -ne $wsR.Dimension) {
+                    $hdrR = @{}; for ($c = 1; $c -le $wsR.Dimension.End.Column; $c++) { $h = ([string]$wsR.Cells[1,$c].Value).Trim().ToLower(); if ($h) { $hdrR[$h] = $c } }
+                    for ($r = 2; $r -le $wsR.Dimension.End.Row; $r++) {
+                        $cmp = ([string]$wsR.Cells[$r,$hdrR['comprador']].Value).Trim().ToLower()
+                        $pre = ([string]$wsR.Cells[$r,$hdrR['productor_real']].Value).Trim()
+                        if (-not $cmp -or -not $pre) { continue }
+                        $nCg = 1.0; try { $nCg = [double]$wsR.Cells[$r,$hdrR['cargas']].Value; if ($nCg -le 0) { $nCg = 1.0 } } catch { $nCg = 1.0 }
+                        $almarReasig += [PSCustomObject]@{
+                            comprador = $cmp; mes = ([string]$wsR.Cells[$r,$hdrR['mes']].Value).Trim().ToLower()
+                            semana = [int]$wsR.Cells[$r,$hdrR['semana']].Value; productor_real = $pre; restante = $nCg
+                        }
+                    }
+                }
+            } catch {
+                Write-Host "    (aviso) no pude leer la hoja reasignaciones: $($_.Exception.Message)" -ForegroundColor DarkYellow
+            } finally {
+                if ($pkgR) { try { Close-ExcelPackage $pkgR -NoSave } catch {} }; $pkgR = $null
+            }
+            if ($almarReasig.Count) { Write-Host "    Reasignaciones comprador -> productor: $($almarReasig.Count) filas" -ForegroundColor Green }
+        }
+
         # ---- Fotos de packing: fuentes\fotos_packing\<productor>\*.jpg  [24/09/2026] ----
         # Una carpeta por productor, nombrada como en la planilla ("Paraguay HF"), como su
         # slug ("paraguay_hf") o como un alias ("HF"). Las rutas relativas van a ficha.fotos
@@ -578,6 +612,17 @@ if (Test-Path $cargasFile) {
                 if (-not $ok) { continue }
                 $cargas = 1.0
                 try { $cargas = [double]($colC -replace ',','.'); if ($cargas -le 0) { $cargas = 1.0 } } catch { $cargas = 1.0 }
+                # [26/09/2026] comprador -> productor real (hoja reasignaciones); ver arriba
+                $via = ''
+                if ($almarReasig.Count) {
+                    $kCmp = $colB.ToLower().Trim(); $kMes = $wsC.Name.ToLower()
+                    $rs = $almarReasig | Where-Object { $_.comprador -eq $kCmp -and $_.mes -eq $kMes -and $_.semana -eq $semana -and $_.restante -gt 0 } | Select-Object -First 1
+                    if ($rs) {
+                        $rs.restante -= $cargas
+                        $via = $colB; $colB = $rs.productor_real
+                        $kB2 = $colB.ToLower().Trim(); if ($almarAliases.ContainsKey($kB2)) { $colB = $almarAliases[$kB2] }
+                    }
+                }
                 $almarRecords += [PSCustomObject]@{
                     fecha         = if ($fechaFin) { $fechaFin.ToString('yyyy-MM-dd') } else { $null }
                     semana        = $semana
@@ -588,6 +633,7 @@ if (Test-Path $cargasFile) {
                     despachante   = $colF
                     mes           = $wsC.Name
                     mes_orden     = $hojaIdx
+                    via           = $via
                 }
             }
           }
