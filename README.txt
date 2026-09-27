@@ -525,6 +525,10 @@ LOG DE CAMBIOS:
                Sale en el resumen del miercoles 12:00 y del viernes 19:00, despues del Plan de
                Cargas, con la nota "Pedidos: Paraguay cierra miercoles, Brasil jueves". Probado
                en PS 5.1 con el JSON del 27/09.
+  27/09/2026 -> Resumen WhatsApp, bloque Plan de Cargas: el del 25/09 dijo "Pedido semana del
+               28/09: nada todavia" con 15 cargas dictadas por Gonzalo. Ahora cada renglon suma
+               "N dictados que Aloha aun no tiene" (fuente plan_compras del JSON del paso 5j,
+               que ya excluye lo que Aloha tiene) y el texto pasa a "nada en Aloha todavia".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

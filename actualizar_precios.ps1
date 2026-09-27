@@ -4896,13 +4896,28 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                 $pcTag = if ($planResumen.origen -eq 'cache') { "cache del $(Get-FechaCorta $planResumen.generado_en)" } else { "Aloha $(Get-FechaCorta $planResumen.generado_en)" }
                 function Get-CamTxt { param([int]$n) if ($n -eq 1) { "1 camión" } else { "$n camiones" } }
                 $msg += "*🚛 Plan de Cargas* ($pcTag)`n"
+                # [27/09/2026] ademas de lo que tiene Aloha, lo que Gonzalo dicto en plan_compras.xlsx y Aloha
+                # todavia no tiene (el 25/09 salio "nada todavia" para el 28/09 con 15 cargas dictadas)
+                $pcDict = @{}
+                try {
+                    $pcjPath2 = Join-Path $base "plan_compras\plan_compras.json"
+                    if (Test-Path $pcjPath2) {
+                        $pcj2 = Get-Content $pcjPath2 -Raw -Encoding UTF8 | ConvertFrom-Json
+                        foreach ($c in $pcj2.camiones) {
+                            if ([string]$c.fuente -ne 'plan_compras') { continue }
+                            $lunC = [DateTime]$c.carga; $lunC = $lunC.AddDays(-((([int]$lunC.DayOfWeek) + 6) % 7)); $kk = $lunC.ToString('yyyy-MM-dd')
+                            if (-not $pcDict.ContainsKey($kk)) { $pcDict[$kk] = 0 }; $pcDict[$kk]++
+                        }
+                    }
+                } catch {}
                 $lunesPc = (Get-Date).Date
                 $lunesPc = $lunesPc.AddDays(-((([int]$lunesPc.DayOfWeek) + 6) % 7))
                 foreach ($offPc in 0, 7) {
                     $kSem = $lunesPc.AddDays($offPc).ToString('yyyy-MM-dd')
                     $sw = @($planResumen.semanas | Where-Object { $_.semana_lunes -eq $kSem }) | Select-Object -First 1
-                    if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) · $(([int]$sw.cajas).ToString('N0')) cajas`n" }
-                    else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada todavía`n" }
+                    $dictTxt = if ($pcDict.ContainsKey($kSem) -and $pcDict[$kSem] -gt 0) { " · $(Get-CamTxt $pcDict[$kSem]) dictados que Aloha aún no tiene" } else { "" }
+                    if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) · $(([int]$sw.cajas).ToString('N0')) cajas$dictTxt`n" }
+                    else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada en Aloha todavía$dictTxt`n" }
                 }
                 $msg += "`n"
             }
