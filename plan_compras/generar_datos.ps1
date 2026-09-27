@@ -130,29 +130,58 @@ foreach ($p in ($prog | Sort-Object carga)) {
 # ---- grupos [27/09/2026]: Gonzalo pidio unificar la compra Brasil + Paraguay ("para mi es lo mismo una u otra,
 #      de ahi despues yo veo que cargar"); Bolivia sigue aparte. El simulador proyecta por grupo; cada camion
 #      conserva su origen (bandera en la grilla) y el conteo y la venta se suman.
-foreach ($c in $camiones) { $c | Add-Member -NotePropertyName grupo -NotePropertyValue $(if ($c.origen -eq 'BO') { 'BO' } else { 'BRPY' }) -Force }
-$conteo['BRPY'] = ([int]$conteo['BR']) + ([int]$conteo['PY'])
-foreach ($v in $ventas) { $v | Add-Member -NotePropertyName BRPY -NotePropertyValue ($v.BR + $v.PY) -Force }
+# ---- supuesto Paraguay [27/09/2026]: "la PY siempre se carga domingo, lunes y martes, o sea que va a entrar en la
+#      semana siempre; por lo general estoy cargando 5/6 siempre, tene esto en cuenta". Hoja 'supuestos' de
+#      plan_compras.xlsx (clave py_camiones_semana). En las semanas del horizonte que no tengan NINGUNA carga PY
+#      (ni del Plan ni dictada) se agregan esos camiones cargados el lunes (llegan el jueves), marcados 'supuesto'.
+$supuestos = @{}
+try { foreach ($s in @(Tabla $pcx 'supuestos')) { if ($s.clave) { $supuestos[[string]$s.clave] = $s.valor } } } catch {}
+$pyPorSemana = 0; if ($supuestos.ContainsKey('py_camiones_semana')) { $pyPorSemana = [int]$supuestos['py_camiones_semana'] }
+$nSup = 0
+if ($pyPorSemana -gt 0) {
+    $dom0 = (Get-Date).Date.AddDays(-[int](Get-Date).DayOfWeek)   # domingo de esta semana
+    for ($w = 1; $w -le 3; $w++) {
+        $dom = $dom0.AddDays(7 * $w); $kSem = Ymd $dom
+        $hayPY = @($camiones | Where-Object { $_.origen -eq 'PY' -and $_.semana_carga -eq $kSem }).Count
+        if ($hayPY -gt 0) { continue }
+        $lun = $dom.AddDays(1)
+        for ($i = 0; $i -lt $pyPorSemana; $i++) {
+            $camiones += [PSCustomObject]@{ origen = 'PY'; productor = 'Paraguay (supuesto)'; carga = (Ymd $lun); semana_carga = $kSem; cajas = 980; status = 'supuesto'; descarga = $null; transportista = ''; fuente = 'supuesto'; nota = "supuesto: $pyPorSemana camiones PY por semana, cargan dom-lun-mar (Gonzalo 27/09)" }
+            $nSup++
+        }
+    }
+}
+#      27/09 (mas tarde): "a esas 22.500 le estas sumando Bolivia?": si, el minimo es del stock TOTAL de banana
+#      (Brasil + Paraguay + Bolivia). Un solo grupo TODO; el simulador lee grupos/nombres/minimos del JSON, asi
+#      que para volver a separar alcanza con cambiar estas lineas.
+$GRUPOS = [ordered]@{ TODO = @('BR', 'PY', 'BO') }
+$NOMBRES = [ordered]@{ TODO = 'Banana Brasil + Paraguay + Bolivia' }
+function GrupoDe($o) { foreach ($k in $GRUPOS.Keys) { if ($GRUPOS[$k] -contains $o) { return $k } }; return $null }
+foreach ($c in $camiones) { $c | Add-Member -NotePropertyName grupo -NotePropertyValue (GrupoDe $c.origen) -Force }
+foreach ($k in $GRUPOS.Keys) {
+    $conteo[$k] = 0; foreach ($o in $GRUPOS[$k]) { $conteo[$k] += [int]$conteo[$o] }
+    foreach ($v in $ventas) { $s = 0; foreach ($o in $GRUPOS[$k]) { $s += [int]$v.$o }; $v | Add-Member -NotePropertyName $k -NotePropertyValue $s -Force }
+}
 $out = [ordered]@{
     generado = (Get-Date).ToString('yyyy-MM-dd HH:mm')
     hoy = (Get-Date).ToString('yyyy-MM-dd')
-    grupos = [ordered]@{ BRPY = @('BR', 'PY'); BO = @('BO') }
-    nombres = [ordered]@{ BRPY = 'Banana Brasil + Paraguay'; BO = 'Bolivia' }
+    grupos = $GRUPOS
+    nombres = $NOMBRES
     # minimo en CAJAS al cierre del sabado (Gonzalo 27/09/2026: "preciso tener en stock de una semana a otra unas
-    # 22/23 mil cajas cerrando el sabado"). Si esta, pisa al minimo por dias de venta; Bolivia sigue por dias.
-    minimos = [ordered]@{ BRPY = 22500; BO = $null }
+    # 22/23 mil cajas cerrando el sabado", y Bolivia incluida). Si esta, pisa al minimo por dias de venta.
+    minimos = [ordered]@{ TODO = 22500 }
     plan_cargas = [ordered]@{ archivo = $pc.Name; fecha = $pc.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); camiones = $nBRPY; ultima_carga = [ordered]@{ BR = $(if ($maxPlan.BR) { Ymd $maxPlan.BR }); PY = $(if ($maxPlan.PY) { Ymd $maxPlan.PY }) } }
     plan_cargas_otros = [ordered]@{ archivo = $(if ($pcO) { $pcO.Name } else { $null }); fecha = $(if ($pcO) { $pcO.LastWriteTime.ToString('yyyy-MM-dd HH:mm') }); camiones_bo = $nBO; ultima_carga_bo = $(if ($maxPlan.BO) { Ymd $maxPlan.BO }) }
     plan_compras = [ordered]@{ archivo = 'plan_compras\plan_compras.xlsx'; fecha = (Get-Item $pcx).LastWriteTime.ToString('yyyy-MM-dd HH:mm'); dictadas_usadas = $usadas; dictadas_omitidas_por_estar_en_el_plan = $omitidas }
-    lags = [ordered]@{ BR = [ordered]@{ descarga = 3; madurar = 7 }; PY = [ordered]@{ descarga = 3; madurar = 7 }; BO = [ordered]@{ descarga = 6; madurar = 7 }; BRPY = [ordered]@{ descarga = 3; madurar = 7 } }
-    cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; BRPY = 1000 }
+    lags = [ordered]@{ BR = [ordered]@{ descarga = 3; madurar = 7 }; PY = [ordered]@{ descarga = 3; madurar = 7 }; BO = [ordered]@{ descarga = 6; madurar = 7 }; TODO = [ordered]@{ descarga = 3; madurar = 7 } }
+    cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; TODO = 1000 }
     conteo = $conteo
     ventas_plan = $ventas
     camiones = @($camiones | Sort-Object carga, origen)
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress
 [IO.File]::WriteAllText((Join-Path $aqui 'plan_compras.json'), $json, (New-Object Text.UTF8Encoding $false))
-Write-Host "plan_compras.json: $($camiones.Count) camiones (BR/PY $nBRPY, BO $nBO, dictadas $usadas; $omitidas dictadas ya estan en el plan) · conteo $($conteo.fecha)"
+Write-Host "plan_compras.json: $($camiones.Count) camiones (BR/PY $nBRPY, BO $nBO, dictadas $usadas, supuestos PY $nSup; $omitidas dictadas ya estan en el plan) · conteo $($conteo.fecha)"
 
 # ---- inyectar en simulador.html
 $html = Join-Path $aqui 'simulador.html'

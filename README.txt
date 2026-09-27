@@ -501,6 +501,20 @@ LOG DE CAMBIOS:
                los 7 dias de venta cuando esta cargado (casilla "Minimo al sabado, cajas",
                vacio = por dias). Con eso: la semana del 28/09 cierra en 19.300 y le faltan 4
                camiones lun-mie; la del 05/10 necesita 7 mas. Bolivia 2 para la del 05/10.
+  27/09/2026 -> El minimo de 22.500 es del stock TOTAL de banana, Bolivia incluida ("a esas 22500
+               le estas sumando la bolivia?"). Un solo grupo TODO (BR + PY + BO): conteo 26.972,
+               venta total por semana (16.000 la del 28/09), minimo 22.500 al sabado. Cada
+               camion conserva su origen (bandera) y su lag propio (BO 6 dias, BR/PY 3); los
+               simulados usan 1.000 cajas y 3 dias. El simulador lee grupos, nombres y minimos
+               del JSON: para volver a separar se cambian solo las lineas $GRUPOS/$NOMBRES de
+               generar_datos.ps1. Regla confirmada por Gonzalo: el sabado cierra la semana, lo
+               que llega el lunes suma en la siguiente. Supuesto Paraguay (Gonzalo: "la PY siempre
+               se carga domingo, lunes y martes, entra siempre en la semana; por lo general 5/6"):
+               hoja nueva "supuestos" en plan_compras.xlsx (py_camiones_semana = 5); en las
+               semanas del horizonte sin ninguna carga PY se agregan 5 camiones "Paraguay
+               (supuesto)" cargados el lunes. Resultado: sabado 03/10 cierra en 20.900 con lo
+               dictado (faltan 2 camiones lun-mie); sabado 10/10, con las 8 BR del viernes y
+               5 PY supuestos, cierra en 18.800 contando esos 2: faltan 4 mas.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
