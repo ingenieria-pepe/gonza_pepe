@@ -537,6 +537,24 @@ LOG DE CAMBIOS:
                actualizar_precios.ps1 (en la laptop no hay config\aloha.json, asi que la prueba
                sale sin el bloque Plan de Cargas; en el servidor sale completo). Corrida de
                prueba 27/09 17:1x: 3/3 entregados. Paneles regenerados en la misma corrida.
+  27/09/2026 -> Resumen WhatsApp mas liviano (Gonzalo: "lo veo muy cargado"; "para que el score 1? que
+               dato te da?"). Salen del resumen: Ecuador FOB (y su novedad/alerta; "va por otro canal
+               de ventas", sigue en index_ecuador), Modelo 4 sem (sigue en index_proyeccion), el bloque
+               Score con su descomposicion (el numero solo no dice nada; el score sigue calculandose y
+               eligiendo la frase de Sugerencia y las alertas Oportunidad/STOP, y queda en consola e
+               index_brasil) y el bloque Calendario, que ahora es un renglon dentro de Cepea. Clima
+               compacto: solo zonas con aviso, un renglon semana pasada y otro prox 7 dias. Carape en
+               una linea. Sugerencia mas corta.
+               NUEVO en Cepea (pedido de Gonzalo): precio por CAJA = R$/kg x 22 kg ("1,18 x 22 es el
+               valor caja y comparamos con lo que compramos nosotros"), y debajo lo que pago Almar la
+               ultima semana con cargas (R$/caja, cargas): diferencia bruta en R$ y % sobre la caja
+               Cepea, y neta descontando servicios (R$ 16/caja: envalado, paletizado, flete interno).
+               El bloque "Almar" aparte desaparece (mismo precio en dos lugares).
+               Modo prueba nuevo: PORONGA_WA_PRUEBA=dry imprime el resumen en la consola y NO manda
+               nada (para revisar el texto sin molestar a los celulares). Prueba real 17:0x: 3/3
+               entregados (version intermedia, todavia con bloque Almar aparte); dry 17:11 con la final.
+               PENDIENTE (no tocado): la senal 3 del score (spread Almar vs Cepea) da siempre 0 porque
+               las semanas Almar van con fecha sabado y las Cepea con fecha viernes: nunca cruzan.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

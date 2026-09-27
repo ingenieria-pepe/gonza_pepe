@@ -4183,13 +4183,13 @@ function Get-AccionZona {
 
     if ($zona -eq "ALTA") {
         if ($vsHistPct -le -$DIVERGE) {
-            return "Mes caro por calendario, PERO el precio real esta $abs% por debajo del historico. Ventana atipica: no reducir por calendario, evaluar compra."
+            return "Ventana atípica: precio $abs% bajo el histórico del mes, evaluar compra."
         }
         return "Reducir compras spot."
     }
     elseif ($zona -eq "BAJA") {
         if ($vsHistPct -ge $DIVERGE) {
-            return "Mes barato por calendario, PERO el precio real esta $abs% por encima del historico. Cautela: no comprar fuerte a ciegas."
+            return "Cautela: precio $abs% sobre el histórico del mes, no comprar fuerte a ciegas."
         }
         return "Comprar fuerte."
     }
@@ -4344,8 +4344,11 @@ if ($null -ne $waConfig) {
 # MODO PRUEBA [27/09/2026]: con la variable de entorno PORONGA_WA_PRUEBA=1 la corrida manda SOLO el resumen,
 # aunque no sea miercoles/viernes y aunque config tenga enabled=false, con un encabezado "PRUEBA", sin banner
 # de atraso y sin tocar el state (silencios, timestamps). Para que Gonzalo vea el mensaje entero como saldria.
-$waPrueba = ($env:PORONGA_WA_PRUEBA -eq '1')
-if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con encabezado PRUEBA, sin tocar el state" -ForegroundColor Magenta }
+# Con PORONGA_WA_PRUEBA=dry pasa lo mismo pero NO manda nada: imprime el resumen en la consola (para revisar
+# el texto sin molestar a los tres celulares).
+$waPrueba = ($env:PORONGA_WA_PRUEBA -eq '1' -or $env:PORONGA_WA_PRUEBA -eq 'dry')
+$waDry    = ($env:PORONGA_WA_PRUEBA -eq 'dry')
+if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con encabezado PRUEBA, sin tocar el state$(if ($waDry) { ' (dry: se imprime, no se manda)' })" -ForegroundColor Magenta }
 if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     Write-Host "    WhatsApp deshabilitado (config/whatsapp.json)" -ForegroundColor DarkYellow
 } elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) {
@@ -4714,7 +4717,10 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     }
 
     # ===== ECUADOR (Tridge FOB) =====
-    if ($waConfig.alerts.movimientos_precio -and $script:ecHasNewExport -and $script:ecLastPoint) {
+    # [27/09/2026] Ecuador fuera del WhatsApp (Gonzalo: "no la tenemos en cuenta, va por otro canal de ventas");
+    # sigue en index_ecuador.html. Para volver a mandarlo, $WA_ECUADOR = $true.
+    $WA_ECUADOR = $false
+    if ($WA_ECUADOR -and $waConfig.alerts.movimientos_precio -and $script:ecHasNewExport -and $script:ecLastPoint) {
         $ecP = [double]$script:ecLastPoint.usd_box
         $ecD = $script:ecLastPoint.date
         $ecPmsBox = $script:EC_PMS_USD_CAJA
@@ -4780,37 +4786,47 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $msg += "*⚡ Novedades*`n" + ($novedades -join "`n") + "`n`n"
             }
 
-            # --- Cepea: precio, variacion semanal y de 3 semanas (la que mueve el score)
+            # --- Cepea: precio por kg y POR CAJA (x 22 kg; Gonzalo 27/09/2026: "1,18 x 22 kilos es el valor caja y
+            #     comparamos con lo que compramos nosotros"), variacion semanal y 3 sem, y el calendario en la
+            #     misma linea (antes era un bloque aparte; el resumen "muy cargado" se achico el 27/09).
+            $cepCaja = $oppLast * $KG_CAJA_NETO
             $msg += "*💰 Cepea Nanica 1ª (SC)* — semana $(Get-FechaCorta $nanica[-1].fecha)`n"
-            $msg += "R$ $($oppLast.ToString('F2'))/kg"
-            if ($null -ne $deltaSemPct) { $msg += " · $(Get-PctTxt $deltaSemPct 1) vs sem ant (R$ $($precioSemAnt.ToString('F2')))" }
-            if ($nanica.Count -ge 4) {
-                $p3 = [double]$nanica[-4].precio
-                $msg += " · $(Get-PctTxt $pctChg3w 1) en 3 sem (R$ $($p3.ToString('F2')))"
+            $msg += "R$ $($oppLast.ToString('F2'))/kg = *R$ $($cepCaja.ToString('F2'))/caja* ($KG_CAJA_NETO kg)"
+            if ($null -ne $deltaSemPct) { $msg += " · $(Get-PctTxt $deltaSemPct 1) vs sem ant" }
+            if ($nanica.Count -ge 4) { $msg += " · $(Get-PctTxt $pctChg3w 1) en 3 sem" }
+            $msg += "`n"
+            $lado = if ($vsProm -lt 0) { "bajo" } else { "sobre" }
+            $msg += "$([math]::Abs([math]::Round($vsProm)))% $lado el promedio de $nombreMes (R$ $($oppPM.ToString('F2'))/kg, $($nanica[0].anio)-$($nanica[-1].anio))`n"
+            # Lo que pago Almar la ultima semana con cargas en la planilla, contra esa caja Cepea: la diferencia
+            # bruta (lo que pidio Gonzalo) y la neta descontando envalado/paletizado/flete ($SERVICIOS_CAJA).
+            # Antes era un bloque "Almar" aparte con el mismo precio; se junto aca el 27/09/2026.
+            if ($almarSemanas.Count -gt 0) {
+                $alU = $almarSemanas[-1]; $alCaja = [double]$alU.precio_avg_caja
+                $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
+                $msg += "🚚 Almar pagó *R$ $($alCaja.ToString('F2'))/caja* (sem $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas)"
+                if ($semSin -ge 2) { $msg += " — hace $semSin sem sin cargas nuevas en la planilla" }
+                if ($cepCaja -gt 0 -and $alCaja -gt 0) {
+                    $dBruta = $alCaja - $cepCaja; $dNeta = $dBruta - $SERVICIOS_CAJA
+                    $msg += ": $(if ($dBruta -ge 0) {'+'} else {'−'})R$ $([math]::Abs($dBruta).ToString('F2')) ($(Get-PctTxt (($dBruta / $cepCaja) * 100))) sobre Cepea · $(if ($dNeta -ge 0) {'+'} else {'−'})R$ $([math]::Abs($dNeta).ToString('F2')) contando servicios (R$ $SERVICIOS_CAJA/caja)"
+                }
+                $msg += "`n"
             }
-            $msg += "`n`n"
+            $msg += "`n"
 
-            # --- Calendario vs precio real. La "zona" es el promedio historico del
-            #     mes, no el mercado de hoy: se dice tal cual, sin semaforo rojo.
-            $lado = if ($vsProm -lt 0) { "por debajo" } else { "por encima" }
-            $mesCap = $nombreMes.Substring(0,1).ToUpper() + $nombreMes.Substring(1)
-            $msg += "*📅 Calendario vs precio*`n"
-            $msg += "$mesCap promedia R$ $($oppPM.ToString('F2'))/kg (hist. $($nanica[0].anio)-$($nanica[-1].anio)) → hoy $([math]::Abs([math]::Round($vsProm)))% $lado`n`n"
-
-            # --- Score con su descomposicion, asi se ve POR QUE da lo que da
-            $msg += "*🎯 Score: $oppScore · $oppLevel*`n"
-            # [24/09/2026] si una senal se anulo por divergencia calendario/precio, se dice ahi mismo
-            $cepeaTxt = Get-SigTxt $oppCepeaSig
-            if ($oppCepeaRebote) { $cepeaTxt += " (suba desde el piso, no penaliza)" }
-            $calTxt = Get-SigTxt $oppZonaSig
-            if ($oppZonaAnulada) { $calTxt += " (no cuenta: precio $([math]::Abs([math]::Round($oppVsHist)))% $(if ($oppVsHist -lt 0) { 'bajo' } else { 'sobre' }) el hist.)" }
-            $msg += "Cepea $cepeaTxt · calendario $calTxt · spread $(Get-SigTxt $oppSpreadSig) · clima $(Get-SigTxt $oppClimaSig)`n`n"
+            # --- [27/09/2026] El bloque "Score: N · NIVEL" con su descomposicion salio del resumen (Gonzalo:
+            #     "para que el score 1? que dato te da?"): el numero solo no dice nada; el score sigue
+            #     calculandose (dispara las alertas Oportunidad/STOP y elige la frase de Sugerencia al final).
+            #     Queda en la consola (Write-Host "Score: ...") y en index_brasil. Para volver a mostrarlo:
+            #     $msg += "*🎯 Score: $oppScore · $oppLevel*`n" + "Cepea $(Get-SigTxt $oppCepeaSig) · calendario $(Get-SigTxt $oppZonaSig) · spread $(Get-SigTxt $oppSpreadSig) · clima $(Get-SigTxt $oppClimaSig)`n`n"
 
             # --- Clima. Primero la semana PASADA por zona (pedido de Gonzalo 24/09/2026:
             #     "hizo casi 35 grados toda la semana en Tembiapora y no figura"): max/min
             #     de los ultimos 7 dias segun Open-Meteo (modelo, no estacion), con dias
             #     >=32 y <=14. Despues los prox 7 dias, con los mismos umbrales que usan
             #     las alertas del script (frio <=14, helada <=2, calor >=32, lluvia >=50mm).
+            #     [27/09/2026] version compacta ("lo veo muy cargado"): solo las zonas con algo que avisar, una
+            #     linea para la semana pasada y otra para los 7 dias; nombres cortos (sin parentesis).
+            function Get-ZonaCorta { param([string]$s) (($s -replace '\s*\(.*?\)', '') -replace '^Paraguay MS$', 'Caaguazú').Trim() }
             $msg += "*🌡️ Clima*`n"
             $realLineas = @()
             foreach ($r in $climaData) {
@@ -4819,15 +4835,13 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $nHot = 0; $nCold = 0
                 if ($null -ne $sp.dias_max32) { $nHot = [int]$sp.dias_max32 }
                 if ($null -ne $sp.dias_min14) { $nCold = [int]$sp.dias_min14 }
-                $t = "$($r.bandera) $($r.ciudad) " + $(if ($nHot -gt 0) { "🔥" } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + $(if ($nCold -gt 0) { "🥶" } else { "" }) + ([double]$sp.tmin_c).ToString('F0')
-                $det = @()
-                if ($nHot -gt 0)  { $det += "$(Get-DiasTxt $nHot) ≥32" }
-                if ($nCold -gt 0) { $det += "$(Get-DiasTxt $nCold) ≤14" }
-                if ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 50) { $det += "$(([double]$sp.lluvia_total_mm).ToString('F0')) mm" }
-                if ($det.Count -gt 0) { $t += " (" + ($det -join ', ') + ")" }
+                $mucho = ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 50)
+                if ($nHot -eq 0 -and $nCold -eq 0 -and -not $mucho) { continue }
+                $t = "$($r.bandera) $(Get-ZonaCorta $r.ciudad) " + $(if ($nHot -gt 0) { "🔥" } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + $(if ($nCold -gt 0) { "🥶" } else { "" }) + ([double]$sp.tmin_c).ToString('F0')
+                if ($mucho) { $t += " 🌧️$(([double]$sp.lluvia_total_mm).ToString('F0'))mm" }
                 $realLineas += $t
             }
-            if ($realLineas.Count -gt 0) { $msg += "Semana pasada, máx/mín °C (Open-Meteo): " + ($realLineas -join ' · ') + "`n" }
+            $msg += "Semana pasada: " + $(if ($realLineas.Count -gt 0) { ($realLineas -join ' · ') } else { "sin calor, frío ni lluvia fuerte" }) + "`n"
             $climaLineas = @()
             foreach ($r in $climaData) {
                 $fc = @($r.forecast_7d)
@@ -4837,30 +4851,15 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $calor  = @($fc | Where-Object { $null -ne $_.tmax -and [double]$_.tmax -ge 32 })
                 $lluvia = @($fc | Where-Object { $null -ne $_.lluvia -and [double]$_.lluvia -ge 50 })
                 $partes = @()
-                if ($helada.Count -gt 0) { $partes += "❄️ RIESGO HELADA ($(Get-DiasTxt $helada.Count))" }
-                if ($frios.Count -gt 0) {
-                    $piso = $frios | Sort-Object { [double]$_.tmin } | Select-Object -First 1
-                    $partes += "$(Get-DiasTxt $frios.Count) con mín ≤14°C (piso $(([double]$piso.tmin).ToString('F1'))°C el $(Get-FechaCorta $piso.fecha))"
-                }
-                if ($calor.Count -gt 0)  { $partes += "$(Get-DiasTxt $calor.Count) máx ≥32°C" }
-                if ($lluvia.Count -gt 0) { $partes += "$(Get-DiasTxt $lluvia.Count) lluvia ≥50mm" }
-                if ($partes.Count -gt 0) { $climaLineas += "$($r.bandera) $($r.ciudad): $($partes -join ' · ')" }
+                if ($helada.Count -gt 0) { $partes += "❄️ HELADA $(Get-DiasTxt $helada.Count)" }
+                if ($frios.Count -gt 0) { $piso = $frios | Sort-Object { [double]$_.tmin } | Select-Object -First 1; $partes += "🥶 $($frios.Count)d (piso $(([double]$piso.tmin).ToString('F0'))°)" }
+                if ($calor.Count -gt 0)  { $partes += "🔥 $($calor.Count)d" }
+                if ($lluvia.Count -gt 0) { $partes += "🌧️ $($lluvia.Count)d" }
+                if ($partes.Count -gt 0) { $climaLineas += "$($r.bandera) $(Get-ZonaCorta $r.ciudad) $($partes -join ' ')" }
             }
-            if ($climaLineas.Count -gt 0) { $msg += "Próx 7d:`n" + ($climaLineas -join "`n") + "`n`n" }
-            else { $msg += "Próx 7d: sin frío, calor ni lluvia fuerte en las zonas productoras`n`n" }
+            $msg += "Próx 7 días: " + $(if ($climaLineas.Count -gt 0) { ($climaLineas -join ' · ') } else { "sin avisos" }) + "`n`n"
 
-            # --- Modelo 4 semanas. Se dice de que esta hecho: r² del clima (peso_clim)
-            #     y el resto es el promedio historico del mes destino. Sin eso, un
-            #     "+75%" parece pronostico y es casi todo calendario.
-            if ($correlData -and $correlData.Count -gt 0 -and $correlData[0].forecast_4w -and @($correlData[0].forecast_4w).Count -ge 4) {
-                $f4 = $correlData[0].forecast_4w[-1]
-                $fc4 = ($correlData | ForEach-Object { [double]$_.forecast_4w[-1].precio_pred } | Measure-Object -Average).Average
-                $fcPct = (($fc4 - $oppLast) / $oppLast) * 100
-                $wClim = [math]::Round(100 * [double]$f4.peso_clim)
-                $msg += "*🔮 Modelo 4 sem* (al $(Get-FechaCorta $f4.fecha))`n"
-                $msg += "R$ $($fc4.ToString('F2')) ($(Get-PctTxt $fcPct)) · rango R$ $(([double]$f4.ci_low).ToString('F2'))–$(([double]$f4.ci_high).ToString('F2'))`n"
-                $msg += "_El clima pesa $wClim%; el resto es el histórico del mes destino (R$ $(([double]$f4.baseline_mes).ToString('F2')))._`n`n"
-            }
+            # --- (27/09/2026: el bloque "Modelo 4 sem" salio del resumen, era casi todo calendario; sigue en index_proyeccion)
 
             # --- Paraguay: fecha del dato SIMA, variacion vs medicion anterior y el
             #     tipo de cambio que se usa (fijo en el script) declarado en el texto.
@@ -4879,17 +4878,10 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                         $pyVar = " · $(Get-PctTxt $pyD) vs $(Get-FechaCorta $pyOrd[-2].fecha)"
                     }
                 }
-                $msg += "*🇵🇾 PY Carape*$pyFecha`n"
-                $msg += "PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))/caja$pyVar · ≈USD $($pyUsdKg.ToString('F2'))/kg a $($PYG_USD.ToString('N0')) PYG/USD · $(Get-PctTxt $diffPct) vs BR`n`n"
+                $msg += "*🇵🇾 Carapé*$($pyFecha): PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))/caja$pyVar · ≈USD $($pyUsdKg.ToString('F2'))/kg · $(Get-PctTxt $diffPct) vs BR`n`n"
             }
 
-            # --- Ecuador: siempre con la fecha del ultimo punto Tridge (rezago ~2 sem)
-            if ($script:ecLastPoint) {
-                $ecP = [double]$script:ecLastPoint.usd_box
-                $ecSpread = (($ecP - $script:EC_PMS_USD_CAJA) / $script:EC_PMS_USD_CAJA) * 100
-                $msg += "*🇪🇨 Ecuador FOB* (Tridge, dato $(Get-FechaCorta $script:ecLastPoint.date))`n"
-                $msg += "USD $($ecP.ToString('F2'))/caja · $(Get-PctTxt $ecSpread) vs PMS USD $($script:EC_PMS_USD_CAJA.ToString('F2'))`n`n"
-            }
+            # --- (27/09/2026: Ecuador fuera del resumen, va por otro canal de ventas; sigue en index_ecuador)
 
             # --- Plan de Cargas (Aloha): SOLO lo que se pidio, sin detalle. Gonzalo,
             #     24/09/2026, sobre el primer resumen con el bloque: "las cargas no
@@ -4944,18 +4936,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 } catch { Add-Falla -Paso 'Plan de compras (resumen)' -Detalle $_.Exception.Message }
             }
 
-            # --- Almar: ultima semana con cargas en la planilla. Si la planilla no se
-            #     carga, se ve aca (y explica por que el spread da 0).
-            if ($almarSemanas.Count -gt 0) {
-                $alU = $almarSemanas[-1]
-                $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
-                $msg += "*🚚 Almar* — última semana cargada $(Get-FechaCorta $alU.fecha)"
-                if ($semSin -ge 2) { $msg += " (hace $semSin sem, sin cargas nuevas en la planilla)" }
-                $msg += "`n"
-                $msg += "R$ $(([double]$alU.precio_avg_caja).ToString('F2'))/caja prom · $($alU.cargas) cargas"
-                if ($spreadAvg -ne 0) { $msg += " · spread $(if ($spreadAvg -ge 0) {'+'} else {''})R$ $($spreadAvg.ToString('F1'))/caja vs Cepea" }
-                $msg += "`n"
-            }
+            # --- (27/09/2026: el bloque "Almar" se junto con el de Cepea, arriba: mismo precio en dos lugares)
 
             # Recomendación accionable según score + zona
             #
@@ -4979,7 +4960,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             # agrega cuando los dos efectivamente divergen (si coinciden, la frase
             # del score ya alcanza y repetirla solo alarga el mensaje).
             $zonaDiverge = [math]::Abs($vsProm) -ge $script:ZONA_DIVERGE_PCT
-            $msg += "`n*👉 Sugerencia:* "
+            $msg += "*👉 Sugerencia:* "
             if ($oppScore -ge 4) {
                 $msg += "Comprar fuerte — ventana óptima."
             } elseif ($oppScore -ge 2) {
@@ -4987,7 +4968,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 if ($null -ne $deltaSemPct -and $deltaSemPct -gt 5) { $msg += "Precio recuperando desde mínimo." }
                 elseif ($zonaAct -eq "BAJA") { $msg += "Aprovechar zafra alta." }
             } elseif ($oppScore -ge -1) {
-                $msg += "Compras normales, sin urgencia."
+                $msg += "Compras normales."
             } elseif ($oppScore -ge -3) {
                 $msg += "Cautela — señales combinadas negativas."
             } else {
@@ -5070,6 +5051,12 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     foreach ($a in $alertasFire) {
         if ($waPrueba -and $a.tipo -ne 'resumen') { continue }
         if ($waPrueba -or (Can-Send $a.tipo)) {
+            if ($waDry) {
+                Write-Host "    ----- RESUMEN (dry: no se manda) -----" -ForegroundColor Magenta
+                Write-Host ($bannerAtraso + $a.msg)
+                Write-Host "    ----- fin del resumen ($(($bannerAtraso + $a.msg).Length) caracteres) -----" -ForegroundColor Magenta
+                continue
+            }
             Write-Host "    WA -> $($a.tipo):"
             $envio = Send-WA ($bannerAtraso + $a.msg)
             if ($envio.ok) {
