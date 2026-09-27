@@ -1001,10 +1001,11 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
   const v = D.ventana || {};
   const mesHasta = Math.min(12, Math.max(1, Number(v.mesHasta) || 12));
   const vLabel = (mesHasta >= 12 && v.mesCompleto) ? 'año completo' : ('ene–' + MESL[mesHasta - 1] + (v.mesCompleto ? '' : ' parcial'));
-  const cero = { t: 0, tV: 0, usdV: 0, opsV: 0, usdKgV: null, cuotaV: 0, mensualT: [] };
+  const yLabel = y => y === A ? vLabel : 'año completo';   // Gonzalo 26/09: 2024 y 2025 enteros, no ene-ago
+  const cero = { t: 0, usd: 0, ops: 0, usdKg: null, cuota: 0, mensualT: [] };
   const pk = (i, y) => (i.porAnio && i.porAnio[y]) ? i.porAnio[y] : cero;
   const mk = y => (D.porAnio && D.porAnio[y] && D.porAnio[y].mercado) ? D.porAnio[y].mercado : cero;
-  const usdDe = (i, y) => Number(pk(i, y).usdV) || 0;
+  const usdDe = (i, y) => Number(pk(i, y).usd) || 0;
   const IMP = D.importadores.slice();
   const almar = IMP.find(i => i.nombre === D.almar) || IMP[0];
   // "Almar S.R.L." como lo escribe Penta en la leyenda; en la tabla va en MAYÚSCULAS como el original
@@ -1021,12 +1022,12 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
   const rankGlobal = activos.slice().sort((x, y) => usdDe(y, A) - usdDe(x, A) || (P ? usdDe(y, P) - usdDe(x, P) : 0));
   const colorMap = {}; rankGlobal.forEach((i, k) => { colorMap[i.nombre] = k < PAL.length ? PAL[k] : GRIS; });
   const colorDe = i => colorMap[i.nombre] || GRIS;
-  const sumT = (imps, y) => imps.reduce((s, i) => s + (Number(pk(i, y).tV) || 0), 0);
+  const sumT = (imps, y) => imps.reduce((s, i) => s + (Number(pk(i, y).t) || 0), 0);
   const sumMes = (imps, y, m) => imps.reduce((s, i) => s + (Number((pk(i, y).mensualT || [])[m]) || 0), 0);
 
   // series del gráfico mensual: Almar, competidores con >= 3 % de cuota en el año, resto "Otros"
-  const rankA = IMP.filter(i => pk(i, A).tV > 0).sort((x, y) => pk(y, A).tV - pk(x, A).tV);
-  const comp = rankA.filter(i => i !== almar && pk(i, A).cuotaV >= 3).slice(0, 3);
+  const rankA = IMP.filter(i => pk(i, A).t > 0).sort((x, y) => pk(y, A).t - pk(x, A).t);
+  const comp = rankA.filter(i => i !== almar && pk(i, A).cuota >= 3).slice(0, 3);
   const otros = IMP.filter(i => i !== almar && comp.indexOf(i) < 0);
   const series = [{ nombre: 'Almar', imp: [almar], color: colorDe(almar) }]
     .concat(comp.map(c => ({ nombre: nombre(c), imp: [c], color: colorDe(c) })))
@@ -1034,32 +1035,32 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
 
   const aA = pk(almar, A), aP = P ? pk(almar, P) : cero, mA = mk(A), mP = P ? mk(P) : cero;
   const pos = rankA.indexOf(almar) + 1;
-  const vT = (P && aP.tV) ? (aA.tV - aP.tV) / aP.tV * 100 : null;
-  const vM = (P && mP.tV) ? (mA.tV - mP.tV) / mP.tV * 100 : null;
-  const dCuota = P ? aA.cuotaV - aP.cuotaV : null;
-  const dUsd = (!nz(aA.usdKgV) && !nz(mA.usdKgV) && mA.usdKgV) ? (aA.usdKgV - mA.usdKgV) / mA.usdKgV * 100 : null;
-  const top3 = rankA.slice(0, 3).reduce((s, i) => s + pk(i, A).cuotaV, 0);
-  const incDe = (i, y) => { const m = Number(mk(y).usdV) || 0; return m ? usdDe(i, y) / m * 100 : 0; };   // "% Inc." de Penta = participación en U$S VNA
+  const vT = (P && aP.t) ? (aA.t - aP.t) / aP.t * 100 : null;
+  const vM = (P && mP.t) ? (mA.t - mP.t) / mP.t * 100 : null;
+  const dCuota = P ? aA.cuota - aP.cuota : null;
+  const dUsd = (!nz(aA.usdKg) && !nz(mA.usdKg) && mA.usdKg) ? (aA.usdKg - mA.usdKg) / mA.usdKg * 100 : null;
+  const top3 = rankA.slice(0, 3).reduce((s, i) => s + pk(i, A).cuota, 0);
+  const incDe = (i, y) => { const m = Number(mk(y).usd) || 0; return m ? usdDe(i, y) / m * 100 : 0; };   // "% Inc." de Penta = participación en U$S VNA
 
   // ---- intro
   intro.innerHTML = 'Importaciones uruguayas de banana de origen Brasil según aduana (Penta Transaction, NCM 0803.90), ' + A + ' hasta ' + fmtF(D.corte) +
-    '. Mismo formato que el reporte "Ranking por Importador" de Penta: participación por <strong>valor en aduana (U$S VNA)</strong>. Todos los años se comparan en la misma ventana (<strong>' + vLabel + '</strong>).';
+    '. Mismo formato que el reporte "Ranking por Importador" de Penta: participación por <strong>valor en aduana (U$S VNA)</strong>. Los años anteriores van <strong>completos</strong>; ' + A + ' va hasta el corte (' + vLabel + ').';
 
   // ---- KPIs
   const setK = (k, l, val, sub, cls) => { $('cbr-' + k + '-l').textContent = l; $('cbr-' + k).textContent = val; $('cbr-' + k + '-s').innerHTML = sub; $('cbr-' + k + '-card').className = 'kpi ' + (cls || ''); };
   const b = (s, c) => '<strong style="color:' + c + ';">' + s + '</strong>';
-  setK('k1', 'Cuota Almar ' + A + ' (' + vLabel + ', en t)', fmt1(aA.cuotaV) + ' %',
-    (P ? 'vs ' + fmt1(aP.cuotaV) + ' % en ' + P + ' (' + vLabel + ') · ' + b(sgnPP(dCuota), colDe(dCuota)) : 'sin año anterior para comparar') + ' · en U$S VNA: ' + fmt2(incDe(almar, A)) + ' %',
+  setK('k1', 'Cuota Almar ' + A + ' (' + vLabel + ', en t)', fmt1(aA.cuota) + ' %',
+    (P ? 'vs ' + fmt1(aP.cuota) + ' % en ' + P + ' (año completo) · ' + b(sgnPP(dCuota), colDe(dCuota)) : 'sin año anterior para comparar') + ' · en U$S VNA: ' + fmt2(incDe(almar, A)) + ' %',
     nz(dCuota) ? '' : (dCuota < -0.5 ? 'red' : (dCuota > 0.5 ? 'green' : '')));
   const n2 = rankA.filter(i => i !== almar)[0], n3 = rankA.filter(i => i !== almar)[1];
   setK('k2', 'Posición en ' + A, pos ? '#' + pos + ' de ' + rankA.length : '—',
-    (n2 ? (pos === 1 ? '2°' : 'líder') + ': ' + esc(nombre(n2)) + ' ' + fmt1(pk(n2, A).cuotaV) + ' %' : '') + (n3 ? ' · 3°: ' + esc(nombre(n3)) + ' ' + fmt1(pk(n3, A).cuotaV) + ' %' : ''),
+    (n2 ? (pos === 1 ? '2°' : 'líder') + ': ' + esc(nombre(n2)) + ' ' + fmt1(pk(n2, A).cuota) + ' %' : '') + (n3 ? ' · 3°: ' + esc(nombre(n3)) + ' ' + fmt1(pk(n3, A).cuota) + ' %' : ''),
     pos === 1 ? 'green' : '');
-  setK('k3', 'Toneladas Almar ' + A + ' (' + vLabel + ')', fmtI(aA.tV) + ' t',
-    P ? 'vs ' + fmtI(aP.tV) + ' t en ' + P + ' (' + b(sgnP(vT), colDe(vT)) + ') · el mercado ' + b(sgnP(vM), colDe(vM)) : fmtI(aA.opsV) + ' operaciones',
+  setK('k3', 'Toneladas Almar ' + A + ' (' + vLabel + ')', fmtI(aA.t) + ' t',
+    P ? 'vs ' + fmtI(aP.t) + ' t en ' + P + ' (año completo, ' + b(sgnP(vT), colDe(vT)) + ') · el mercado ' + b(sgnP(vM), colDe(vM)) : fmtI(aA.ops) + ' operaciones',
     nz(vT) ? '' : (vT < -10 ? 'red' : (vT > 10 ? 'green' : '')));
-  setK('k4', 'USD/kg declarado Almar ' + A, fmt3(aA.usdKgV),
-    'mercado ' + fmt3(mA.usdKgV) + (nz(dUsd) ? '' : ' (' + b(sgnP(dUsd), dUsd > 0 ? '#c53030' : '#2f855a') + ')') + comp.map(c => ' · ' + esc(nombre(c)) + ' ' + fmt3(pk(c, A).usdKgV)).join(''),
+  setK('k4', 'USD/kg declarado Almar ' + A, fmt3(aA.usdKg),
+    'mercado ' + fmt3(mA.usdKg) + (nz(dUsd) ? '' : ' (' + b(sgnP(dUsd), dUsd > 0 ? '#c53030' : '#2f855a') + ')') + comp.map(c => ' · ' + esc(nombre(c)) + ' ' + fmt3(pk(c, A).usdKg)).join(''),
     nz(dUsd) ? '' : (dUsd > 3 ? 'red' : (dUsd < -3 ? 'green' : '')));
 
   // ---- donas Penta: una por año, U$S VNA por importador, "Valor total" arriba, leyenda común abajo
@@ -1073,9 +1074,9 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
     const rOtros = resto.reduce((s, i) => s + usdDe(i, y), 0);
     if (rOtros > 0) { labels.push('Otros (' + resto.length + ')'); datos.push(rOtros); colores.push(GRIS); }
     con.forEach(i => { usados[i.nombre] = true; });
-    const total = Number(mk(y).usdV) || datos.reduce((s, d) => s + d, 0);
+    const total = Number(mk(y).usd) || datos.reduce((s, d) => s + d, 0);
     const card = document.createElement('div'); card.className = 'cbr-dona';
-    card.innerHTML = '<div class="tit">' + y + (y === A ? ' (' + vLabel + ')' : ' (' + vLabel + ')') + '</div><div class="val">Valor total: ' + fmtI(total) + '</div><div class="cv"><canvas id="cbrDona' + y + '"></canvas></div>';
+    card.innerHTML = '<div class="tit">' + y + ' (' + yLabel(y) + ')</div><div class="val">Valor total: ' + fmtI(total) + '</div><div class="cv"><canvas id="cbrDona' + y + '"></canvas></div>';
     donas.appendChild(card);
     if (window.Chart) new Chart(card.querySelector('canvas').getContext('2d'), {
       type: 'doughnut',
@@ -1088,16 +1089,16 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
   const leyenda = $('cbr-leyenda');
   leyenda.innerHTML = rankGlobal.filter(i => usados[i.nombre]).map(i => '<span><i style="background:' + colorDe(i) + '"></i>' + esc(titulo(i.nombre)) + '</span>').join('') +
     '<span><i style="background:' + GRIS + '"></i>Otros</span>';
-  $('cbr-h2').textContent = 'Importaciones por importador en U$S VNA — ' + anios.join(' · ') + ' (' + vLabel + ' de cada año)';
-  $('cbr-n2').textContent = 'Cada dona reparte el valor en aduana (U$S VNA) de la banana brasileña importada en la ventana ' + vLabel + ' de ese año, como el reporte de Penta. Mismo color para la misma empresa en los tres años. Pasá el mouse por una porción para ver el valor y el porcentaje.';
+  $('cbr-h2').textContent = 'Importaciones por importador en U$S VNA — ' + anios.map(y => y + ' ' + yLabel(y)).join(' · ');
+  $('cbr-n2').textContent = 'Cada dona reparte el valor en aduana (U$S VNA) de la banana brasileña importada en ese año (2024 y 2025 completos; ' + A + ' hasta el corte), como el reporte de Penta. Mismo color para la misma empresa en los tres años. Pasá el mouse por una porción para ver el valor y el porcentaje.';
 
   // ---- Totales y Parámetros (año en curso)
   $('cbr-tot').innerHTML = [
-    ['U$S VNA', fmtI(mA.usdV)],
-    ['Kgs. Netos', fmtI((Number(mA.tV) || 0) * 1000)],
-    ['Toneladas', fmtI(mA.tV)],
-    ['Operaciones', fmtI(mA.opsV)],
-    ['USD/kg promedio', fmt3(mA.usdKgV)],
+    ['U$S VNA', fmtI(mA.usd)],
+    ['Kgs. Netos', fmtI((Number(mA.t) || 0) * 1000)],
+    ['Toneladas', fmtI(mA.t)],
+    ['Operaciones', fmtI(mA.ops)],
+    ['USD/kg promedio', fmt3(mA.usdKg)],
     ['Código NCM', '0803.90'],
     ['País de Origen', 'Brasil'],
     ['Período', vLabel + ' ' + A + ' · corte ' + fmtF(D.corte)]
@@ -1105,7 +1106,7 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
 
   // ---- tabla Penta: Importador | U$S VNA | % Inc. | Kgs. Netos, más el año anterior y la variación de participación
   $('cbr-th-usd').textContent = 'U$S VNA ' + A;
-  $('cbr-th-tp').textContent = P ? 'U$S VNA ' + P : 'U$S VNA año anterior';
+  $('cbr-th-tp').textContent = P ? 'U$S VNA ' + P + ' (año completo)' : 'U$S VNA año anterior';
   const filas = activos.filter(i => usdDe(i, A) > 0 || (P && usdDe(i, P) > 0)).sort((x, y) => usdDe(y, A) - usdDe(x, A) || (P ? usdDe(y, P) - usdDe(x, P) : 0));
   const sw = c => '<span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:' + c + ';margin-right:7px;vertical-align:baseline;"></span>';
   $('cbr-rank').innerHTML = filas.map(i => {
@@ -1113,19 +1114,19 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"generado":"2026-09-26 21:10","fuent
     const inc = incDe(i, A), incP = P ? incDe(i, P) : null, dInc = P ? inc - incP : null;
     const es = i === almar;
     return '<tr' + (es ? ' style="background:#e3f2fd;font-weight:700;"' : '') + '><td>' + sw(colorDe(i)) + esc(String(i.nombre).toUpperCase()) + '</td>' +
-      '<td class="num">' + fmtI(a.usdV) + '</td><td class="num">' + fmt2(inc) + '%</td><td class="num">' + fmtI((Number(a.tV) || 0) * 1000) + '</td>' +
-      '<td class="num" style="color:#718096;">' + fmtI(p.usdV) + '</td><td class="num" style="color:' + colDe(dInc) + ';">' + sgnPP(dInc) + '</td></tr>';
-  }).join('') + '<tr style="border-top:2px solid #90caf9;font-weight:700;color:#2d3748;"><td>TOTAL</td><td class="num">' + fmtI(mA.usdV) + '</td><td class="num">100,00%</td><td class="num">' + fmtI((Number(mA.tV) || 0) * 1000) +
-    '</td><td class="num">' + fmtI(mP.usdV) + '</td><td class="num"></td></tr>';
+      '<td class="num">' + fmtI(a.usd) + '</td><td class="num">' + fmt2(inc) + '%</td><td class="num">' + fmtI((Number(a.t) || 0) * 1000) + '</td>' +
+      '<td class="num" style="color:#718096;">' + fmtI(p.usd) + '</td><td class="num" style="color:' + colDe(dInc) + ';">' + sgnPP(dInc) + '</td></tr>';
+  }).join('') + '<tr style="border-top:2px solid #90caf9;font-weight:700;color:#2d3748;"><td>TOTAL</td><td class="num">' + fmtI(mA.usd) + '</td><td class="num">100,00%</td><td class="num">' + fmtI((Number(mA.t) || 0) * 1000) +
+    '</td><td class="num">' + fmtI(mP.usd) + '</td><td class="num"></td></tr>';
 
   // ---- lectura
   const L = [];
-  L.push(b('Almar es el ' + fmt2(incDe(almar, A)) + ' % del valor en aduana (' + fmt1(aA.cuotaV) + ' % de las toneladas) de la banana brasileña que entra a Uruguay en ' + A + ' (' + vLabel + ').', '#1e3a5f') +
+  L.push(b('Almar es el ' + fmt2(incDe(almar, A)) + ' % del valor en aduana (' + fmt1(aA.cuota) + ' % de las toneladas) de la banana brasileña que entra a Uruguay en ' + A + ' (' + vLabel + ').', '#1e3a5f') +
     (comp.length ? ' ' + comp.map(c => esc(nombre(c)) + ' ' + fmt2(incDe(c, A)) + ' %').join(' y ') + '; los tres primeros, ' + fmt1(top3) + ' % de las toneladas.' : ''));
-  if (P && aP.tV) L.push('Contra ' + P + ' (' + vLabel + '): Almar ' + b(sgnP(vT), colDe(vT)) + ' en toneladas (' + fmtI(aP.tV) + ' → ' + fmtI(aA.tV) + ' t) y el mercado ' + b(sgnP(vM), colDe(vM)) +
+  if (P && aP.t) L.push('Contra ' + P + ' (año completo): Almar ' + b(sgnP(vT), colDe(vT)) + ' en toneladas (' + fmtI(aP.t) + ' → ' + fmtI(aA.t) + ' t) y el mercado ' + b(sgnP(vM), colDe(vM)) +
     ': ' + (dCuota >= 0 ? 'ganó ' : 'perdió ') + fmt1(Math.abs(dCuota)) + ' pp de cuota.' +
-    (comp.length ? ' Competencia: ' + comp.map(c => { const p = pk(c, P), a = pk(c, A); const d = p.tV ? (a.tV - p.tV) / p.tV * 100 : null; return esc(nombre(c)) + ' ' + sgnP(d); }).join(', ') + '.' : ''));
-  if (!nz(dUsd)) L.push('Precio declarado en aduana: Almar USD ' + fmt3(aA.usdKgV) + '/kg contra USD ' + fmt3(mA.usdKgV) + ' del mercado (' + b(sgnP(dUsd), dUsd > 0 ? '#c53030' : '#2f855a') + '): ' +
+    (comp.length ? ' Competencia: ' + comp.map(c => { const p = pk(c, P), a = pk(c, A); const d = p.t ? (a.t - p.t) / p.t * 100 : null; return esc(nombre(c)) + ' ' + sgnP(d); }).join(', ') + '.' : ''));
+  if (!nz(dUsd)) L.push('Precio declarado en aduana: Almar USD ' + fmt3(aA.usdKg) + '/kg contra USD ' + fmt3(mA.usdKg) + ' del mercado (' + b(sgnP(dUsd), dUsd > 0 ? '#c53030' : '#2f855a') + '): ' +
     (Math.abs(dUsd) < 2 ? 'paga prácticamente lo mismo que la competencia.' : (dUsd > 0 ? 'declara más caro que la competencia.' : 'declara más barato que la competencia.')));
   $('cbr-lectura').innerHTML = L.map(x => '<li>' + x + '</li>').join('');
   $('cbr-fuente').textContent = 'Fuente: ' + (D.fuente || 'Penta Transaction') + ' · datos al ' + fmtF(D.corte) + ' (' + fmtI(D.registros) + ' operaciones, ' + ((D.archivos || []).length) + ' extractos). Kgs. Netos (Penta muestra brutos en su reporte). Para extender la serie: tirar el detalle nuevo de Penta en la carpeta penta y correr actualizar_precios.ps1.';
