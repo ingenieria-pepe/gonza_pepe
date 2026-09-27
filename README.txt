@@ -566,6 +566,11 @@ LOG DE CAMBIOS:
                index_paraguay_bolivia (texto del ranking) e inicio.html (equivalente por caja). Se suma
                SOLO al precio Cepea (caja equivalente Brasil); a Paraguay/Bolivia no se les suma nada.
                Revisado con PORONGA_WA_PRUEBA=dry (no se mando WhatsApp).
+  27/09/2026 -> plan_compras.xlsx / cargas_programadas: carga extra Stein mie 30/09 con Nilton (Gonzalo:
+               "asi cierro mejor pensando en futuro"). Sab 03/10 pasa a 21.918 cajas (falta 1 camion) y
+               sab 10/10 a 18.810 (faltan 4). Resumen WhatsApp: "falta 1 camion" en singular; en modo
+               prueba (1 o dry) el texto del resumen tambien queda en la consola/log. Prueba real 19:52
+               pedida por Gonzalo: 3/3 entregados. Paneles regenerados en la misma corrida.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -4163,9 +4163,11 @@ function Get-PlanComprasLineas {
             $saldoSim = $saldo + $extra
             $faltan = 0; if ($saldoSim -lt $min) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc }
             $sab = $w.AddDays(5)
-            $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -gt 0) { " (con los $pedidosAntes de arriba)" } else { "" }) +
+            $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" }) +
                    " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos PY)" } else { "" }) + " · vende $($v.ToString('N0'))"
-            if ($faltan -gt 0) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" } else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
+            if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
+            elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
+            else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
             $pedidosAntes += $faltan
             $lineas += $txt
         }
@@ -5062,11 +5064,12 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     foreach ($a in $alertasFire) {
         if ($waPrueba -and $a.tipo -ne 'resumen') { continue }
         if ($waPrueba -or (Can-Send $a.tipo)) {
-            if ($waDry) {
-                Write-Host "    ----- RESUMEN (dry: no se manda) -----" -ForegroundColor Magenta
+            if ($waPrueba) {
+                # en modo prueba el texto tambien va a la consola/log (dry: solo eso; 1: ademas se manda)
+                Write-Host "    ----- RESUMEN ($(if ($waDry) { 'dry: no se manda' } else { 'prueba: se manda' })) -----" -ForegroundColor Magenta
                 Write-Host ($bannerAtraso + $a.msg)
                 Write-Host "    ----- fin del resumen ($(($bannerAtraso + $a.msg).Length) caracteres) -----" -ForegroundColor Magenta
-                continue
+                if ($waDry) { continue }
             }
             Write-Host "    WA -> $($a.tipo):"
             $envio = Send-WA ($bannerAtraso + $a.msg)
