@@ -515,6 +515,16 @@ LOG DE CAMBIOS:
                (supuesto)" cargados el lunes. Resultado: sabado 03/10 cierra en 20.900 con lo
                dictado (faltan 2 camiones lun-mie); sabado 10/10, con las 8 BR del viernes y
                5 PY supuestos, cierra en 18.800 contando esos 2: faltan 4 mas.
+  27/09/2026 -> Bloque "Plan de compras" en el resumen de WhatsApp. Gonzalo: "lunes es tarde,
+               la semana ya esta corriendo; Brasil cierra los pedidos de la semana siguiente
+               los jueves y Paraguay los miercoles". Funcion nueva Get-PlanComprasLineas en el
+               script: lee plan_compras\plan_compras.json (lo genera 5j en la misma corrida) y
+               repite la cuenta del simulador para el sabado de esta semana y el de la siguiente:
+               stock proyectado, camiones que descargan (con los supuestos PY), venta, y cuantos
+               camiones faltan para el minimo (los de esta semana se arrastran a la siguiente).
+               Sale en el resumen del miercoles 12:00 y del viernes 19:00, despues del Plan de
+               Cargas, con la nota "Pedidos: Paraguay cierra miercoles, Brasil jueves". Probado
+               en PS 5.1 con el JSON del 27/09.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

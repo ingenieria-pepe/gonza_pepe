@@ -4115,6 +4115,64 @@ $script:ZONA_DIVERGE_PCT = 12.0
 # Precio minimo de sustentacion Ecuador (USD/caja). Lo usan la alerta EC y el resumen.
 $script:EC_PMS_USD_CAJA = 7.50
 
+function Get-PlanComprasLineas {
+    # Lineas del bloque "Plan de compras" del resumen de WhatsApp [27/09/2026]: stock proyectado al cierre del
+    # sabado de ESTA semana y de la SIGUIENTE contra el minimo, y cuantos camiones faltan. Misma cuenta que
+    # plan_compras\simulador.html (paso 5j): stock = conteo + camiones que descargan en la semana - venta;
+    # descarga = fecha real o carga + lag del origen (BR/PY 3, BO 6); el sabado cierra la semana, lo que llega
+    # el lunes suma en la siguiente. Gonzalo: los pedidos a Brasil cierran los jueves y los de Paraguay los
+    # miercoles, asi que el numero tiene que estar en el WhatsApp del miercoles 12:00.
+    param([string]$Path)
+    $PCJ = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $PCJ.camiones -or -not $PCJ.conteo -or -not $PCJ.grupos) { return @() }
+    $fCon = [DateTime]$PCJ.conteo.fecha
+    $hoyD = (Get-Date).Date
+    if ($hoyD.DayOfWeek -eq [DayOfWeek]::Sunday) { $hoyD = $hoyD.AddDays(1) }   # el domingo ya se mira la semana que arranca
+    $lunesDe = { param($d) $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) }
+    $plan = @($PCJ.ventas_plan | Sort-Object semana_lunes)
+    $lineas = @()
+    foreach ($gp in @($PCJ.grupos.PSObject.Properties)) {
+        $g = $gp.Name; $origs = @($gp.Value)
+        $cam = @()
+        foreach ($c in $PCJ.camiones) {
+            if ($c.grupo -ne $g) { continue }
+            $lag = 3; if ($PCJ.lags.($c.origen) -and $null -ne $PCJ.lags.($c.origen).descarga) { $lag = [int]$PCJ.lags.($c.origen).descarga }
+            $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
+            if ($desc -le $fCon) { continue }
+            $cam += [PSCustomObject]@{ desc = $desc; cajas = [int]$c.cajas; supuesto = ([string]$c.fuente -eq 'supuesto') }
+        }
+        $minCajas = 0; if ($PCJ.minimos -and $PCJ.minimos.$g) { $minCajas = [int]$PCJ.minimos.$g }
+        $cxc = 1000; if ($PCJ.cajas_camion.$g) { $cxc = [int]$PCJ.cajas_camion.$g }
+        $saldo = [int]$PCJ.conteo.$g
+        $wIni = & $lunesDe $fCon; $wHoy = & $lunesDe $hoyD; $wFin = $wHoy.AddDays(7)
+        $extra = 0; $pedidosAntes = 0
+        for ($w = $wIni; $w -le $wFin; $w = $w.AddDays(7)) {
+            $ll = @($cam | Where-Object { (& $lunesDe $_.desc) -eq $w })
+            $cajas = 0; foreach ($x in $ll) { $cajas += $x.cajas }
+            $nSup = @($ll | Where-Object { $_.supuesto }).Count
+            # venta de la semana: fila de ventas_plan de esa semana (o la ultima anterior), sumando los origenes del grupo
+            $k = $w.ToString('yyyy-MM-dd'); $fila = $null
+            foreach ($p in $plan) { if ($p.semana_lunes -eq $k) { $fila = $p; break }; if ($p.semana_lunes -lt $k) { $fila = $p } }
+            if (-not $fila -and $plan.Count) { $fila = $plan[-1] }
+            $vp = 0; if ($fila) { foreach ($o in $origs) { $vp += [int]$fila.$o } }
+            $v = $vp
+            if ($w -eq $wIni) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); $v = [math]::Round($v * $dias / 6) }
+            $saldo += $cajas - $v
+            if ($w -lt $wHoy) { continue }
+            $min = if ($minCajas -gt 0) { $minCajas } else { [math]::Round($vp / 6 * 7) }
+            $saldoSim = $saldo + $extra
+            $faltan = 0; if ($saldoSim -lt $min) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc }
+            $sab = $w.AddDays(5)
+            $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -gt 0) { " (con los $pedidosAntes de arriba)" } else { "" }) +
+                   " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos PY)" } else { "" }) + " · vende $($v.ToString('N0'))"
+            if ($faltan -gt 0) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" } else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
+            $pedidosAntes += $faltan
+            $lineas += $txt
+        }
+    }
+    return $lineas
+}
+
 function Get-AccionZona {
     param(
         [string]$zona,
@@ -4847,6 +4905,22 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
                     else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada todavía`n" }
                 }
                 $msg += "`n"
+            }
+
+            # --- Plan de compras [27/09/2026]: cierre proyectado al sabado de esta semana y de la
+            #     siguiente, y cuantos camiones faltan (mismo calculo que el simulador, paso 5j).
+            #     Gonzalo pide el numero antes del miercoles/jueves, que es cuando cierra los pedidos.
+            $pcJsonPath = Join-Path $base "plan_compras\plan_compras.json"
+            if (Test-Path $pcJsonPath) {
+                try {
+                    $pcLineas = @(Get-PlanComprasLineas -Path $pcJsonPath)
+                    if ($pcLineas.Count -gt 0) {
+                        $pcConteoF = (Get-Content $pcJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json).conteo.fecha
+                        $msg += "*🧮 Plan de compras* (stock total de banana, conteo $(Get-FechaCorta $pcConteoF))`n"
+                        $msg += ($pcLineas -join "`n") + "`n"
+                        $msg += "_Pedidos: Paraguay cierra miércoles, Brasil jueves._`n`n"
+                    }
+                } catch { Add-Falla -Paso 'Plan de compras (resumen)' -Detalle $_.Exception.Message }
             }
 
             # --- Almar: ultima semana con cargas en la planilla. Si la planilla no se
