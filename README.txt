@@ -462,6 +462,18 @@ LOG DE CAMBIOS:
                vs competencia, Resumen ejecutivo, Notas. Menu con esas 5 anclas. Descripcion
                del panel actualizada en el script ($panelesDef), inicio.html y portada.json.
                Render headless: 7 canvas, todos los KPIs llenos, ranking con fichas OK.
+  27/09/2026 -> index_paraguay_bolivia: seccion nueva "Almar vs competencia - banana de Paraguay
+               y Bolivia en aduana UY" (#competencia, antes de Notas; item de menu Competencia).
+               Pedido de Gonzalo: "falta competencia en Paraguay". Mismo formato Penta que
+               Brasil, un bloque por origen (Paraguay, Bolivia): 4 KPIs, dona por anio en U$S
+               VNA (2024 y 2025 completos, 2026 al corte) con "Valor total", leyenda comun,
+               "Totales y Parametros", tabla Importador | U$S VNA | % Inc. | Kgs. Netos | anio
+               anterior | delta, lecturas, toneladas por mes. Los datos ya estaban en
+               MERCADO_PYBO (origenes.Paraguay / origenes.Bolivia); el markup lo genera el JS
+               en #cpb-root, script antes de </body>, sin tocar el resumen ni las fichas.
+               Descripcion del panel en $panelesDef, inicio.html y portada.json. Render
+               headless: 12 canvas, 3 donas por origen, Paraguay Almar #1 de 8 (45,6 % en t),
+               Bolivia Almar #2 de 3 (Ciro Gentile primero).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
