@@ -495,6 +495,12 @@ LOG DE CAMBIOS:
                cierra el 03/10 con 19.300 (7,7 dias, minimo 17.440) con lo dictado tal cual, sin
                mover cargas; la semana del 05/10 queda en 11.800 (4,6 dias): faltan ~6
                camiones de cualquiera de los dos origenes. Bolivia igual que antes.
+  27/09/2026 -> Minimo en CAJAS al cierre del sabado: Gonzalo, "preciso tener en stock de una
+               semana a otra unas 22/23 mil cajas cerrando el sabado". generar_datos.ps1 emite
+               minimos.BRPY = 22.500 (Bolivia sigue por dias) y el simulador lo usa en vez de
+               los 7 dias de venta cuando esta cargado (casilla "Minimo al sabado, cajas",
+               vacio = por dias). Con eso: la semana del 28/09 cierra en 19.300 y le faltan 4
+               camiones lun-mie; la del 05/10 necesita 7 mas. Bolivia 2 para la del 05/10.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

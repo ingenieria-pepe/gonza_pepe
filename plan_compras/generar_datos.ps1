@@ -138,6 +138,9 @@ $out = [ordered]@{
     hoy = (Get-Date).ToString('yyyy-MM-dd')
     grupos = [ordered]@{ BRPY = @('BR', 'PY'); BO = @('BO') }
     nombres = [ordered]@{ BRPY = 'Banana Brasil + Paraguay'; BO = 'Bolivia' }
+    # minimo en CAJAS al cierre del sabado (Gonzalo 27/09/2026: "preciso tener en stock de una semana a otra unas
+    # 22/23 mil cajas cerrando el sabado"). Si esta, pisa al minimo por dias de venta; Bolivia sigue por dias.
+    minimos = [ordered]@{ BRPY = 22500; BO = $null }
     plan_cargas = [ordered]@{ archivo = $pc.Name; fecha = $pc.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); camiones = $nBRPY; ultima_carga = [ordered]@{ BR = $(if ($maxPlan.BR) { Ymd $maxPlan.BR }); PY = $(if ($maxPlan.PY) { Ymd $maxPlan.PY }) } }
     plan_cargas_otros = [ordered]@{ archivo = $(if ($pcO) { $pcO.Name } else { $null }); fecha = $(if ($pcO) { $pcO.LastWriteTime.ToString('yyyy-MM-dd HH:mm') }); camiones_bo = $nBO; ultima_carga_bo = $(if ($maxPlan.BO) { Ymd $maxPlan.BO }) }
     plan_compras = [ordered]@{ archivo = 'plan_compras\plan_compras.xlsx'; fecha = (Get-Item $pcx).LastWriteTime.ToString('yyyy-MM-dd HH:mm'); dictadas_usadas = $usadas; dictadas_omitidas_por_estar_en_el_plan = $omitidas }
