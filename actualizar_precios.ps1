@@ -4951,47 +4951,23 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
 
             # --- (27/09/2026: el bloque "Almar" se junto con el de Cepea, arriba: mismo precio en dos lugares)
 
-            # Recomendación accionable según score + zona
-            #
-            # FIX 04/09/2026 - este bloque tenia dos errores:
-            #
-            #  1) El corte de "compras normales" era -ge 0, pero $oppLevel (y el JS
-            #     de index_brasil.html, que se supone que estan en sync) cortan en
-            #     -ge -1. Un score -1 imprimia "Score: -1 · NORMAL" y en el renglon
-            #     siguiente "Cautela": el mismo mensaje se contradecia solo.
-            #
-            #  2) Decia "precio en zona alta" leyendo solo $zonaAct, que sale del
-            #     promedio historico del mes cruzando TODOS los anios. Eso es
-            #     calendario, no el precio de hoy. El 04/09/2026 mando "precio en
-            #     zona alta" con Cepea en R$ 0,91 = -49% contra ese mismo promedio,
-            #     o sea el consejo justo al reves. Es el mismo error que ya se habia
-            #     arreglado el 02/09 en las alertas de zona con Get-AccionZona; aca
-            #     habia quedado el texto viejo hardcodeado.
-            #
-            # Ahora ninguna rama afirma nada sobre el nivel del precio: eso lo dice
-            # Get-AccionZona, que cruza calendario contra precio real, y solo se
-            # agrega cuando los dos efectivamente divergen (si coinciden, la frase
-            # del score ya alcanza y repetirla solo alarga el mensaje).
-            $zonaDiverge = [math]::Abs($vsProm) -ge $script:ZONA_DIVERGE_PCT
-            $msg += "*👉 Sugerencia:* "
-            if ($oppScore -ge 4) {
-                $msg += "Comprar fuerte — ventana óptima."
-            } elseif ($oppScore -ge 2) {
-                $msg += "Buena ventana de compra. "
-                if ($null -ne $deltaSemPct -and $deltaSemPct -gt 5) { $msg += "Precio recuperando desde mínimo." }
-                elseif ($zonaAct -eq "BAJA") { $msg += "Aprovechar zafra alta." }
-            } elseif ($oppScore -ge -1) {
-                $msg += "Compras normales."
-            } elseif ($oppScore -ge -3) {
-                $msg += "Cautela — señales combinadas negativas."
-            } else {
-                $msg += "STOP compras spot — momento de descarga."
-            }
-            # La rama "Buena ventana" deja un espacio colgado si no entra ninguna
-            # de sus dos sub-condiciones, asi que recortamos siempre.
-            $msg = $msg.TrimEnd()
-            if ($zonaDiverge) {
-                $msg += " " + (Get-AccionZona -zona $zonaAct -vsHistPct $vsProm)
+            # --- Lectura final. [27/09/2026] Antes era "Sugerencia": la frase del nivel del score ("Compras
+            #     normales" / "Cautela - senales combinadas negativas" / ...) mas, si el calendario divergia del
+            #     precio, la de Get-AccionZona ("Ventana atipica ... evaluar compra"). Gonzalo: "que es eso????":
+            #     las dos frases se contradecian (el score daba Cautela por el spread y el frio, que no son
+            #     razones para no comprar). Ahora es UNA oracion con datos, sin score: precio real contra el
+            #     historico del mes y tendencia de 3 semanas, y como viene pagando Almar contra Cepea+servicios
+            #     (ultimas 4 semanas, mismo $spreadAvg del score). El score sigue en las alertas Oportunidad/STOP.
+            $ladoL = if ($vsProm -lt 0) { "bajo" } else { "sobre" }
+            $tendL = if ($pctChg3w -ge 10) { "y subiendo ($(Get-PctTxt $pctChg3w) en 3 sem)" }
+                     elseif ($pctChg3w -le -10) { "y bajando ($(Get-PctTxt $pctChg3w) en 3 sem)" }
+                     else { "estable en 3 sem ($(Get-PctTxt $pctChg3w))" }
+            $msg += "*👉 Lectura:* Precio $([math]::Abs([math]::Round($vsProm)))% $ladoL el histórico de $nombreMes $tendL."
+            if ($spreadAvg -ne 0) {
+                $absSp = [math]::Abs($spreadAvg).ToString('F1')
+                if ($spreadAvg -le -2)   { $msg += " Almar viene pagando R$ $absSp/caja por debajo de Cepea+servicios (últimas 4 sem)." }
+                elseif ($spreadAvg -ge 2) { $msg += " Almar viene pagando R$ $absSp/caja por encima de Cepea+servicios (últimas 4 sem)." }
+                else                      { $msg += " Almar viene pagando en línea con Cepea+servicios (últimas 4 sem)." }
             }
             $alertasFire += @{ tipo='resumen'; msg=$msg }
         }

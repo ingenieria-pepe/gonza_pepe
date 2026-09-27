@@ -571,6 +571,14 @@ LOG DE CAMBIOS:
                sab 10/10 a 18.810 (faltan 4). Resumen WhatsApp: "falta 1 camion" en singular; en modo
                prueba (1 o dry) el texto del resumen tambien queda en la consola/log. Prueba real 19:52
                pedida por Gonzalo: 3/3 entregados. Paneles regenerados en la misma corrida.
+  27/09/2026 -> Resumen WhatsApp: la "Sugerencia" final pasa a "Lectura". Gonzalo ("que es eso????") vio
+               que "Cautela - senales combinadas negativas. Ventana atipica: ... evaluar compra" se
+               contradecia: la primera frase venia del nivel del score (hoy -2 por el spread y el frio,
+               que no son razones para no comprar) y la segunda de Get-AccionZona. Ahora es una sola
+               oracion con datos y sin score: precio real vs historico del mes + tendencia de 3 sem, y
+               como viene pagando Almar contra Cepea+servicios (ultimas 4 sem, el mismo spread del
+               score). El score sigue vivo para las alertas Oportunidad/STOP y en index_brasil.
+               Revisado en dry y prueba real enviada a pedido de Gonzalo ("a ver como quedo el definitivo").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
