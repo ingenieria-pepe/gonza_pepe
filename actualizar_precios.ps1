@@ -4341,7 +4341,12 @@ if ($null -ne $waConfig) {
     }
 }
 
-if ($null -eq $waConfig -or -not $waConfig.enabled) {
+# MODO PRUEBA [27/09/2026]: con la variable de entorno PORONGA_WA_PRUEBA=1 la corrida manda SOLO el resumen,
+# aunque no sea miercoles/viernes y aunque config tenga enabled=false, con un encabezado "PRUEBA", sin banner
+# de atraso y sin tocar el state (silencios, timestamps). Para que Gonzalo vea el mensaje entero como saldria.
+$waPrueba = ($env:PORONGA_WA_PRUEBA -eq '1')
+if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con encabezado PRUEBA, sin tocar el state" -ForegroundColor Magenta }
+if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     Write-Host "    WhatsApp deshabilitado (config/whatsapp.json)" -ForegroundColor DarkYellow
 } elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) {
     Write-Host "    Falta phones o token en config/whatsapp.json - completar para activar" -ForegroundColor DarkYellow
@@ -4542,6 +4547,7 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
             } catch { $sendResumen = $true }
         } else { $sendResumen = $true }
     }
+    if ($waPrueba) { $sendResumen = $true }
     $novedades = @()   # lineas cortas que van arriba del resumen
     function Get-FechaCortaWA { param([string]$iso) try { ([DateTime]::Parse($iso)).ToString('dd/MM') } catch { $iso } }
 
@@ -5059,9 +5065,11 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
         Write-Host "    ATRASO: $etiqueta respecto del slot $($slotPrevisto.ToString('yyyy-MM-dd HH:mm'))" -ForegroundColor Yellow
     }
 
-    # Enviar respetando silencio
+    # Enviar respetando silencio (en modo prueba: solo el resumen, siempre, con encabezado PRUEBA)
+    if ($waPrueba) { $bannerAtraso = "🧪 *PRUEBA — así saldría el resumen* (corrida manual del $((Get-Date).ToString('dd/MM HH:mm')); no es el envío del miércoles)`n`n" }
     foreach ($a in $alertasFire) {
-        if (Can-Send $a.tipo) {
+        if ($waPrueba -and $a.tipo -ne 'resumen') { continue }
+        if ($waPrueba -or (Can-Send $a.tipo)) {
             Write-Host "    WA -> $($a.tipo):"
             $envio = Send-WA ($bannerAtraso + $a.msg)
             if ($envio.ok) {
@@ -5099,7 +5107,8 @@ if ($null -eq $waConfig -or -not $waConfig.enabled) {
     # Numeros que fallaron en esta corrida ('' si entraron todos). Sin esto un numero
     # muerto es invisible: la consola no la lee nadie y $okAny lo tapaba.
     $waState['envio_fallidos'] = ($waFallosUnicos -join ',')
-    $waState | ConvertTo-Json | Out-File $waStatePath -Encoding UTF8
+    if ($waPrueba) { Write-Host "    MODO PRUEBA: state_whatsapp.json no se toca" -ForegroundColor Magenta }
+    else { $waState | ConvertTo-Json | Out-File $waStatePath -Encoding UTF8 }
 }
 
 Write-Host ""

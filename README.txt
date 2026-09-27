@@ -529,6 +529,14 @@ LOG DE CAMBIOS:
                28/09: nada todavia" con 15 cargas dictadas por Gonzalo. Ahora cada renglon suma
                "N dictados que Aloha aun no tiene" (fuente plan_compras del JSON del paso 5j,
                que ya excluye lo que Aloha tiene) y el texto pasa a "nada en Aloha todavia".
+  27/09/2026 -> MODO PRUEBA de WhatsApp (Gonzalo: "manda el mensaje entero a todos los celulares a
+               ver como seria"). Variable de entorno PORONGA_WA_PRUEBA=1 al correr el script:
+               manda SOLO el resumen, aunque no sea miercoles/viernes y aunque config tenga
+               enabled=false, con encabezado "PRUEBA - asi saldria el resumen", sin banner de
+               atraso y sin tocar state_whatsapp.json. Uso: $env:PORONGA_WA_PRUEBA=1 y correr
+               actualizar_precios.ps1 (en la laptop no hay config\aloha.json, asi que la prueba
+               sale sin el bloque Plan de Cargas; en el servidor sale completo). Corrida de
+               prueba 27/09 17:1x: 3/3 entregados. Paneles regenerados en la misma corrida.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
