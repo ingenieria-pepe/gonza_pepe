@@ -127,14 +127,22 @@ foreach ($p in ($prog | Sort-Object carga)) {
     $usadas++
 }
 
+# ---- grupos [27/09/2026]: Gonzalo pidio unificar la compra Brasil + Paraguay ("para mi es lo mismo una u otra,
+#      de ahi despues yo veo que cargar"); Bolivia sigue aparte. El simulador proyecta por grupo; cada camion
+#      conserva su origen (bandera en la grilla) y el conteo y la venta se suman.
+foreach ($c in $camiones) { $c | Add-Member -NotePropertyName grupo -NotePropertyValue $(if ($c.origen -eq 'BO') { 'BO' } else { 'BRPY' }) -Force }
+$conteo['BRPY'] = ([int]$conteo['BR']) + ([int]$conteo['PY'])
+foreach ($v in $ventas) { $v | Add-Member -NotePropertyName BRPY -NotePropertyValue ($v.BR + $v.PY) -Force }
 $out = [ordered]@{
     generado = (Get-Date).ToString('yyyy-MM-dd HH:mm')
     hoy = (Get-Date).ToString('yyyy-MM-dd')
+    grupos = [ordered]@{ BRPY = @('BR', 'PY'); BO = @('BO') }
+    nombres = [ordered]@{ BRPY = 'Banana Brasil + Paraguay'; BO = 'Bolivia' }
     plan_cargas = [ordered]@{ archivo = $pc.Name; fecha = $pc.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); camiones = $nBRPY; ultima_carga = [ordered]@{ BR = $(if ($maxPlan.BR) { Ymd $maxPlan.BR }); PY = $(if ($maxPlan.PY) { Ymd $maxPlan.PY }) } }
     plan_cargas_otros = [ordered]@{ archivo = $(if ($pcO) { $pcO.Name } else { $null }); fecha = $(if ($pcO) { $pcO.LastWriteTime.ToString('yyyy-MM-dd HH:mm') }); camiones_bo = $nBO; ultima_carga_bo = $(if ($maxPlan.BO) { Ymd $maxPlan.BO }) }
     plan_compras = [ordered]@{ archivo = 'plan_compras\plan_compras.xlsx'; fecha = (Get-Item $pcx).LastWriteTime.ToString('yyyy-MM-dd HH:mm'); dictadas_usadas = $usadas; dictadas_omitidas_por_estar_en_el_plan = $omitidas }
-    lags = [ordered]@{ BR = [ordered]@{ descarga = 3; madurar = 7 }; PY = [ordered]@{ descarga = 3; madurar = 7 }; BO = [ordered]@{ descarga = 6; madurar = 7 } }
-    cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050 }
+    lags = [ordered]@{ BR = [ordered]@{ descarga = 3; madurar = 7 }; PY = [ordered]@{ descarga = 3; madurar = 7 }; BO = [ordered]@{ descarga = 6; madurar = 7 }; BRPY = [ordered]@{ descarga = 3; madurar = 7 } }
+    cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; BRPY = 1000 }
     conteo = $conteo
     ventas_plan = $ventas
     camiones = @($camiones | Sort-Object carga, origen)

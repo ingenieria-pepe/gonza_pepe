@@ -482,6 +482,19 @@ LOG DE CAMBIOS:
                escenarios_2809b.ps1): Brasil con Gilson y Josemar al martes cierra el 03/10 con
                7 dias; para el 10/10 faltan 2-3 camiones; Paraguay necesita 3 el viernes/sabado;
                Bolivia cubierta esta semana, necesita 2 para la que viene.
+  27/09/2026 -> Plan de compras UNIFICADO Brasil + Paraguay ("quiero que unifiques la compra
+               brasil paraguay, para mi es lo mismo una u otra, de ahi despues yo veo que
+               cargar; asi me estas enredando"). El simulador proyecta por GRUPO: BRPY (Brasil
+               + Paraguay: conteo sumado, venta sumada, un solo minimo de 7 dias, 1.000
+               cajas/camion para los simulados) y BO (Bolivia, igual que antes). Cada camion
+               conserva su origen y sale con bandera en "quien descarga". generar_datos.ps1
+               agrega grupos, nombres, conteo.BRPY, ventas_plan[].BRPY, lags.BRPY,
+               cajas_camion.BRPY y camiones[].grupo; el JSON sigue trayendo BR y PY por
+               separado por si hace falta volver. Clave del navegador plan_compras_sim_v5.
+               Resultado (conteo 26/09, venta 16.000 la semana del 28/09): Brasil+Paraguay
+               cierra el 03/10 con 19.300 (7,7 dias, minimo 17.440) con lo dictado tal cual, sin
+               mover cargas; la semana del 05/10 queda en 11.800 (4,6 dias): faltan ~6
+               camiones de cualquiera de los dos origenes. Bolivia igual que antes.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

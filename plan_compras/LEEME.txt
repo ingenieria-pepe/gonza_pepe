@@ -32,7 +32,7 @@ COMO SE ACTUALIZA (cada vez que cambie algo)
      powershell -ExecutionPolicy Bypass -File plan_compras\generar_datos.ps1
   5. Abrir plan_compras\simulador.html.
 
-LA CUENTA
+LA CUENTA (desde el 27/09/2026 Brasil y Paraguay van JUNTOS: un solo stock y una sola venta; Bolivia aparte)
   stock al sabado = stock anterior + camiones que DESCARGAN esa semana - venta semanal
   descarga = fecha real si ya descargo; si no, carga + 3 dias (BR, PY) o + 6 (BO):
              lo cargado lunes a miercoles entra en la semana, viernes y sabado entra lunes o martes.
