@@ -404,7 +404,7 @@ $almarFichas  = @{}   # productor canonico en minusculas -> ficha (ordered)
 $almarAliases = @{}   # alias / nombre en minusculas -> productor canonico (columna Alias, separada por ;)
 $KG_CAJA_NETO   = 22   # banana adentro de la caja
 $KG_CAJA_BRUTO  = 26   # caja + banana
-$SERVICIOS_CAJA = 16   # R$/caja - envalado + paletizado + flete interno (a sumar al precio Cepea del cacho)
+$SERVICIOS_CAJA = 18   # R$/caja - envalado + paletizado + flete interno (a sumar al precio Cepea del cacho). Era 16; Gonzalo 27/09/2026: "estoy pagando 18 mas precio na roca"
 
 # Alias de transportistas. La planilla de cargas dice "Nilton" y el Plan de Cargas dice "FG":
 # es la MISMA empresa (confirmado por Gonzalo el 08/09/2026). Se unifica en el paso 3 (cargas 2026,
@@ -2442,7 +2442,7 @@ if (-not (Test-Path $merPath) -or -not (Test-Path $pyboPath)) {
 
     $TC_USD    = 5.20
     $KG_CAJA   = $(if ($KG_CAJA_NETO)   { [double]$KG_CAJA_NETO }   else { 22.0 })
-    $SERV_CAJA = $(if ($SERVICIOS_CAJA) { [double]$SERVICIOS_CAJA } else { 16.0 })
+    $SERV_CAJA = $(if ($SERVICIOS_CAJA) { [double]$SERVICIOS_CAJA } else { 18.0 })
     $pjInv = [System.Globalization.CultureInfo]::InvariantCulture
     function PJ-Fecha { param([string]$s) return [DateTime]::ParseExact($s.Substring(0,10), 'yyyy-MM-dd', $pjInv) }
     function PJ-Prom  { param($arr) $a2 = @($arr | Where-Object { $null -ne $_ }); if ($a2.Count -eq 0) { return $null }; return ($a2 | Measure-Object -Average).Average }
@@ -4469,11 +4469,22 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     if ($oppCepeaSig -lt 0 -and $oppVsHist -le -$script:ZONA_DIVERGE_PCT) { $oppCepeaSig = 0; $oppCepeaRebote = $true }
 
     # SEÑAL 3: Spread Almar vs Cepea
+    # FIX 27/09/2026: las semanas Almar llevan fecha SABADO (cierre de la semana de cargas) y las Cepea
+    # fecha VIERNES, asi que el cruce por fecha igual nunca encontraba nada y la senal daba siempre 0
+    # (Spread:0,0 en todas las corridas). Ahora se busca la Cepea a +-3 dias, igual que hace el paso 5d,
+    # y se toman las ultimas 4 semanas Almar CON precio (una semana cargada sin precios daria avg 0).
+    # SYNC con el JS de index_brasil.html (Senal 3).
     if ($almarSemanas.Count -ge 3) {
-        $ult4 = $almarSemanas | Select-Object -Last 4
+        $ult4 = @($almarSemanas | Where-Object { [double]$_.precio_avg_caja -gt 0 } | Select-Object -Last 4)
         $diffs = @()
         foreach ($w in $ult4) {
-            $c = $nanica | Where-Object { $_.fecha -eq $w.fecha } | Select-Object -First 1
+            $c = $null
+            $fSabW = [DateTime]::Parse($w.fecha)
+            foreach ($dd in 0, -1, 1, -2, 2, -3, 3) {
+                $fk = $fSabW.AddDays($dd).ToString('yyyy-MM-dd')
+                $c = $nanica | Where-Object { $_.fecha -eq $fk } | Select-Object -First 1
+                if ($c) { break }
+            }
             if ($c) {
                 $cepeaCaja = ([double]$c.precio) * $KG_CAJA_NETO + $SERVICIOS_CAJA
                 $diffs += ([double]$w.precio_avg_caja - $cepeaCaja)
@@ -4695,7 +4706,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 # Comparativa con BR
                 $kg = if ($pyData.kg_caja_aprox) { [double]$pyData.kg_caja_aprox } else { 24 }
                 $pyUsdKg = ($pyUlt / 7500.0) / $kg
-                $brUsdKg = ($oppLast + 0.73) / 5.2
+                $brUsdKg = ($oppLast + $SERVICIOS_CAJA / $KG_CAJA_NETO) / 5.2   # servicios por kg (antes 0,73 fijo = 16/22), TC 5,2
                 $diffPct = if ($brUsdKg -gt 0) { (($pyUsdKg - $brUsdKg) / $brUsdKg) * 100 } else { 0 }
                 $sgnVs = if ($diffPct -ge 0) {'+'} else {''}
                 $msg += "≈ USD $($pyUsdKg.ToString('F2'))/kg · $sgnVs$($diffPct.ToString('F0'))% vs BR`n`n"
@@ -4867,7 +4878,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $pyKg = if ($pyData.kg_caja_aprox) { [double]$pyData.kg_caja_aprox } else { 24 }
                 $PYG_USD = 7500.0
                 $pyUsdKg = ([double]$pyData.precio_caja_pyg / $PYG_USD) / $pyKg
-                $brUsdKg = ($oppLast + 0.73) / 5.2   # +R$0,73/kg servicios, TC 5,2
+                $brUsdKg = ($oppLast + $SERVICIOS_CAJA / $KG_CAJA_NETO) / 5.2   # servicios por kg (antes 0,73 fijo = 16/22), TC 5,2
                 $diffPct = (($pyUsdKg - $brUsdKg) / $brUsdKg) * 100
                 $pyFecha = ''; $pyVar = ''
                 if ($pyData.serie -and @($pyData.serie).Count -ge 1) {

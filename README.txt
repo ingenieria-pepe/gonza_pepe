@@ -555,6 +555,17 @@ LOG DE CAMBIOS:
                entregados (version intermedia, todavia con bloque Almar aparte); dry 17:11 con la final.
                PENDIENTE (no tocado): la senal 3 del score (spread Almar vs Cepea) da siempre 0 porque
                las semanas Almar van con fecha sabado y las Cepea con fecha viernes: nunca cruzan.
+  27/09/2026 -> Score, senal 3 (spread Almar vs Cepea+servicios) ARREGLADA (Gonzalo: "si queres que el
+               spread cuente, lo arreglo" -> si). Daba siempre 0 porque las semanas Almar tienen fecha
+               sabado y las Cepea viernes. Ahora busca la Cepea a +-3 dias (como el paso 5d) y toma las
+               ultimas 4 semanas Almar CON precio. Mismo arreglo en el JS de index_brasil (Senal 3).
+               Efecto hoy: spread -3,0 R$/caja -> senal -1, score pasa de -1 (NORMAL) a -2 (CAUTELA).
+               Servicios por caja: 16 -> 18 R$ (Gonzalo: "estoy pagando 18 mas precio na roca", "solo
+               en Brasil es 18"). $SERVICIOS_CAJA en el script (viaja en el sidecar como servicios_caja)
+               y los 16 que estaban a mano en index_brasil (termometro, texto del ranking, plazas Cepea),
+               index_paraguay_bolivia (texto del ranking) e inicio.html (equivalente por caja). Se suma
+               SOLO al precio Cepea (caja equivalente Brasil); a Paraguay/Bolivia no se les suma nada.
+               Revisado con PORONGA_WA_PRUEBA=dry (no se mando WhatsApp).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
