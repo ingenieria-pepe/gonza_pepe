@@ -447,6 +447,21 @@ LOG DE CAMBIOS:
                ranking del anio en curso, el color sigue a la empresa. Quedan los 4 KPIs y el
                grafico de toneladas por mes; fuera las barras apiladas de cuota (las
                reemplazan las donas). Mismos datos MERCADO_BR y mismos marcadores.
+  26/09/2026 -> Competencia: las donas, los totales y la tabla usan el anio COMPLETO para 2024
+               y 2025 (campos usd/t/ops/cuota) y el corte para 2026 ("no quiero los anios 2024
+               y 2025 enero-agosto, quiero todo el anio").
+  27/09/2026 -> index_brasil SIMPLE, como index_paraguay ("quiero que sea index brasil simple
+               como el que es index paraguay ... dale probemos eso"). De 11 secciones a 6:
+               FUERA "Alerta de oportunidad" (queda la barra del semaforo arriba; el JS sigue y
+               los nodos que faltan estan guardados), "Cepea por region", "Forecast 4 semanas"
+               (va en el WhatsApp y en index_proyeccion) y "Comparativa 2024-2026" (duplicaba
+               index_comparativo_anual). "Real BR" se fundio en el Resumen ejecutivo: quedan
+               sus 2 KPIs (mayor dependencia y precio promedio) al lado de cargas del anio,
+               ritmo, Cepea y compra Almar; fuera el KPI Forecast y la tarjeta Conversion.
+               Orden final: Termometro Cepea, Clima, Plan de cargas (ranking y fichas), Almar
+               vs competencia, Resumen ejecutivo, Notas. Menu con esas 5 anclas. Descripcion
+               del panel actualizada en el script ($panelesDef), inicio.html y portada.json.
+               Render headless: 7 canvas, todos los KPIs llenos, ranking con fichas OK.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

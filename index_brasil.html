@@ -286,58 +286,15 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 </div>
 
 <nav class="sticky-nav">
-  <a href="#oportunidad">🎯 Oportunidad</a>
-  <a href="#forecast">🔮 Forecast</a>
-  <a href="#cargas">🚛 Cargas</a>
-  <a href="#regiones">🗺️ Regiones</a>
   <a href="#cepea">📡 Cepea</a>
   <a href="#clima">🌤️ Clima</a>
-  <a href="#real2026">📈 Real BR</a>
-  <a href="#resumen">📋 Resumen</a>
+  <a href="#cargas">🚛 Cargas</a>
   <a href="#competencia">🥊 Competencia BR</a>
-  <a href="#comparativa">🔄 Comparativa</a>
+  <a href="#resumen">📋 Resumen</a>
 </nav>
 
 <div class="container">
 
-  <h2 id="oportunidad">🎯 Alerta de oportunidad — esta semana</h2>
-  <div class="chart-card" id="opportunity-card">
-    <div id="opportunity-summary" style="font-size:15px;line-height:1.6;">Cargando…</div>
-    <h3 style="margin-top:18px;font-size:14px;color:#4a5568;">Desglose del score (combinación de 4 señales)</h3>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:13.5px;" id="opportunity-detail">
-        <thead>
-          <tr style="background:#edf2f7;border-bottom:2px solid #cbd5e0;">
-            <th style="padding:8px;text-align:left;">Señal</th>
-            <th style="padding:8px;text-align:left;">Lectura</th>
-            <th style="padding:8px;text-align:center;">Puntos</th>
-            <th style="padding:8px;text-align:left;">Interpretación</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <p style="font-size:11px;color:#718096;margin-top:14px;border-top:1px dashed #cbd5e0;padding-top:8px;">
-      <strong>Escala:</strong> ≥+4 oportunidad clara · +2..+3 buena · −1..+1 normal · −2..−3 cautela · ≤−4 stop. Las 4 señales se calculan client-side con los datos del JSON (Cepea + Almar + Clima + Correlación).
-    </p>
-  </div>
-
-  <h2 id="regiones">🗺️ Cepea por región — dónde está más barata la Nanica</h2>
-  <div class="chart-card" id="reg-card">
-    <p id="reg-intro" style="font-size:14px;color:#4a5568;margin-top:0;">—</p>
-    <div style="overflow-x:auto;"><table id="reg-tabla" style="font-size:13.5px;"><thead id="reg-head"></thead><tbody id="reg-body"></tbody></table></div>
-    <div id="reg-lectura" style="margin-top:14px;background:#f0fff4;border-left:4px solid #2f855a;padding:12px 16px;border-radius:4px;font-size:14px;line-height:1.6;"></div>
-    <p id="reg-nota" style="font-size:11px;color:#718096;margin:12px 0 0 0;border-top:1px dashed #cbd5e0;padding-top:8px;"></p>
-  </div>
-  <div class="chart-card">
-    <h3 id="reg-h-chart">Precio al productor por región — últimas 52 semanas (R$/kg)</h3>
-    <div class="chart-container"><canvas id="reg-chart"></canvas></div>
-  </div>
-  <div class="chart-card">
-    <h3>Estacionalidad: promedio mensual por región (R$/kg)</h3>
-    <div class="chart-container" style="height:300px;"><canvas id="reg-chart-mes"></canvas></div>
-    <p id="reg-mes-nota" style="font-size:12px;color:#718096;margin:8px 0 0 0;"></p>
-  </div>
   <h2 id="cepea">📡 Termómetro Cepea — Nanica primeira / Norte de Santa Catarina</h2>
   <div class="kpi-grid" id="cepea-kpis">
     <div class="kpi green" id="cepea-kpi-price">
@@ -394,26 +351,6 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
     </div>
   </div>
 
-  <h2 id="forecast">🔮 Forecast Cepea — próximas 4 semanas</h2>
-  <div class="chart-card">
-    <p style="font-size:14px;color:#4a5568;margin-top:0;">
-      Predicción combinada de precio Cepea Nanica primeira al productor para las próximas 4 semanas. Combina el modelo climático (regresión lag 4) con el promedio histórico mensual, ponderado por la fuerza de la correlación (r²).
-    </p>
-    <div class="kpi-grid" id="forecast-kpis" style="margin-top:14px;"></div>
-
-    <h3 style="margin-top:18px;font-size:15px;">Curva proyectada (últimas 13 semanas + 4 forecast)</h3>
-    <div class="chart-container"><canvas id="forecast-chart"></canvas></div>
-
-    <div id="forecast-detalle" style="margin-top:18px;background:#eff6ff;border-left:4px solid #2563eb;padding:12px 16px;border-radius:4px;font-size:13.5px;line-height:1.6;"></div>
-
-    <p style="font-size:11px;color:#718096;margin-top:14px;border-top:1px dashed #cbd5e0;padding-top:8px;">
-      <strong>Modelo:</strong> price[t+k] = w × (α + β × tmax[t+k−4]) + (1−w) × promedio_mensual. Donde w = r² del modelo climático.<br>
-      <strong>Por qué la combinación:</strong> con r² bajo (~0,12), el modelo climático solo explica 12% de la varianza. Pesar contra la baseline estacional evita predicciones extremas cuando el clima no es buen predictor.<br>
-      <strong>Intervalo de confianza:</strong> predicción ± RMSE (~R$ 0,49/kg). Es amplio porque el modelo es modesto. Usá como guía direccional, no como precio cerrado.
-    </p>
-  </div>
-
-  <!-- ====== PLAN DE CARGAS (BR): datos inyectados por el paso 5h de actualizar_precios.ps1 (fuentes\plan_cargas\*.xlsx) ====== -->
   <h2 id="cargas">🚛 Plan de cargas Brasil — camiones, tránsito y faltantes</h2>
   <div id="pc-estado" style="font-size:13px;color:#4a5568;margin:-6px 0 14px 0;">Cargando…</div>
   <div id="pc-root">
@@ -697,60 +634,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   </div>
   </div>
 
-  <h2 id="comparativa">Comparativa histórica 2024 → 2025 → 2026</h2>
-
-  <h3 style="font-size:16px;color:#4a5568;margin-bottom:12px;">Carretas Brasil año contra año</h3>
-  <div class="kpi-grid" style="margin-bottom:20px;">
-    <div class="kpi">
-      <div class="label" id="cmp-a0-l">—</div>
-      <div class="value" id="cmp-a0-v">—</div>
-      <div class="sub" id="cmp-a0-s">—</div>
-    </div>
-    <div class="kpi green">
-      <div class="label" id="cmp-a1-l">—</div>
-      <div class="value" id="cmp-a1-v">—</div>
-      <div class="sub" id="cmp-a1-s" style="font-weight:600;">—</div>
-    </div>
-    <div class="kpi" style="border-left-color:#d69e2e;">
-      <div class="label" id="cmp-cur-l">Año en curso (proyectado)</div>
-      <div class="value" id="cmp-cur-v">—</div>
-      <div class="sub" id="cmp-cur-s" style="font-weight:600;">—</div>
-    </div>
-    <div class="kpi">
-      <div class="label" id="cmp-evo-l">Evolución</div>
-      <div class="value" id="cmp-evo-v" style="color:#2c5282;">—</div>
-      <div class="sub" id="cmp-evo-s">—</div>
-    </div>
-</div>
-
-  <div class="chart-card">
-    <h3 id="cmp-h-mensual">Carretas mensuales BR, año contra año</h3>
-    <div class="chart-container">
-      <canvas id="chartCarretasYoY"></canvas>
-    </div>
-  </div>
-
-
-
-  <h2 id="real2026">🇧🇷 Real BR — seguimiento del año</h2>
-  <p id="real2026-intro" style="color:#4a5568;font-size:14px;margin-top:-8px;margin-bottom:20px;">Datos reales 2026 — se completa con los datos del script.</p>
-
-  <div class="kpi-grid" style="margin-bottom:24px;">
-    <div class="kpi" style="border-left-color:#d69e2e;">
-      <div class="label" id="r26-k3-l">Mayor dependencia</div>
-      <div class="value" id="r26-k3-v">—</div>
-      <div class="sub" id="r26-k3-s" style="font-weight:600;">—</div>
-    </div>
-    <div class="kpi">
-      <div class="label" id="r26-k4-l">Precio promedio del año</div>
-      <div class="value" id="r26-k4-v">—</div>
-      <div class="sub" id="r26-k4-s" style="font-weight:600;">—</div>
-    </div>
-  </div>
-
-  <p id="real2026-rank-puntero" style="font-size:13px;color:#4a5568;margin:0 0 24px 0;">El ranking de productores está más arriba, en <a href="#real2026-rank-title">Plan de cargas Brasil</a>, junto a la tabla de camiones, cajas, tránsito y faltantes.</p>
-
-  <h2 id="resumen">Resumen ejecutivo</h2>
+  <h2 id="resumen">📋 Resumen ejecutivo — Brasil</h2>
   <div class="kpi-grid">
     <div class="kpi green">
       <div class="label" id="res-cargas-l">Cargas BR del año</div>
@@ -767,20 +651,20 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       <div class="value" id="res-cepea-v">—</div>
       <div class="sub" id="res-cepea-s" style="font-weight:600;">—</div>
     </div>
-    <div class="kpi" style="border-left-color:#805ad5;">
-      <div class="label" id="res-fc-l">Forecast 4 semanas</div>
-      <div class="value" id="res-fc-v">—</div>
-      <div class="sub" id="res-fc-s" style="font-weight:600;">—</div>
-    </div>
     <div class="kpi green">
       <div class="label" id="res-cuota-l">Cuota Almar BR</div>
       <div class="value" id="res-cuota-v">—</div>
       <div class="sub" id="res-cuota-s">—</div>
     </div>
+    <div class="kpi" style="border-left-color:#d69e2e;">
+      <div class="label" id="r26-k3-l">Mayor dependencia</div>
+      <div class="value" id="r26-k3-v">—</div>
+      <div class="sub" id="r26-k3-s" style="font-weight:600;">—</div>
+    </div>
     <div class="kpi">
-      <div class="label">Conversión</div>
-      <div class="value">1.008 / 26 kg</div>
-      <div class="sub">cajas por carreta · kg/caja bruto</div>
+      <div class="label" id="r26-k4-l">Precio promedio del año</div>
+      <div class="value" id="r26-k4-v">—</div>
+      <div class="sub" id="r26-k4-s" style="font-weight:600;">—</div>
     </div>
   </div>
 
@@ -2238,17 +2122,12 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"fuente":"Hortifruti/Cepea - hfbrasil.org
   if (serieC.length >= 2) {
     const r26u = serieC[serieC.length - 1], r26pv = serieC[serieC.length - 2]; const dv = (r26u.precio - r26pv.precio) / r26pv.precio * 100;
     setK('res-cepea', 'Precio Cepea (semana ' + fF(r26u.fecha) + ')', 'R$ ' + f2(r26u.precio) + '/kg', fP(dv) + ' vs semana anterior' + (dv > 3 ? ' · subiendo' : (dv < -3 ? ' · bajando' : ' · estable')), dv > 3 ? '#c53030' : (dv < -3 ? '#2f855a' : '#4a5568'));
-    // forecast: promedio entre regiones BR de la prediccion a mas semanas (misma cuenta que la seccion Forecast)
-    const r26regs = (D.clima && D.clima.correlacion && D.clima.correlacion.regiones) ? D.clima.correlacion.regiones : [];
-    const r26N = r26regs.length ? Math.max.apply(null, r26regs.map(r => (r.forecast_4w || []).length)) : 0;
-    const r26preds = r26N ? r26regs.map(r => (r.forecast_4w || []).find(f => f.semanas_adelante === r26N)).filter(Boolean) : [];
-    const r26fc = r26preds.length ? { fecha: r26preds[0].fecha, precio_pred: r26preds.reduce((s, q) => s + q.precio_pred, 0) / r26preds.length } : null;
-    if (r26fc && !nulo(r26fc.precio_pred)) { const dfc = (r26fc.precio_pred - r26u.precio) / r26u.precio * 100; setK('res-fc', 'Forecast a 4 semanas (' + fF(r26fc.fecha) + ')', 'R$ ' + f2(r26fc.precio_pred) + '/kg', fP(dfc) + ' vs hoy · modelo clima + anclaje al precio actual', dfc > 5 ? '#c53030' : (dfc < -5 ? '#2f855a' : '#4a5568')); }
-    else setK('res-fc', 'Forecast a 4 semanas', '—', 'sin forecast en esta corrida', null);
+    // (27/09/2026: el KPI Forecast del resumen se saco junto con la seccion Forecast; el forecast sigue en el WhatsApp y en index_proyeccion)
   }
-  const mk = $('mbr-k2'), mkl = $('mbr-k2-l'), mks = $('mbr-k2-s');
-  if (mk && mk.textContent && mk.textContent.trim() !== '—' && mk.textContent.trim() !== '') setK('res-cuota', mkl ? mkl.textContent : 'Cuota Almar BR', mk.textContent, (mks ? mks.innerHTML : '') + ' · aduana, ver sección Mercado BR', null);
-  else setK('res-cuota', 'Cuota Almar BR', '—', 'ver la sección Mercado BR', null);
+  // [27/09/2026] la cuota sale de "Almar vs competencia" (cbr-k1, se llena antes que este bloque); el bloque Mercado BR (mbr-*) ya no existe
+  const ck = document.getElementById('cbr-k1'), ckl = document.getElementById('cbr-k1-l'), cks = document.getElementById('cbr-k1-s');
+  if (ck && ck.textContent && ck.textContent.trim() !== '—' && ck.textContent.trim() !== '') setK('res-cuota', ckl ? ckl.textContent : 'Cuota Almar BR', ck.textContent, (cks ? cks.innerHTML : '') + ' · aduana, ver Almar vs competencia', null);
+  else setK('res-cuota', 'Cuota Almar BR', '—', 'ver la sección Almar vs competencia', null);
 
   // comparativa histórica (tarjetas): Plan de Cargas, camiones descargados por año
   if (r26PB && r26PB.porAnio && r26PB.anios && r26PB.anios.length) {
