@@ -610,6 +610,21 @@ LOG DE CAMBIOS:
   28/09/2026 -> Simulador, orden de la pagina (Gonzalo: "no conviene que ese saldo este en el comienzo?"):
                ahora va KPIs, "Que cargar", 1. Saldo por semana de venta (con la venta editable), 2. Camiones
                por semana de carga + parametros, 3. Resumen. Solo cambio de orden en el HTML.
+  28/09/2026 -> PLAN DE COMPRAS SIMULADO EN EXCEL: plan_compras\Plan_Compras_Simulado.xlsx (+ generar_plan_xlsx.ps1
+               que la arma desde plan_compras.json y precios_cepea.json). Pedido de Gonzalo: "hables con la otra
+               ventana e intercambien ideas, busquen informacion y dejen una planilla de plan compras simulado
+               hecha a medida de mis necesidades y de una empresa multinacional". Trabajo a dos sesiones: la
+               otra investigo S&OP de multinacionales de fruta (Dole, Fyffes, RELEX, Tridge, Produce News) y
+               aporto lead times reales por origen (mediana/P90), proveedores 2024-2026, precios de aduana por
+               origen y el mercado exportador PY (Penta); esta armo 14 hojas con formulas Excel: Inicio,
+               Calendario S&OP, Parametros (minimo, lead times, cajas/camion, conteo, escenario, atraso
+               frontera, costos por origen, estacionalidad por semana del mes, stock de seguridad z*sigma*
+               raiz(LT+1), capacidad de maduracion), Demanda, Cargas (34 camiones cargados: Aloha, dictados,
+               supuestos), Proyeccion (mismo resultado que el simulador web: sab 03/10 21.918 cargar 1, sab
+               10/10 18.810 cargar 4), QueCargar, Semaforo, Escenarios, Capacidad, KPIs, Proveedores,
+               MercadoPY, Glosario. Precios de Gonzalo (28/09, via la otra sesion): Paraguay USD 7/caja,
+               Brasil promedio ponderado 4 sem de almar.semanas (R$ 36,87), Bolivia pendiente. Verificado en
+               Excel (COM): 0 errores de formula, valores calculados guardados.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

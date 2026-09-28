@@ -1,4 +1,4 @@
-PLAN DE COMPRAS (banana Brasil / Paraguay / Bolivia) - se trabaja POR FUERA del dashboard
+﻿PLAN DE COMPRAS (banana Brasil / Paraguay / Bolivia) - se trabaja POR FUERA del dashboard
 ==========================================================================================
 Decision de Gonzalo (20/09/2026): esto no va en las paginas index hasta que este listo. Por eso vive
 en esta carpeta, sin boton en la barra ni tarjeta en la portada. Desde el 24/09/2026 actualizar_precios.ps1
@@ -24,6 +24,18 @@ QUE HAY
                          notas               instrucciones
   plan_compras.json    datos que usa el simulador (lo genera el script)
   generar_datos.ps1    regenera plan_compras.json y lo inyecta en simulador.html
+  Plan_Compras_Simulado.xlsx  PLANILLA EXCEL con formulas (28/09/2026): Inicio, Calendario S&OP, Parametros,
+                       Demanda (venta por semana, factor por semana del mes, venta manual, venta real ERP),
+                       Cargas (un camion por fila; descarga, semana y costo por formula), Proyeccion (stock
+                       al sabado total y por origen, dias de cobertura, camiones a cargar y fecha limite),
+                       QueCargar, Semaforo (por origen: esta semana, la proxima y la siguiente + riesgos),
+                       Escenarios (venta +-10%, frontera P90, sin HF, camion rechazado, sin Bolivia),
+                       Capacidad (maduracion y camaras: completar), KPIs (con referencia multinacional),
+                       Proveedores (capacidad y comportamiento real), MercadoPY (exportadores Penta),
+                       Glosario con fuentes. Amarillo = se edita; blanco = formula. Se edita a mano; el
+                       pipeline NO la pisa. Para refrescar los datos: generar_plan_xlsx.ps1 (la regenera
+                       desde plan_compras.json; ojo, pisa lo editado a mano: guardar copia antes).
+  generar_plan_xlsx.ps1  arma Plan_Compras_Simulado.xlsx desde plan_compras.json y precios_cepea.json
 
 COMO SE ACTUALIZA (cada vez que cambie algo)
   1. Plan de cargas Brasil/Paraguay y Bolivia: en el servidor los baja solo el paso 3b de
