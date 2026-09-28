@@ -9,6 +9,10 @@ QUE HAY
                        (domingo a sabado) y por origen, venta semanal, dias de carga a descarga, minimo en
                        camara; stock al sabado de cada semana con estado, camiones sugeridos, grafico y
                        resumen de texto. Lo que se toca queda en el navegador ("Volver a lo cargado" lo limpia).
+                       Seccion "Que cargar" (28/09/2026): por sabado, cuantos camiones cargar ademas de lo
+                       dictado y de los supuestos, hasta que miercoles, y el stock por origen (BR/PY/BO) con
+                       sus dias de venta: el origen con menos de 7 dias es de donde conviene cargar. Esto
+                       vive aca, no en el WhatsApp (Gonzalo 28/09).
   plan_compras.xlsx    hojas:
                          cargas_programadas  lo que dicta Gonzalo cada semana (una fila por camion)
                          ventas_plan         cajas por semana y por origen (hoy: promedio del ERP sem 38)

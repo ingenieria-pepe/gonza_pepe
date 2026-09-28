@@ -59,6 +59,8 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
 
 <div class="kpis" id="kpis"></div>
 
+<div class="card" id="queCargar"></div>
+
 <div class="card">
   <h2 style="margin-top:0">1. Camiones por semana de carga (domingo a sábado)</h2>
   <p class="mini">Las semanas con <span class="badge dato">dato</span> traen lo del Plan de Cargas o lo que dictó Gonzalo; se pueden cambiar igual. Lo que cambies queda <span class="badge sim">simulado</span> y guardado en este navegador.</p>
@@ -154,9 +156,9 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
       var lagC = (D.lags[c.origen] && D.lags[c.origen].descarga !== undefined) ? +D.lags[c.origen].descarga : lag;
       var desc = c.descarga ? d(c.descarga) : add(d(c.carga), lagC);
       if (desc <= fCon) continue;
-      out.push({ desc: desc, cajas: c.cajas, quien: (BAND[c.origen] || '') + c.productor, sim: false });
+      out.push({ desc: desc, cajas: c.cajas, quien: (BAND[c.origen] || '') + c.productor, sim: false, origen: c.origen });
     }
-    for (var j = lista.length; j < n; j++) { var descS = add(d(k), 2 + lag); if (descS <= fCon) continue; out.push({ desc: descS, cajas: cajas, quien: 'simulado', sim: true }); }   // carga tipica: martes -> entra esa misma semana
+    for (var j = lista.length; j < n; j++) { var descS = add(d(k), 2 + lag); if (descS <= fCon) continue; out.push({ desc: descS, cajas: cajas, quien: 'simulado', sim: true, origen: null }); }   // carga tipica: martes -> entra esa misma semana
     return out;
   }
   function proyectar(o) {
@@ -164,19 +166,52 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
     // semanas de venta: desde la semana del conteo (venta prorrateada por los dias que quedan) hasta 9 semanas despues de hoy
     var fCon = d(st.conteo.fecha);
     var ini = lunes(fCon), fin = lunes(add(HOY, HORIZ * 7)), filas = [], saldo = +st.conteo[o] || 0;
+    // [28/09/2026] stock por ORIGEN dentro del grupo (Gonzalo: "lo ideal seria que vos me informes que cargar"):
+    // el total dice cuantos camiones; el desglose dice de donde conviene (el origen que queda con menos dias de venta).
+    var sub = subOrig(o), saldoO = {}; sub.forEach(function (x) { saldoO[x] = conteoOrigen(o, x); });
     for (var w = ini; w <= fin; w = add(w, 7)) {
       var kw = iso(w), llega = todos.filter(function (c) { return iso(lunes(c.desc)) === kw; });
       var cajas = llega.reduce(function (s, c) { return s + c.cajas; }, 0);
-      var venta = ventaSemana(o, kw);
-      if (kw === iso(ini)) { var diasRest = Math.max(0, Math.min(6, Math.round((add(w, 5) - fCon) / 86400000))); venta = Math.round(venta * diasRest / 6); }
+      var venta = ventaSemana(o, kw), frac = 1;
+      if (kw === iso(ini)) { var diasRest = Math.max(0, Math.min(6, Math.round((add(w, 5) - fCon) / 86400000))); frac = diasRest / 6; venta = Math.round(venta * frac); }
       saldo += cajas - venta;
+      var porOrigen = {};
+      sub.forEach(function (x) {
+        var cx = llega.filter(function (c) { return c.origen === x; }).reduce(function (s, c) { return s + c.cajas; }, 0);
+        var vx = ventaOrigen(o, x, kw);
+        saldoO[x] += cx - Math.round(vx * frac);
+        porOrigen[x] = { saldo: saldoO[x], cajas: cx, venta: vx, dias: vx ? saldoO[x] / (vx / 6) : null };
+      });
       // para que un camion entre en esta semana hay que cargarlo a mas tardar el miercoles (llega sabado); vie-sab de la semana anterior entra lunes-martes
       var limite = add(w, Math.max(0, 5 - (+st.lag[o] || 0)));
-      filas.push({ semana: kw, llega: llega, camiones: llega.length, cajas: cajas, venta: venta, saldo: saldo, limite: iso(limite), futura: limite >= HOY, pasada: add(w, 6) < HOY, hoy: (w <= HOY && add(w, 6) >= HOY) });
+      filas.push({ semana: kw, llega: llega, camiones: llega.length, cajas: cajas, venta: venta, saldo: saldo, porOrigen: porOrigen, limite: iso(limite), futura: limite >= HOY, pasada: add(w, 6) < HOY, hoy: (w <= HOY && add(w, 6) >= HOY) });
     }
     return filas;
   }
   function ventaSemana(o, kw) { var fija = ventaFija(o); return fija !== null ? fija : ventaPlan(o, kw); }
+  // ---- por origen dentro del grupo
+  function subOrig(o) { return (GRUPOS[o] && GRUPOS[o].length) ? GRUPOS[o] : [o]; }
+  function filaPlan(kw) {   // fila de ventas_plan de esa semana; si no hay, la ultima anterior; si no, la ultima que haya (PLANV viene ordenado)
+    var fila = null;
+    for (var i = 0; i < PLANV.length; i++) { if (PLANV[i].semana_lunes === kw) return PLANV[i]; if (PLANV[i].semana_lunes < kw) fila = PLANV[i]; }
+    return fila || PLANV[PLANV.length - 1] || null;
+  }
+  function ventaOrigen(o, x, kw) {   // venta del origen x en la semana kw; si la venta del grupo es fija, se reparte con el mix del plan
+    var fila = filaPlan(kw), vx = fila ? (+fila[x] || 0) : 0;
+    var fija = ventaFija(o); if (fija === null) return vx;
+    var tot = 0; subOrig(o).forEach(function (y) { tot += fila ? (+fila[y] || 0) : 0; });
+    return tot ? Math.round(fija * vx / tot) : Math.round(fija / subOrig(o).length);
+  }
+  function conteoOrigen(o, x) {   // conteo del origen x; si se toco el conteo del grupo, se escala proporcional
+    var tot = 0; subOrig(o).forEach(function (y) { tot += +C0[y] || 0; });
+    var cx = +C0[x] || 0, cg = +st.conteo[o] || 0;
+    return (tot && cg !== tot) ? Math.round(cx * cg / tot) : cx;
+  }
+  var NOMO = { BR: 'Brasil', PY: 'Paraguay', BO: 'Bolivia' };
+  function diasCls(p) { if (p.saldo < 0 || (p.dias !== null && p.dias < 2)) return 'bad'; if (p.dias !== null && p.dias < 7) return 'warn'; return 'ok'; }
+  function porOrigenHtml(f) { return Object.keys(f.porOrigen).map(function (x) { var p = f.porOrigen[x]; return '<span class="' + x + '">' + x + '</span> <span class="' + diasCls(p) + '">' + fmt(p.saldo) + (p.dias !== null ? ' (' + p.dias.toFixed(1).replace('.', ',') + ' d)' : '') + '</span>'; }).join(' · '); }
+  function porOrigenTxt(f) { return Object.keys(f.porOrigen).map(function (x) { var p = f.porOrigen[x]; return x + ' ' + fmt(p.saldo) + (p.dias !== null ? ' (' + p.dias.toFixed(1).replace('.', ',') + ' d)' : ''); }).join(' · '); }
+  function justos(f) { return Object.keys(f.porOrigen).filter(function (x) { var p = f.porOrigen[x]; return p.dias !== null && p.dias < 7; }).map(function (x) { var p = f.porOrigen[x]; return (NOMO[x] || x) + ' ' + p.dias.toFixed(1).replace('.', ',') + ' días'; }); }
   function diasStock(f, o) { var dia = ventaSemana(o, f.semana) / 6; return dia ? f.saldo / dia : null; }
   function estado(f, o) { var min = minimo(o, f.semana); if (f.saldo < 0) return ['FALTA', 'bad']; if (f.saldo < min) return ['bajo mínimo (' + Math.round(diasStock(f, o)) + ' días)', 'warn']; return ['ok (' + Math.round(diasStock(f, o)) + ' días)', 'ok']; }
 
@@ -238,18 +273,35 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
     // salidas por origen
     var host = document.getElementById('salidas'); host.innerHTML = '';
     var kp = document.getElementById('kpis'); kp.innerHTML = '';
+    var qc = document.getElementById('queCargar'); qc.innerHTML = '<h2 style="margin-top:0">Qué cargar</h2><p class="mini">Por cada sábado: stock proyectado, camiones a cargar además de lo dictado y de los supuestos, hasta qué día (sábado menos los días de viaje), y qué origen queda con menos de 7 días de venta. Los camiones que faltan se arrastran a la semana siguiente.</p>';
     var resumen = [];
     ORIG.forEach(function (o) {
       var filas = proyectar(o);
+      // [28/09/2026] "Que cargar": misma cuenta que sugerir(), escrita semana por semana
+      var ul = el('ul'); ul.style.margin = '6px 0 0 18px'; var extraQ = 0, antesQ = 0;
+      filas.filter(function (f) { return !f.pasada; }).forEach(function (f) {
+        var min = minimo(o, f.semana), saldoSim = f.saldo + extraQ, falta = 0;
+        if (saldoSim < min && f.futura) { falta = Math.ceil((min - saldoSim) / st.cajas[o]); extraQ += falta * st.cajas[o]; }
+        var sab = ddmm(iso(add(d(f.semana), 5))), nSup = f.llega.filter(function (c) { return c.quien.indexOf('supuesto') >= 0; }).length;
+        var t = '<strong>Sáb ' + sab + ':</strong> ' + fmt(saldoSim) + ' cajas' + (antesQ ? ' (con ' + (antesQ === 1 ? 'el 1' : 'los ' + antesQ) + ' de arriba)' : '') + ' · descargan ' + f.camiones + (nSup ? ' (' + nSup + ' supuestos PY)' : '') + ' · vende ' + fmt(f.venta);
+        if (falta) t += ' → <strong class="bad">cargar ' + falta + ' más</strong> hasta el mié ' + ddmm(f.limite) + ' para cerrar en ' + fmt(min);
+        else if (!f.futura && saldoSim < min) t += ' → <strong class="bad">bajo el mínimo</strong> (' + fmt(min) + ') y ya pasó el límite de carga de esta semana';
+        else t += ' → <span class="ok">ok</span>, cierra sobre ' + fmt(min);
+        var j = justos(f); if (j.length) t += ' · <span class="warn">justo: ' + j.join(', ') + '</span>';
+        t += '<br><span class="mini">por origen: ' + porOrigenHtml(f) + '</span>';
+        antesQ += falta; ul.appendChild(el('li', null, t));
+      });
+      if (ORIG.length > 1) qc.appendChild(el('h3', o, NOM[o]));
+      qc.appendChild(ul);
       var card = el('div', 'card'); card.appendChild(el('h2', o, NOM[o] + ' — venta ' + (ventaFija(o) !== null ? 'fija ' + fmt(ventaFija(o)) + ' cajas/semana' : 'según plan por semana') + ' · mínimo ' + minTxt(o)));
-      var w = el('div', 'tblwrap'); var tt = el('table'); tt.innerHTML = '<thead><tr><th>Semana</th><th class="num">Se vende</th><th class="num">Descargan</th><th class="num">Cajas</th><th class="num">Stock al sábado</th><th>Estado</th><th>Cargar hasta</th><th>Quién descarga</th></tr></thead>';
+      var w = el('div', 'tblwrap'); var tt = el('table'); tt.innerHTML = '<thead><tr><th>Semana</th><th class="num">Se vende</th><th class="num">Descargan</th><th class="num">Cajas</th><th class="num">Stock al sábado</th><th>Por origen (días de venta)</th><th>Estado</th><th>Cargar hasta</th><th>Quién descarga</th></tr></thead>';
       var tbb = el('tbody'); var primeraFalta = null, primeraJusta = null;
       filas.forEach(function (f) {
         var e = estado(f, o); if (!primeraFalta && e[1] === 'bad' && !f.pasada) primeraFalta = f; if (!primeraJusta && e[1] === 'warn' && !f.pasada) primeraJusta = f;
         var quien = {}; f.llega.forEach(function (c) { quien[c.quien] = (quien[c.quien] || 0) + 1; });
         var qtxt = Object.keys(quien).map(function (q) { return q + (quien[q] > 1 ? ' ' + quien[q] : ''); }).join(', ');
         var r = el('tr', f.pasada ? 'past' : (f.hoy ? 'hoy' : ''));
-        r.innerHTML = '<td>' + ddmm(f.semana) + '–' + ddmm(iso(add(d(f.semana), 5))) + '</td><td class="num">' + fmt(f.venta) + '</td><td class="num">' + f.camiones + '</td><td class="num">' + fmt(f.cajas) + '</td><td class="num ' + e[1] + '">' + fmt(f.saldo) + '</td><td class="' + e[1] + '">' + e[0] + '</td><td>' + (f.futura ? 'mié ' + ddmm(f.limite) : '<span class="mini">ya pasó</span>') + '</td><td class="mini">' + qtxt + '</td>';
+        r.innerHTML = '<td>' + ddmm(f.semana) + '–' + ddmm(iso(add(d(f.semana), 5))) + '</td><td class="num">' + fmt(f.venta) + '</td><td class="num">' + f.camiones + '</td><td class="num">' + fmt(f.cajas) + '</td><td class="num ' + e[1] + '">' + fmt(f.saldo) + '</td><td class="mini" style="white-space:nowrap">' + porOrigenHtml(f) + '</td><td class="' + e[1] + '">' + e[0] + '</td><td>' + (f.futura ? 'mié ' + ddmm(f.limite) : '<span class="mini">ya pasó</span>') + '</td><td class="mini">' + qtxt + '</td>';
         tbb.appendChild(r);
       });
       tt.appendChild(tbb); w.appendChild(tt); card.appendChild(w);
@@ -269,7 +321,7 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
       kp.appendChild(tile);
       // resumen
       resumen.push(NOM[o].toUpperCase() + (ventaFija(o) !== null ? ' (venta fija ' + fmt(ventaFija(o)) + '/sem):' : ' (venta segun plan):'));
-      filas.filter(function (f) { return !f.pasada; }).forEach(function (f) { var e = estado(f, o); resumen.push('  sem ' + ddmm(f.semana) + ': descargan ' + f.camiones + ' (' + fmt(f.cajas) + ') · vende ' + fmt(f.venta) + ' · stock al sabado ' + fmt(f.saldo) + ' · ' + e[0] + (f.futura ? ' · cargar hasta mie ' + ddmm(f.limite) : '')); });
+      filas.filter(function (f) { return !f.pasada; }).forEach(function (f) { var e = estado(f, o); resumen.push('  sem ' + ddmm(f.semana) + ': descargan ' + f.camiones + ' (' + fmt(f.cajas) + ') · vende ' + fmt(f.venta) + ' · stock al sabado ' + fmt(f.saldo) + ' · ' + e[0] + (f.futura ? ' · cargar hasta mie ' + ddmm(f.limite) : '') + ' · por origen: ' + porOrigenTxt(f) + (justos(f).length ? ' · justo: ' + justos(f).join(', ') : '')); });
       if (totalSug) resumen.push('  cargar ademas: ' + semSug.map(function (k) { return s[k] + ' camion(es) sem. del ' + ddmm(k); }).join(', '));
       resumen.push('');
     });

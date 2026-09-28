@@ -588,6 +588,17 @@ LOG DE CAMBIOS:
                Hoy: sab 03/10 cargar 1 mas hasta el mie 30/09; sab 10/10 cargar 4 mas hasta el mie 07/10;
                Bolivia se queda sin stock la semana del 05/10 si no carga un camion antes del sab 04/10.
                Sin envio de WhatsApp (revisado con la replica de Get-PlanComprasLineas).
+  28/09/2026 -> MARCHA ATRAS parcial del cambio anterior (Gonzalo: "esa parte la quiero plasmada en plan
+               compras, no en el wasap"): el WhatsApp vuelve al texto aprobado ("falta 1 camion para
+               22.500"; actualizar_precios.ps1 restaurado al commit c2929ba). Lo de "que cargar" pasa al
+               simulador plan_compras\simulador.html: seccion nueva "Que cargar" arriba (por sabado: stock,
+               camiones a cargar ademas de lo dictado/supuesto y hasta que miercoles, origenes con menos de
+               7 dias de venta, y el stock por origen BR/PY/BO con sus dias), columna "Por origen" en la
+               tabla de saldo y la misma info en el resumen para copiar. El stock por origen se lleva con la
+               venta por origen de ventas_plan (si la venta del grupo se fija a mano, se reparte con el mix
+               del plan) y el conteo por origen (escalado si se toca el conteo total). Hoy: sab 03/10 cargar
+               1 mas (Brasil 6,2 dias); sab 10/10 cargar 4 mas (Brasil 5,4 dias, Bolivia 0,5: sin camion BO
+               antes del sab 04/10 Bolivia se queda sin stock). Render verificado con Edge headless.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
