@@ -4139,11 +4139,15 @@ function Get-PlanComprasLineas {
             $lag = 3; if ($PCJ.lags.($c.origen) -and $null -ne $PCJ.lags.($c.origen).descarga) { $lag = [int]$PCJ.lags.($c.origen).descarga }
             $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
             if ($desc -le $fCon) { continue }
-            $cam += [PSCustomObject]@{ desc = $desc; cajas = [int]$c.cajas; supuesto = ([string]$c.fuente -eq 'supuesto') }
+            $cam += [PSCustomObject]@{ desc = $desc; cajas = [int]$c.cajas; origen = [string]$c.origen; supuesto = ([string]$c.fuente -eq 'supuesto') }
         }
         $minCajas = 0; if ($PCJ.minimos -and $PCJ.minimos.$g) { $minCajas = [int]$PCJ.minimos.$g }
         $cxc = 1000; if ($PCJ.cajas_camion.$g) { $cxc = [int]$PCJ.cajas_camion.$g }
+        $lagG = 3; if ($PCJ.lags.$g -and $null -ne $PCJ.lags.$g.descarga) { $lagG = [int]$PCJ.lags.$g.descarga }
         $saldo = [int]$PCJ.conteo.$g
+        # saldo por origen, para decir cual queda justo (Gonzalo 28/09/2026: "lo ideal seria que vos me informes que cargar")
+        $nomO = @{ BR = 'Brasil'; PY = 'Paraguay'; BO = 'Bolivia' }
+        $saldoO = @{}; foreach ($o in $origs) { $saldoO[$o] = [int]$PCJ.conteo.$o }
         $wIni = & $lunesDe $fCon; $wHoy = & $lunesDe $hoyD; $wFin = $wHoy.AddDays(7)
         $extra = 0; $pedidosAntes = 0
         for ($w = $wIni; $w -le $wFin; $w = $w.AddDays(7)) {
@@ -4155,9 +4159,16 @@ function Get-PlanComprasLineas {
             foreach ($p in $plan) { if ($p.semana_lunes -eq $k) { $fila = $p; break }; if ($p.semana_lunes -lt $k) { $fila = $p } }
             if (-not $fila -and $plan.Count) { $fila = $plan[-1] }
             $vp = 0; if ($fila) { foreach ($o in $origs) { $vp += [int]$fila.$o } }
-            $v = $vp
-            if ($w -eq $wIni) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); $v = [math]::Round($v * $dias / 6) }
+            $v = $vp; $fracV = 1.0
+            if ($w -eq $wIni) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); $fracV = $dias / 6; $v = [math]::Round($v * $fracV) }
             $saldo += $cajas - $v
+            $diasO = @{}
+            foreach ($o in $origs) {
+                $cjO = 0; foreach ($x in $ll) { if ($x.origen -eq $o) { $cjO += $x.cajas } }
+                $vO = 0; if ($fila) { $vO = [int]$fila.$o }
+                $saldoO[$o] += $cjO - [math]::Round($vO * $fracV)
+                if ($vO -gt 0) { $diasO[$o] = [math]::Round($saldoO[$o] / ($vO / 6.0), 1) }
+            }
             if ($w -lt $wHoy) { continue }
             $min = if ($minCajas -gt 0) { $minCajas } else { [math]::Round($vp / 6 * 7) }
             $saldoSim = $saldo + $extra
@@ -4165,9 +4176,16 @@ function Get-PlanComprasLineas {
             $sab = $w.AddDays(5)
             $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" }) +
                    " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos PY)" } else { "" }) + " · vende $($v.ToString('N0'))"
-            if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
-            elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
-            else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
+            # [28/09/2026] "faltan N" -> "cargar N mas hasta el <dia limite>": la fecha limite es el sabado menos el lag
+            # (BR/PY 3 dias = miercoles), porque lo que carga despues descarga la semana siguiente.
+            $limite = $sab.AddDays(-$lagG)
+            $diaLim = @('dom','lun','mar','mié','jue','vie','sáb')[[int]$limite.DayOfWeek]
+            if ($faltan -eq 1) { $txt += " → *cargar 1 más* hasta el $diaLim $($limite.ToString('dd/MM')) para cerrar en $($min.ToString('N0'))" }
+            elseif ($faltan -gt 1) { $txt += " → *cargar $faltan más* hasta el $diaLim $($limite.ToString('dd/MM')) para cerrar en $($min.ToString('N0'))" }
+            else { $txt += " → ok, cierra sobre $($min.ToString('N0'))" }
+            # origenes que quedan con menos de 7 dias de venta: ahi conviene que vayan los camiones
+            $justos = @($origs | Where-Object { $diasO.ContainsKey($_) -and $diasO[$_] -lt 7 } | ForEach-Object { "$($nomO[$_]) $($diasO[$_].ToString('0.#')) días" })
+            if ($justos.Count -gt 0) { $txt += " · justo: " + ($justos -join ', ') }
             $pedidosAntes += $faltan
             $lineas += $txt
         }

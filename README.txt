@@ -579,6 +579,15 @@ LOG DE CAMBIOS:
                como viene pagando Almar contra Cepea+servicios (ultimas 4 sem, el mismo spread del
                score). El score sigue vivo para las alertas Oportunidad/STOP y en index_brasil.
                Revisado en dry y prueba real enviada a pedido de Gonzalo ("a ver como quedo el definitivo").
+  28/09/2026 -> Resumen WhatsApp, bloque Plan de compras: "faltan N camiones" pasa a "cargar N mas hasta el
+               mie dd/MM para cerrar en 22.500" (Gonzalo: "lo ideal seria que vos me informes que cargar";
+               a comienzo de semana carga 3/4 de Brasil pero no se asumen: el numero que sale ES lo que hay
+               que cargar ademas de lo dictado y de los 5 PY supuestos). La fecha limite es el sabado menos
+               el lag (3 dias = miercoles). Al final de cada renglon, los origenes que quedan con menos de
+               7 dias de venta ("justo: Brasil 5,4 dias, Bolivia 0,5 dias"), para saber de donde cargar.
+               Hoy: sab 03/10 cargar 1 mas hasta el mie 30/09; sab 10/10 cargar 4 mas hasta el mie 07/10;
+               Bolivia se queda sin stock la semana del 05/10 si no carga un camion antes del sab 04/10.
+               Sin envio de WhatsApp (revisado con la replica de Get-PlanComprasLineas).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
