@@ -35,6 +35,8 @@ QUE HAY
                        Glosario con fuentes. Amarillo = se edita; blanco = formula. Se edita a mano; el
                        pipeline NO la pisa. Para refrescar los datos: generar_plan_xlsx.ps1 (la regenera
                        desde plan_compras.json; ojo, pisa lo editado a mano: guardar copia antes).
+                       Revisada por la otra sesion el 28/09 (bug de nombre "Hoy" -> FechaHoy, proveedores,
+                       supuestos BR con interruptor SupBR, OTIF y faltante por proveedor).
   generar_plan_xlsx.ps1  arma Plan_Compras_Simulado.xlsx desde plan_compras.json y precios_cepea.json
 
 COMO SE ACTUALIZA (cada vez que cambie algo)

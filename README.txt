@@ -625,6 +625,19 @@ LOG DE CAMBIOS:
                MercadoPY, Glosario. Precios de Gonzalo (28/09, via la otra sesion): Paraguay USD 7/caja,
                Brasil promedio ponderado 4 sem de almar.semanas (R$ 36,87), Bolivia pendiente. Verificado en
                Excel (COM): 0 errores de formula, valores calculados guardados.
+  28/09/2026 -> Plan_Compras_Simulado.xlsx, correcciones de la revision de la otra sesion: (1) BUG: el nombre
+               definido "Hoy" lo guardaba EPPlus como referencia de columna (HOY1, HOY2...) en 389 formulas:
+               Excel no marcaba error pero comparaba contra 0 (pedia cargar con el limite pasado, pipeline
+               en 0, camiones por proveedor en 0). Renombrado a FechaHoy; el chequeo COM ahora busca
+               HOY<n> en todas las formulas (0). (2) Proveedores: capacidad = promedio de las 2 mejores
+               semanas (el maximo queda como "pico"), Corupa/Corupá unificados, faltante % por productor.
+               (3) Supuestos BR: 8 camiones los viernes mas alla de lo dictado (Estado "Supuesto BR") con
+               interruptor SupBR en Parametros (y SupPY para los 5 de Paraguay); con SupBR=0 la planilla
+               pide toda la necesidad como el WhatsApp. (4) KPIs nuevos: faltante promedio proveedores y
+               OTIF (columna en Cargas). (5) Bloque de precios unico (fila 29 remite a la 32). (6) Lead time
+               PY: se deja 3 (regla de Gonzalo, coincide con simulador y WhatsApp) con nota de que la
+               mediana real es 4. (7) Vida util en verde 16 dias marcada como SUPUESTO con referencia UC
+               Davis. (8) Escenario sin HF = -3 camiones PY. Notas de proxy en Capacidad y de mix en Demanda.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
