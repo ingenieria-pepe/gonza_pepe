@@ -599,6 +599,14 @@ LOG DE CAMBIOS:
                del plan) y el conteo por origen (escalado si se toca el conteo total). Hoy: sab 03/10 cargar
                1 mas (Brasil 6,2 dias); sab 10/10 cargar 4 mas (Brasil 5,4 dias, Bolivia 0,5: sin camion BO
                antes del sab 04/10 Bolivia se queda sin stock). Render verificado con Edge headless.
+  28/09/2026 -> Simulador: venta SEMANA POR SEMANA (Gonzalo: "hacerlo dinamico para que yo vaya agregando
+               semanalmente las ventas conforme a si es comienzo de mes o final de mes"). En la tabla de
+               saldo, la columna "Se vende" es un campo por semana (vacio = plan de ventas_plan; la semana
+               del conteo no se edita). Lo escrito pisa al plan y a la venta fija, queda en localStorage
+               (plan_compras_sim_v5.ventaSem), se marca "a mano", cuenta en el estado ("N semana(s) con
+               venta escrita a mano") y en el resumen de texto; el reparto por origen usa el mix del plan.
+               "Volver a lo cargado" lo borra. Probado con Edge headless: 05/10 = 14.000 -> sab 10/10 cierra
+               en 21.810 y pide 1 camion en vez de 4.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

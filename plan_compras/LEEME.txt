@@ -13,6 +13,9 @@ QUE HAY
                        dictado y de los supuestos, hasta que miercoles, y el stock por origen (BR/PY/BO) con
                        sus dias de venta: el origen con menos de 7 dias es de donde conviene cargar. Esto
                        vive aca, no en el WhatsApp (Gonzalo 28/09).
+                       Venta semana por semana (28/09/2026): en la tabla de saldo la columna "Se vende" es un
+                       campo por semana; lo que se escribe pisa al plan de la hoja ventas_plan (vacio = plan)
+                       y queda guardado en el navegador. Para comienzo/fin de mes con ventas distintas.
   plan_compras.xlsx    hojas:
                          cargas_programadas  lo que dicta Gonzalo cada semana (una fila por camion)
                          ventas_plan         cajas por semana y por origen (hoy: promedio del ERP sem 38)
