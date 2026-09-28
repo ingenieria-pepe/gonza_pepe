@@ -93,7 +93,7 @@ $ws.Cells[11, 1].Value = 'Cajas por camion para los que FALTAN';        $ws.Cell
 $ws.Cells[11, 3].Value = 'Los camiones reales llevan sus cajas; este promedio se usa para calcular cuantos faltan.'
 $ws.Cells[13, 1].Value = 'POR ORIGEN'; $ws.Cells[13, 2].Value = 'BR'; $ws.Cells[13, 3].Value = 'PY'; $ws.Cells[13, 4].Value = 'BO'; $ws.Cells[13, 5].Value = 'Nota'; Hdr $ws 13 1 5
 $ws.Cells[14, 1].Value = 'Dias de carga a descarga (lead time)';        $ws.Cells[14, 2].Value = [int]$PCJ.lags.BR.descarga; $ws.Cells[14, 3].Value = [int]$PCJ.lags.PY.descarga; $ws.Cells[14, 4].Value = [int]$PCJ.lags.BO.descarga; Inp $ws.Cells[14, 2, 14, 4]
-$ws.Cells[14, 5].Value = 'Regla de Gonzalo: lo que carga lunes a miercoles entra en la semana; viernes y sabado entra lunes o martes. Bolivia 6 dias. OJO Paraguay: 3 es optimista, la mediana real es 4 (fila 44): la mitad de los camiones PY cargados un martes descargan domingo/lunes. Se deja 3 para que coincida con el simulador web y el WhatsApp; cambiar a 4 si Gonzalo quiere planificar con el real.'
+$ws.Cells[14, 5].Value = 'Brasil 3: regla de Gonzalo (lo que carga lunes a miercoles entra en la semana; viernes y sabado entra lunes o martes). Paraguay 4: mediana observada en Aloha, decidido por Gonzalo el 28/09/2026 ("paraguay vamos a 4 dias"): un camion PY cargado el martes descarga el sabado y entra en la semana; el del miercoles ya no. Bolivia 6. Los tres valores vienen de plan_compras.json y son los mismos del simulador web y del WhatsApp.'
 Nombre 'LagBR' $ws.Cells[14, 2]; Nombre 'LagPY' $ws.Cells[14, 3]; Nombre 'LagBO' $ws.Cells[14, 4]; Nombre 'Lags' $ws.Cells[14, 2, 14, 4]; Nombre 'Origenes' $ws.Cells[13, 2, 13, 4]
 $ws.Cells[15, 1].Value = 'Cajas por camion (tipico)';                   $ws.Cells[15, 2].Value = [int]$PCJ.cajas_camion.BR; $ws.Cells[15, 3].Value = [int]$PCJ.cajas_camion.PY; $ws.Cells[15, 4].Value = [int]$PCJ.cajas_camion.BO; Inp $ws.Cells[15, 2, 15, 4]; Fmt $ws.Cells[15, 2, 15, 4] '#,##0'
 $ws.Cells[15, 5].Value = 'Se usa cuando una fila de Cargas no tiene cajas. 936 los chicos de AXT.'
@@ -262,7 +262,7 @@ $nCam = $cam.Count
 # =====================================================================
 $ws = $pkg.Workbook.Worksheets.Add('Proyeccion')
 Titulo $ws 'Proyeccion de stock al cierre de cada sabado' 'Stock final = stock inicial + cajas que descargan en la semana - venta. Los camiones a cargar se arrastran: "Stock proyectado" ya incluye los pedidos de las semanas anteriores. La primera semana (la del conteo) va prorrateada por los dias que quedan.'
-$hp = @('Semana (lunes)', 'Sabado', 'Stock inicial', 'Camiones que descargan', 'Cajas que descargan', 'Venta', 'Stock final (sin pedidos)', 'Pedidos anteriores (cajas)', 'STOCK PROYECTADO', 'Fecha limite de carga', 'CAMIONES A CARGAR', 'Stock con pedido', 'Dias de cobertura', 'Estado', 'BR stock', 'BR dias', 'PY stock', 'PY dias', 'BO stock', 'BO dias', 'Origen mas justo')
+$hp = @('Semana (lunes)', 'Sabado', 'Stock inicial', 'Camiones que descargan', 'Cajas que descargan', 'Venta', 'Stock final (sin pedidos)', 'Pedidos anteriores (cajas)', 'STOCK PROYECTADO', 'Fecha limite de carga (el lead time mas largo BR/PY)', 'CAMIONES A CARGAR', 'Stock con pedido', 'Dias de cobertura', 'Estado', 'BR stock', 'BR dias', 'PY stock', 'PY dias', 'BO stock', 'BO dias', 'Origen mas justo')
 for ($c = 1; $c -le $hp.Count; $c++) { $ws.Cells[5, $c].Value = $hp[$c - 1] }; Hdr $ws 5 1 $hp.Count
 for ($i = 0; $i -lt $NW; $i++) {
     $r = $W0 + $i; $first = ($i -eq 0); $rn = $r + 1; if ($i -eq $NW - 1) { $rn = $r }
@@ -276,7 +276,8 @@ for ($i = 0; $i -lt $NW; $i++) {
     $ws.Cells[$r, 7].Formula = "C$r+E$r-F$r"
     $ws.Cells[$r, 8].Formula = $(if ($first) { '0' } else { "SUM(`$K`$$W0`:K$($r - 1))*CajasProm" })
     $ws.Cells[$r, 9].Formula = "G$r+H$r"; $ws.Cells[$r, 9].Style.Font.Bold = $true
-    $ws.Cells[$r, 10].Formula = "B$r-LagBR-AtrasoDias"; Fmt $ws.Cells[$r, 10] 'ddd dd/mm'
+    # limite general = sabado menos el lead time mas largo de BR/PY (desde el 28/09 no coinciden: BR 3, PY 4); QueCargar muestra el limite por origen
+    $ws.Cells[$r, 10].Formula = "B$r-MAX(LagBR,LagPY)-AtrasoDias"; Fmt $ws.Cells[$r, 10] 'ddd dd/mm'
     $ws.Cells[$r, 11].Formula = "IF(AND(I$r<MinimoSabado,J$r>=FechaHoy),ROUNDUP((MinimoSabado-I$r)/CajasProm,0),0)"; $ws.Cells[$r, 11].Style.Font.Bold = $true
     $ws.Cells[$r, 12].Formula = "I$r+K$r*CajasProm"
     $ws.Cells[$r, 13].Formula = "IF(Demanda!H$rn=0,`"`",L$r/(Demanda!H$rn/DiasVenta))"; Fmt $ws.Cells[$r, 13] '0.0'
@@ -316,19 +317,19 @@ Nombre 'PrBR' $ws.Cells[$W0, 15, $WL, 15]; Nombre 'PrBRd' $ws.Cells[$W0, 16, $WL
 # =====================================================================
 $ws = $pkg.Workbook.Worksheets.Add('QueCargar')
 Titulo $ws 'Que cargar' 'Solo las semanas cuyo limite de carga todavia no paso. Camiones ADEMAS de lo dictado y de los supuestos. El origen sugerido es el que queda con menos dias de venta al cierre (Proyeccion).'
-$hq = @('Sabado de cierre', 'Stock proyectado (con pedidos anteriores)', 'Camiones a cargar', 'Cargar hasta', 'Origen sugerido', 'Pedido cierra (PY mie / BR jue)', 'Cobertura al cierre (dias)', 'Estado', 'Renglon para WhatsApp')
+$hq = @('Sabado de cierre', 'Stock proyectado (con pedidos anteriores)', 'Camiones a cargar', 'Cargar hasta (por origen)', 'Origen sugerido', 'Pedido cierra (PY mie / BR jue)', 'Cobertura al cierre (dias)', 'Estado', 'Renglon para WhatsApp')
 for ($c = 1; $c -le $hq.Count; $c++) { $ws.Cells[5, $c].Value = $hq[$c - 1] }; Hdr $ws 5 1 $hq.Count
 for ($i = 0; $i -lt $NW; $i++) {
     $r = $W0 + $i
     $ws.Cells[$r, 1].Formula = "IF(Proyeccion!J$r<FechaHoy,`"`",Proyeccion!B$r)"; Fmt $ws.Cells[$r, 1] 'ddd dd/mm/yyyy'
     $ws.Cells[$r, 2].Formula = "IF(A$r=`"`",`"`",Proyeccion!I$r)"; Fmt $ws.Cells[$r, 2] '#,##0'
     $ws.Cells[$r, 3].Formula = "IF(A$r=`"`",`"`",Proyeccion!K$r)"; $ws.Cells[$r, 3].Style.Font.Bold = $true
-    $ws.Cells[$r, 4].Formula = "IF(A$r=`"`",`"`",Proyeccion!J$r)"; Fmt $ws.Cells[$r, 4] 'ddd dd/mm'
+    $ws.Cells[$r, 4].Formula = "IF(A$r=`"`",`"`",`"BR `"&TEXT(Proyeccion!B$r-LagBR-AtrasoDias,`"ddd dd/mm`")&`" · PY `"&TEXT(Proyeccion!B$r-LagPY-AtrasoDias,`"ddd dd/mm`")&`" · BO `"&TEXT(Proyeccion!B$r-LagBO-AtrasoDias,`"ddd dd/mm`"))"
     $ws.Cells[$r, 5].Formula = "IF(A$r=`"`",`"`",IF(C$r>0,Proyeccion!U$r,`"-`"))"
     $ws.Cells[$r, 6].Formula = "IF(A$r=`"`",`"`",`"PY mie `"&TEXT(Proyeccion!A$r-5,`"dd/mm`")&`" / BR jue `"&TEXT(Proyeccion!A$r-4,`"dd/mm`"))"
     $ws.Cells[$r, 7].Formula = "IF(A$r=`"`",`"`",Proyeccion!M$r)"; Fmt $ws.Cells[$r, 7] '0.0'
     $ws.Cells[$r, 8].Formula = "IF(A$r=`"`",`"`",Proyeccion!N$r)"
-    $ws.Cells[$r, 9].Formula = "IF(A$r=`"`",`"`",`"Sab `"&TEXT(A$r,`"dd/mm`")&`": `"&FIXED(B$r,0)&`" cajas - descargan `"&Proyeccion!D$r&`" - vende `"&FIXED(Proyeccion!F$r,0)&IF(C$r>0,`" -> cargar `"&C$r&`" mas hasta el `"&TEXT(D$r,`"dd/mm`")&`" (`"&E$r&`")`",`" -> ok`"))"
+    $ws.Cells[$r, 9].Formula = "IF(A$r=`"`",`"`",`"Sab `"&TEXT(A$r,`"dd/mm`")&`": `"&FIXED(B$r,0)&`" cajas - descargan `"&Proyeccion!D$r&`" - vende `"&FIXED(Proyeccion!F$r,0)&IF(C$r>0,`" -> cargar `"&C$r&`" mas hasta el `"&TEXT(Proyeccion!J$r,`"dd/mm`")&`" (`"&E$r&`"; BR hasta el `"&TEXT(Proyeccion!B$r-LagBR-AtrasoDias,`"dd/mm`")&`")`",`" -> ok`"))"
 }
 CF $ws "H$W0`:H$WL" "LEFT(H$W0,5)=`"FALTA`"" $ROJO $true
 CF $ws "H$W0`:H$WL" "LEFT(H$W0,4)=`"BAJO`"" $AMAR $true

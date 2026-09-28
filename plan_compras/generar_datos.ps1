@@ -24,7 +24,7 @@
 #    - Las cargas dictadas se cuentan salvo que el Plan ya tenga una carga de ese
 #      productor (nombre o alias) en esa semana: cuando Aloha se pone al dia, manda
 #      Aloha, y lo que Aloha todavia no tiene sigue contando. [24/09/2026]
-#    - Descarga = fecha real si ya descargo; si no, carga + 3 dias (BR, PY) o + 6 (BO).
+#    - Descarga = fecha real si ya descargo; si no, carga + 3 dias (BR), + 4 (PY, desde el 28/09/2026) o + 6 (BO).
 # ==========================================================================
 $ErrorActionPreference = 'Stop'
 $aqui = $PSScriptRoot
@@ -38,7 +38,7 @@ Invoke-Expression $fn.Extent.Text
 function Fecha($s) { if ($null -eq $s) { return $null }; $o = 0.0; if ([double]::TryParse([string]$s, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$o) -and $o -gt 40000 -and $o -lt 60000) { return [DateTime]::FromOADate($o) }; try { return [DateTime]::Parse([string]$s) } catch { return $null } }
 function Tabla($path, $hoja) { $r = Read-XlsxHoja -Path $path -Hoja $hoja; if ($r.Count -lt 1) { return @() }; $h = @($r[0] | ForEach-Object { ([string]$_).Trim().ToLower() }); $out = @(); for ($i = 1; $i -lt $r.Count; $i++) { $f = @($r[$i]); if (-not ($f -join '').Trim()) { continue }; $o = [ordered]@{}; for ($k = 0; $k -lt $h.Count; $k++) { if ($h[$k]) { $o[$h[$k]] = $(if ($k -lt $f.Count) { [string]$f[$k] } else { '' }) } }; $out += [PSCustomObject]$o }; return $out }
 function Ymd($d) { return $d.ToString('yyyy-MM-dd') }
-$LAG_DESC = @{ BR = 3; PY = 3; BO = 6 }
+$LAG_DESC = @{ BR = 3; PY = 4; BO = 6 }   # PY 3 -> 4 el 28/09/2026 (Gonzalo: "paraguay vamos a 4 dias dale"; mediana real en Aloha)
 
 # ---- plan_compras.xlsx
 $pcx = Join-Path $aqui 'plan_compras.xlsx'
@@ -173,7 +173,7 @@ $out = [ordered]@{
     plan_cargas = [ordered]@{ archivo = $pc.Name; fecha = $pc.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); camiones = $nBRPY; ultima_carga = [ordered]@{ BR = $(if ($maxPlan.BR) { Ymd $maxPlan.BR }); PY = $(if ($maxPlan.PY) { Ymd $maxPlan.PY }) } }
     plan_cargas_otros = [ordered]@{ archivo = $(if ($pcO) { $pcO.Name } else { $null }); fecha = $(if ($pcO) { $pcO.LastWriteTime.ToString('yyyy-MM-dd HH:mm') }); camiones_bo = $nBO; ultima_carga_bo = $(if ($maxPlan.BO) { Ymd $maxPlan.BO }) }
     plan_compras = [ordered]@{ archivo = 'plan_compras\plan_compras.xlsx'; fecha = (Get-Item $pcx).LastWriteTime.ToString('yyyy-MM-dd HH:mm'); dictadas_usadas = $usadas; dictadas_omitidas_por_estar_en_el_plan = $omitidas }
-    lags = [ordered]@{ BR = [ordered]@{ descarga = 3; madurar = 7 }; PY = [ordered]@{ descarga = 3; madurar = 7 }; BO = [ordered]@{ descarga = 6; madurar = 7 }; TODO = [ordered]@{ descarga = 3; madurar = 7 } }
+    lags = [ordered]@{ BR = [ordered]@{ descarga = $LAG_DESC.BR; madurar = 7 }; PY = [ordered]@{ descarga = $LAG_DESC.PY; madurar = 7 }; BO = [ordered]@{ descarga = $LAG_DESC.BO; madurar = 7 }; TODO = [ordered]@{ descarga = 3; madurar = 7 } }
     cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; TODO = 1000 }
     conteo = $conteo
     ventas_plan = $ventas

@@ -55,7 +55,8 @@ COMO SE ACTUALIZA (cada vez que cambie algo)
 
 LA CUENTA (desde el 27/09/2026 Brasil y Paraguay van JUNTOS: un solo stock y una sola venta; Bolivia aparte)
   stock al sabado = stock anterior + camiones que DESCARGAN esa semana - venta semanal
-  descarga = fecha real si ya descargo; si no, carga + 3 dias (BR, PY) o + 6 (BO):
+  descarga = fecha real si ya descargo; si no, carga + 3 dias (BR), + 4 (PY; era 3, Gonzalo 28/09/2026:
+             "paraguay vamos a 4 dias", la mediana real de Aloha) o + 6 (BO):
              lo cargado lunes a miercoles entra en la semana, viernes y sabado entra lunes o martes.
   minimo en camara = 7 dias de venta (la fruta que todavia no maduro: gas + camara).
   El "Stock" del reporte diario del ERP NO es el stock: es solo lo listo para vender ese dia.

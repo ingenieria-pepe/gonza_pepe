@@ -638,6 +638,13 @@ LOG DE CAMBIOS:
                PY: se deja 3 (regla de Gonzalo, coincide con simulador y WhatsApp) con nota de que la
                mediana real es 4. (7) Vida util en verde 16 dias marcada como SUPUESTO con referencia UC
                Davis. (8) Escenario sin HF = -3 camiones PY. Notas de proxy en Capacidad y de mix en Demanda.
+  28/09/2026 -> LEAD TIME PARAGUAY 3 -> 4 DIAS (Gonzalo, via la otra sesion: "paraguay vamos a 4 dias dale"; es
+               la mediana real de Aloha). En las tres herramientas: plan_compras\generar_datos.ps1 ($LAG_DESC
+               PY = 4, y el JSON lags.PY.descarga sale de ahi), simulador web (usa el JSON; textos), bloque
+               Plan de compras del WhatsApp (lee el JSON) y Plan_Compras_Simulado.xlsx (Parametros fila 14
+               desde el JSON; la fecha limite general usa el lead time mas largo BR/PY y QueCargar muestra el
+               limite por origen). Con las cargas de hoy no cambia nada: PY carga lunes y martes y con 4 dias
+               descarga viernes y sabado, dentro de la semana. Lo que cambia: un PY del miercoles ya no entra.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
