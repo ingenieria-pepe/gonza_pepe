@@ -645,6 +645,10 @@ LOG DE CAMBIOS:
                desde el JSON; la fecha limite general usa el lead time mas largo BR/PY y QueCargar muestra el
                limite por origen). Con las cargas de hoy no cambia nada: PY carga lunes y martes y con 4 dias
                descarga viernes y sabado, dentro de la semana. Lo que cambia: un PY del miercoles ya no entra.
+  28/09/2026 -> Excel: el camion Paraguay AS cargado el 23/09 (Aloha "Solicitado" en el export del 24/09) tiene
+               descarga real 27/09 confirmada por Gonzalo ("domingo 27/09 si descarga"): despues del conteo
+               del sabado, suma a la semana del 28/09. Queda fijo en generar_plan_xlsx.ps1 ($descConfirmadas)
+               hasta que el export de Aloha lo traiga. Sab 03/10 = 22.898 (ok), sab 10/10 = 18.790 (cargar 4).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

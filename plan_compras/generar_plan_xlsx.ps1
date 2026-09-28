@@ -203,8 +203,12 @@ Titulo $ws 'Cargas: un camion por fila' 'Amarillo = se carga a mano. Descarga = 
 $hc = @('N', 'Fecha carga', 'Dia', 'Origen', 'Productor', 'Transportista', 'Cajas (vacio = tipico)', 'Cajas usadas', 'Estado', 'Descarga real', 'Lead time (dias)', 'Fecha descarga', 'Semana de venta (lunes)', 'Cuenta', 'USD/caja', 'Costo USD', 'Nota', 'Descarga pesimista (P90)', 'Semana de venta P90', 'Pipeline (cargado, sin descargar)', 'OTIF (1 = descargo a tiempo)')
 for ($c = 1; $c -le $hc.Count; $c++) { $ws.Cells[4, $c].Value = $hc[$c - 1] }; Hdr $ws 4 1 $hc.Count
 $C0 = 5; $CL = 300
+# descargas reales confirmadas por Gonzalo que el export de Aloha todavia no trae (clave productor|fecha de carga -> fecha de descarga)
+$descConfirmadas = @{ 'Paraguay AS|2026-09-23' = @('2026-09-27', 'descarga real confirmada por Gonzalo 28/09/2026 ("domingo 27/09 si descarga"): despues del conteo del sabado 26, suma a la semana del 28/09') }
 $cam = @()
 foreach ($c in $PCJ.camiones) {
+    $kc = [string]$c.productor + '|' + [string]$c.carga
+    if (-not $c.descarga -and $descConfirmadas.ContainsKey($kc)) { $c | Add-Member -NotePropertyName descarga -NotePropertyValue $descConfirmadas[$kc][0] -Force; $c | Add-Member -NotePropertyName nota -NotePropertyValue $descConfirmadas[$kc][1] -Force }
     $lag = 3; if ($PCJ.lags.($c.origen) -and $null -ne $PCJ.lags.($c.origen).descarga) { $lag = [int]$PCJ.lags.($c.origen).descarga }
     $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
     if ($desc -le $fCon) { continue }
