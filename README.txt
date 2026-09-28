@@ -649,6 +649,11 @@ LOG DE CAMBIOS:
                descarga real 27/09 confirmada por Gonzalo ("domingo 27/09 si descarga"): despues del conteo
                del sabado, suma a la semana del 28/09. Queda fijo en generar_plan_xlsx.ps1 ($descConfirmadas)
                hasta que el export de Aloha lo traiga. Sab 03/10 = 22.898 (ok), sab 10/10 = 18.790 (cargar 4).
+  28/09/2026 -> Excel, hoja MercadoPY (Gonzalo: "te acordas que Paraguay los productores tienen mas de una
+               empresa?"): columna Grupo con los TRES grupos que el confirmo el 19/09 (Misionero + Ecotierra;
+               Hugo Franco + Agroganadera San Jose Obrero; Melgarejo + Servi-Fel) y un ranking agrupado (3
+               grupos + individuales). Ningun otro grupo inferido. "San Jose Obrero" pasa a su razon social
+               completa para no confundirlo con Agro Climatizadora San Jose.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

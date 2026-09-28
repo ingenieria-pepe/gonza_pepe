@@ -624,31 +624,44 @@ $anchos = @(13, 11, 12, 16, 16, 10, 22, 12, 14, 12, 12); for ($c = 1; $c -le $an
 # =====================================================================
 $ws = $pkg.Workbook.Worksheets.Add('MercadoPY')
 Titulo $ws 'Mercado exportador de Paraguay (Penta, ene-ago 2026)' 'Quien mas tiene volumen si falla un proveedor habitual. Cupo semanal aprox = kg brutos / 34 semanas / 22 kg. OJO: 47% del valor 2026 figura como "No disponible" en Penta, asi que los cupos estan subestimados. USD CIF entre identificados.'
-$hm = @('Exportador', '% del valor 2026', 'Millones de kg', 'Cajas/semana aprox', 'Relacion con Almar / nota'); for ($c = 1; $c -le $hm.Count; $c++) { $ws.Cells[4, $c].Value = $hm[$c - 1] }; Hdr $ws 4 1 5
+$hm = @('Exportador (razon social en aduana)', 'Grupo (mismo productor, mas de una empresa)', '% del valor 2026', 'Millones de kg', 'Cajas/semana aprox', 'Relacion con Almar / nota'); for ($c = 1; $c -le $hm.Count; $c++) { $ws.Cells[4, $c].Value = $hm[$c - 1] }; Hdr $ws 4 1 6
+# Grupos: SOLO los tres que confirmo Gonzalo (19/09/2026): Misionero + Ecotierra; Hugo Franco + Agroganadera San Jose Obrero; Melgarejo + Servi-Fel. El resto son individuales.
 $mpy = @(
-    @('Misionero SRL', 0.180, 6.42, 8600, 'marcas TROPICAL y CIRO'),
-    @('Hugo Alberto Franco', 0.095, 3.15, 4200, 'Tembiapora, Menicob: proveedor HF de Almar (54% de los camiones PY 2026)'),
-    @('Ruben Dario Aguero', 0.069, 2.97, 4000, ''),
-    @('Emprendimientos Karen', 0.063, 2.19, 2900, ''),
-    @('Saldivar & Hijos', 0.052, 1.86, 2500, ''),
-    @('Agro Climatizadora San Jose', 0.047, 1.68, 2250, ''),
-    @('Melgarejo Lopez', 0.042, 1.57, 2100, 'proveedor de Nalia'),
-    @('Ecotierra SRL', 0.040, 1.31, 1750, 'principal proveedor de Almar, marca PEPE'),
-    @('Elvio Valdez', 0.037, 1.57, 2100, ''),
-    @('Velazquez Gimenez', 0.035, 1.24, 1660, ''),
-    @('Frutas Carolina', 0.034, 1.29, 1720, ''),
-    @('Samuel Riveros', 0.031, 1.26, 1680, ''),
-    @('Grupo Campo Flor', 0.030, 1.34, 1790, ''),
-    @('Servi-Fel', 0.029, $null, $null, 'Guido (GM): proveedor de Almar sin cargas desde julio 2026'),
-    @('San Jose Obrero', 0.026, $null, $null, ''),
-    @('Silvia Castillo', 0.024, $null, $null, 'proveedora de Nalia'),
-    @('Graciela Nunez', 0.023, $null, $null, ''),
-    @('Gaspar Saldivar & Nietos', 0.021, $null, $null, ''),
-    @('El Productor', 0.018, $null, $null, '')
+    @('Misionero SRL', 'Misionero + Ecotierra', 0.180, 6.42, 8600, 'marcas TROPICAL y CIRO'),
+    @('Hugo Alberto Franco', 'Franco + San Jose Obrero', 0.095, 3.15, 4200, 'Tembiapora, Menicob: proveedor HF de Almar (54% de los camiones PY 2026)'),
+    @('Ruben Dario Aguero', '', 0.069, 2.97, 4000, ''),
+    @('Emprendimientos Karen', '', 0.063, 2.19, 2900, ''),
+    @('Saldivar & Hijos', '', 0.052, 1.86, 2500, ''),
+    @('Agro Climatizadora San Jose', '', 0.047, 1.68, 2250, 'no es San Jose Obrero'),
+    @('Melgarejo Lopez', 'Melgarejo + Servi-Fel', 0.042, 1.57, 2100, 'proveedor de Nalia'),
+    @('Ecotierra SRL', 'Misionero + Ecotierra', 0.040, 1.31, 1750, 'principal proveedor de Almar, marca PEPE'),
+    @('Elvio Valdez', '', 0.037, 1.57, 2100, ''),
+    @('Velazquez Gimenez', '', 0.035, 1.24, 1660, ''),
+    @('Frutas Carolina', '', 0.034, 1.29, 1720, ''),
+    @('Samuel Riveros', '', 0.031, 1.26, 1680, ''),
+    @('Grupo Campo Flor', '', 0.030, 1.34, 1790, ''),
+    @('Servi-Fel', 'Melgarejo + Servi-Fel', 0.029, $null, $null, 'Guido (GM): proveedor de Almar sin cargas desde julio 2026'),
+    @('Agroganadera San Jose Obrero', 'Franco + San Jose Obrero', 0.026, $null, $null, ''),
+    @('Silvia Castillo', '', 0.024, $null, $null, 'proveedora de Nalia'),
+    @('Graciela Nunez', '', 0.023, $null, $null, ''),
+    @('Gaspar Saldivar & Nietos', '', 0.021, $null, $null, ''),
+    @('El Productor', '', 0.018, $null, $null, '')
 )
-$r = 5; foreach ($m in $mpy) { $ws.Cells[$r, 1].Value = $m[0]; $ws.Cells[$r, 2].Value = $m[1]; Fmt $ws.Cells[$r, 2] '0.0%'; if ($null -ne $m[2]) { $ws.Cells[$r, 3].Value = $m[2]; Fmt $ws.Cells[$r, 3] '0.00' }; if ($null -ne $m[3]) { $ws.Cells[$r, 4].Value = $m[3]; Fmt $ws.Cells[$r, 4] '#,##0' }; $ws.Cells[$r, 5].Value = $m[4]; $r++ }
-$ws.Cells[($r + 1), 1].Value = 'Uso: si HF (Franco) o MS no pueden cargar, los cupos de Misionero, Aguero, Karen o Saldivar cubren 2-8 camiones por semana cada uno. Fuente: extractos Penta (aduana UY) trabajados en el Excel de exportadores de Paraguay (otra sesion, 28/09/2026).'
-$ws.Column(1).Width = 30; $ws.Column(2).Width = 14; $ws.Column(3).Width = 14; $ws.Column(4).Width = 16; $ws.Column(5).Width = 80
+$r = 5; foreach ($m in $mpy) { $ws.Cells[$r, 1].Value = $m[0]; $ws.Cells[$r, 2].Value = $m[1]; if ($m[1]) { $ws.Cells[$r, 2].Style.Font.Bold = $true }; $ws.Cells[$r, 3].Value = $m[2]; Fmt $ws.Cells[$r, 3] '0.0%'; if ($null -ne $m[3]) { $ws.Cells[$r, 4].Value = $m[3]; Fmt $ws.Cells[$r, 4] '0.00' }; if ($null -ne $m[4]) { $ws.Cells[$r, 5].Value = $m[4]; Fmt $ws.Cells[$r, 5] '#,##0' }; $ws.Cells[$r, 6].Value = $m[5]; $r++ }
+$r += 1
+$ws.Cells[$r, 1].Value = 'RANKING AGRUPADO (3 grupos confirmados por Gonzalo + individuales)'; $ws.Cells[$r, 2].Value = 'Empresas'; $ws.Cells[$r, 3].Value = '% del valor 2026'; $ws.Cells[$r, 4].Value = 'Cajas/semana aprox'; $ws.Cells[$r, 5].Value = 'Nota'; Hdr $ws $r 1 5; $r++
+$agr = [ordered]@{}
+foreach ($m in $mpy) { $k = $(if ($m[1]) { $m[1] } else { $m[0] }); if (-not $agr.Contains($k)) { $agr[$k] = @{ emp = @(); pct = 0.0; cajas = 0; grupo = [bool]$m[1] } }; $agr[$k].emp += $m[0]; $agr[$k].pct += $m[2]; if ($null -ne $m[4]) { $agr[$k].cajas += $m[4] } }
+foreach ($k in (@($agr.Keys) | Sort-Object { -$agr[$_].pct })) {
+    $a = $agr[$k]
+    $ws.Cells[$r, 1].Value = $k; if ($a.grupo) { $ws.Cells[$r, 1].Style.Font.Bold = $true }
+    $ws.Cells[$r, 2].Value = ($a.emp -join ' + '); $ws.Cells[$r, 3].Value = [math]::Round($a.pct, 3); Fmt $ws.Cells[$r, 3] '0.0%'
+    if ($a.cajas -gt 0) { $ws.Cells[$r, 4].Value = $a.cajas; Fmt $ws.Cells[$r, 4] '#,##0' }
+    $ws.Cells[$r, 5].Value = $(if ($k -eq 'Misionero + Ecotierra') { 'el grupo del principal proveedor de Almar (PEPE); cajas/sem solo de Misionero (Ecotierra sin kg en la fuente)' } elseif ($k -eq 'Franco + San Jose Obrero') { 'HF de Almar; cajas/sem solo de Franco' } elseif ($k -eq 'Melgarejo + Servi-Fel') { 'Guido (GM) de Almar; cajas/sem solo de Melgarejo' } else { '' })
+    $r++
+}
+$ws.Cells[($r + 1), 1].Value = 'Uso: si HF (Franco) o MS no pueden cargar, los cupos de Misionero, Aguero, Karen o Saldivar cubren 2-8 camiones por semana cada uno. Los grupos son SOLO los tres que confirmo Gonzalo (19/09/2026); las demas empresas se cuentan por separado aunque se parezcan de nombre. Fuente: extractos Penta (aduana UY) trabajados en el Excel de exportadores de Paraguay (otra sesion, 28/09/2026).'
+$ws.Column(1).Width = 34; $ws.Column(2).Width = 34; $ws.Column(3).Width = 14; $ws.Column(4).Width = 14; $ws.Column(5).Width = 16; $ws.Column(6).Width = 80
 
 # =====================================================================
 # 10) GLOSARIO
