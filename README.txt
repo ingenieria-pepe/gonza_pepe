@@ -607,6 +607,9 @@ LOG DE CAMBIOS:
                venta escrita a mano") y en el resumen de texto; el reparto por origen usa el mix del plan.
                "Volver a lo cargado" lo borra. Probado con Edge headless: 05/10 = 14.000 -> sab 10/10 cierra
                en 21.810 y pide 1 camion en vez de 4.
+  28/09/2026 -> Simulador, orden de la pagina (Gonzalo: "no conviene que ese saldo este en el comienzo?"):
+               ahora va KPIs, "Que cargar", 1. Saldo por semana de venta (con la venta editable), 2. Camiones
+               por semana de carga + parametros, 3. Resumen. Solo cambio de orden en el HTML.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

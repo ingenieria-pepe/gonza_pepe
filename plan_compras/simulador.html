@@ -61,8 +61,12 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
 
 <div class="card" id="queCargar"></div>
 
+<h2>1. Saldo por semana de venta (lunes a sábado)</h2>
+<p class="mini">La columna "Se vende" se escribe por semana (vacío = plan). Lo que cambies acá o en la grilla de camiones de abajo queda guardado en este navegador.</p>
+<div id="salidas"></div>
+
 <div class="card">
-  <h2 style="margin-top:0">1. Camiones por semana de carga (domingo a sábado)</h2>
+  <h2 style="margin-top:0">2. Camiones por semana de carga (domingo a sábado)</h2>
   <p class="mini">Las semanas con <span class="badge dato">dato</span> traen lo del Plan de Cargas o lo que dictó Gonzalo; se pueden cambiar igual. Lo que cambies queda <span class="badge sim">simulado</span> y guardado en este navegador.</p>
   <div class="tblwrap"><table id="tblCargas"></table></div>
   <div class="acciones">
@@ -77,9 +81,6 @@ textarea{width:100%;min-height:150px;font-family:ui-monospace,Consolas,monospace
   <div class="card"><h2 style="margin-top:0">Conteo físico (arranque)</h2><div class="param" id="pConteo"></div><p class="mini" id="conteoFuente"></p><p class="mini">Stock real de banana por origen a la fecha del conteo por cámara, todas las sedes, madura o no. Stock = conteo + descargas después de esa fecha − ventas. No es el "Stock" del reporte diario del ERP (eso es lo listo para vender ese día).</p></div>
   <div class="card"><h2 style="margin-top:0">Cajas por camión</h2><div class="param" id="pOtros"></div><p class="mini">1.000 promedio (1.008 Brasil, 936 los chicos de AXT, 980 Paraguay, 1.050 Bolivia). Es lo que se usa para los camiones simulados; los reales llevan sus cajas.</p></div>
 </div>
-
-<h2>2. Saldo por semana de venta (lunes a sábado)</h2>
-<div id="salidas"></div>
 
 <h2>3. Resumen para mandar</h2>
 <div class="card"><textarea id="resumen" readonly></textarea><p class="mini">Seleccionar todo y copiar. Se arma con lo que está en pantalla, simulado incluido.</p></div>
