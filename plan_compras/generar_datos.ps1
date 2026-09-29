@@ -44,6 +44,9 @@ $LAG_DESC = @{ BR = 3; PY = 4; BO = 6 }   # PY 3 -> 4 el 28/09/2026 (Gonzalo: "p
 $pcx = Join-Path $aqui 'plan_compras.xlsx'
 $prog = @(Tabla $pcx 'cargas_programadas' | ForEach-Object { $d = Fecha $_.fecha; [PSCustomObject]@{ origen = $_.origen; productor = $_.productor; carga = (Ymd $d); semana_carga = (Ymd $d.AddDays(-[int]$d.DayOfWeek)); cajas = [int]$_.cajas; transportista = $_.transportista; nota = $_.nota } })
 $ventas = @(Tabla $pcx 'ventas_plan' | ForEach-Object { [PSCustomObject]@{ semana_lunes = (Ymd (Fecha $_.semana_lunes)); BR = [int]$_.br; PY = [int]$_.py; BO = [int]$_.bo; fuente = $_.fuente } })
+# venta REAL por semana y origen (hoja ventas_semanales, transcrita del reporte semanal del ERP; 29/09/2026). Opcional.
+$ventasReales = @()
+try { $ventasReales = @(Tabla $pcx 'ventas_semanales' | Where-Object { $_.semana_lunes -and (Fecha $_.semana_lunes) } | ForEach-Object { [PSCustomObject]@{ semana_lunes = (Ymd (Fecha $_.semana_lunes)); BR = [int]$_.br; PY = [int]$_.py; BO = [int]$_.bo; EC = [int]$_.ec; TODO = ([int]$_.br + [int]$_.py + [int]$_.bo); fuente = $_.fuente } }) } catch { Write-Host "    (sin hoja ventas_semanales: $($_.Exception.Message))" -ForegroundColor DarkYellow }
 $conteoRows = @(Tabla $pcx 'conteo' | ForEach-Object { [PSCustomObject]@{ fecha = (Ymd (Fecha $_.fecha)); origen = $_.origen; cajas = [int]$_.cajas; fuente = $_.fuente } })
 $fechaConteo = ($conteoRows | ForEach-Object { $_.fecha } | Sort-Object | Select-Object -Last 1)
 $conteo = [ordered]@{ fecha = $fechaConteo }; foreach ($c in ($conteoRows | Where-Object { $_.fecha -eq $fechaConteo })) { $conteo[$c.origen] = $c.cajas }
@@ -177,6 +180,7 @@ $out = [ordered]@{
     cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; TODO = 1000 }
     conteo = $conteo
     ventas_plan = $ventas
+    ventas_reales = $ventasReales
     camiones = @($camiones | Sort-Object carga, origen)
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress

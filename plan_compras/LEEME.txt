@@ -21,6 +21,8 @@ QUE HAY
                          ventas_plan         cajas por semana y por origen (hoy: promedio del ERP sem 38)
                          conteo              stock fisico por origen a la fecha del conteo por camara
                          ventas_erp          registro de los reportes diarios del ERP (no entra en el calculo)
+                         ventas_semanales    venta REAL por semana y origen (reporte semanal del ERP; desde 29/09/2026):
+                                             va al JSON como ventas_reales y a la planilla Excel (desvio, sigma, mix)
                          notas               instrucciones
   plan_compras.json    datos que usa el simulador (lo genera el script)
   generar_datos.ps1    regenera plan_compras.json y lo inyecta en simulador.html

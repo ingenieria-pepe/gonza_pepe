@@ -654,6 +654,16 @@ LOG DE CAMBIOS:
                Hugo Franco + Agroganadera San Jose Obrero; Melgarejo + Servi-Fel) y un ranking agrupado (3
                grupos + individuales). Ningun otro grupo inferido. "San Jose Obrero" pasa a su razon social
                completa para no confundirlo con Agro Climatizadora San Jose.
+  29/09/2026 -> VENTA SEMANAL REAL POR ORIGEN (Gonzalo dejo en Descargas la captura del reporte semanal del ERP,
+               jul-sep 2026, 12 semanas; guardada en fuentes\ventas\). Hoja nueva plan_compras.xlsx >
+               ventas_semanales (lunes, sabado, BR, PY, BO, EC, total banana); generar_datos.ps1 la lleva al
+               JSON como ventas_reales. ventas_plan: sem 14/09 y 21/09 pasan a REAL (15.851 y 14.845) y los
+               SUPUESTOS de 17.000 se reparten con el mix real de las ultimas 4 semanas (BR 61,7 / PY 31,2 /
+               BO 7,1) en vez del mix de la sem 38. Excel: Demanda con historial de 12 semanas + promedio,
+               ultimas 4, desvio estandar y mix; venta real en la fila del 21/09; SigmaVenta pasa de supuesto
+               (10%) a la real (STDEV del historial, ~1.280 cajas). Notas al pie en celdas combinadas con
+               ajuste de texto (se veian cortadas); MercadoPY con los 3 grupos + ranking agrupado y Diego
+               Fernandez (puesto 23, ~940 cajas/sem, 61% marca PEPE); .gitignore: ~$*.xlsx (bloqueo de Excel).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

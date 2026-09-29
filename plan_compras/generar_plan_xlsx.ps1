@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 try { Import-Module ImportExcel -ErrorAction Stop } catch { Import-Module 'C:\Users\Usuario\Documents\WindowsPowerShell\Modules\ImportExcel' -ErrorAction Stop }   # EPPlus via ImportExcel
 Add-Type -AssemblyName System.Drawing
 $repo = Split-Path -Parent $PSScriptRoot   # el script vive en plan_compras\
-$out  = "$repo\plan_compras\Plan_Compras_Simulado.xlsx"
+$out  = $(if ($env:PLAN_XLSX_OUT) { $env:PLAN_XLSX_OUT } else { "$repo\plan_compras\Plan_Compras_Simulado.xlsx" })   # PLAN_XLSX_OUT: ruta alternativa (p.ej. si el archivo esta abierto en Excel)
 $PCJ  = Get-Content "$repo\plan_compras\plan_compras.json" -Raw -Encoding UTF8 | ConvertFrom-Json
 $CEP  = Get-Content "$repo\fuentes\precios_cepea.json" -Raw -Encoding UTF8 | ConvertFrom-Json
 if (Test-Path $out) { Remove-Item $out -Force }
@@ -27,6 +27,7 @@ function Fmt($cells, $f) { $cells.Style.Numberformat.Format = $f }
 function CF($ws, $addr, $formula, $fill, $bold) { $cf = $ws.ConditionalFormatting.AddExpression((New-Object OfficeOpenXml.ExcelAddress($addr))); $cf.Formula = $formula; $cf.Style.Fill.PatternType = [OfficeOpenXml.Style.ExcelFillStyle]::Solid; $cf.Style.Fill.BackgroundColor.Color = $fill; if ($bold) { $cf.Style.Font.Bold = $true } }
 function Lista($ws, $addr, $valores) { $dv = $ws.DataValidations.AddListValidation($addr); foreach ($v in $valores) { [void]$dv.Formula.Values.Add($v) }; $dv.ShowErrorMessage = $true; $dv.ErrorTitle = 'Valor no valido'; $dv.Error = 'Elegi un valor de la lista' }
 function Nombre($n, $cells) { [void]$pkg.Workbook.Names.Add($n, $cells) }
+function NotaLarga($ws, $r, $texto) { $ws.Cells[$r, 1].Value = $texto; $rg = $ws.Cells[$r, 1, $r, 12]; $rg.Merge = $true; $rg.Style.WrapText = $true; $rg.Style.VerticalAlignment = 'Top'; $w = 0; for ($i = 1; $i -le 12; $i++) { $w += $ws.Column($i).Width }; $chars = [math]::Max(80, $w * 1.05); $ws.Row($r).Height = 4 + 15 * [math]::Ceiling($texto.Length / $chars) }
 
 # ---------- datos base ----------
 $fCon = [DateTime]$PCJ.conteo.fecha
@@ -131,7 +132,7 @@ $ws.Cells[35, 1].Value = 'Semana del mes'; $ws.Cells[35, 2].Value = 'Factor'; $w
 $est = @(@(1, 1.00, '1a semana (arranque de mes: sueldos, mas venta)'), @(2, 1.00, '2a semana'), @(3, 1.00, '3a semana'), @(4, 1.00, '4a semana (fin de mes: menos venta)'), @(5, 1.00, '5a semana (cuando el mes tiene 5 lunes)'))
 $r = 36; foreach ($e in $est) { $ws.Cells[$r, 1].Value = $e[0]; $ws.Cells[$r, 2].Value = $e[1]; Fmt $ws.Cells[$r, 2] '0.00'; Inp $ws.Cells[$r, 2]; $ws.Cells[$r, 3].Value = $e[2]; $r++ }
 Nombre 'EstacTabla' $ws.Cells[36, 1, 40, 2]
-$ws.Cells[41, 1].Value = 'Todos en 1,00 hasta que Gonzalo los ajuste con su experiencia (28/09/2026: "las ventas conforme a si es comienzo de mes o final de mes"). Ej: 1,05 / 1,00 / 0,98 / 0,95.'
+NotaLarga $ws 41 'Todos en 1,00 hasta que Gonzalo los ajuste con su experiencia (28/09/2026: "las ventas conforme a si es comienzo de mes o final de mes"). Ej: 1,05 / 1,00 / 0,98 / 0,95.'
 # --- aportes de la otra sesion (28/09/2026): lead time real y riesgo, stock de seguridad adaptativo, capacidad de maduracion
 $ws.Cells[43, 1].Value = 'LEAD TIME REAL Y RIESGO (Plan de Cargas Aloha 2024-2026)'; $ws.Cells[43, 2].Value = 'BR'; $ws.Cells[43, 3].Value = 'PY'; $ws.Cells[43, 4].Value = 'BO'; $ws.Cells[43, 5].Value = 'Nota'; Hdr $ws 43 1 5
 $ws.Cells[44, 1].Value = 'TT mediana carga a descarga (dias)';        $ws.Cells[44, 2].Value = 3; $ws.Cells[44, 3].Value = 4; $ws.Cells[44, 4].Value = 6; Inp $ws.Cells[44, 2, 44, 4]
@@ -144,8 +145,9 @@ $ws.Cells[47, 1].Value = 'Vida util maxima en verde (dias) = alerta de EXCESO'; 
 $ws.Cells[47, 5].Value = 'SUPUESTO editable (no tiene fuente medida en Almar): la banana verde aguanta del orden de 2 semanas en camara a 13-14 C antes de perder calidad (referencia estandar: UC Davis Postharvest, "Banana: recommendations for maintaining postharvest quality", que da 2-4 semanas segun variedad y madurez). Mas cobertura que esto es merma, no seguridad. Ajustar con lo que se observe en index_calidad.'
 $ws.Cells[48, 1].Value = 'Nivel de servicio objetivo';                  $ws.Cells[48, 2].Value = 0.95; Fmt $ws.Cells[48, 2] '0%'; Inp $ws.Cells[48, 2]
 $ws.Cells[49, 1].Value = 'z (factor del nivel de servicio)';             $ws.Cells[49, 2].Formula = 'NORMSINV(B48)'; Fmt $ws.Cells[49, 2] '0.00'; Nombre 'Zserv' $ws.Cells[49, 2]
-$ws.Cells[50, 1].Value = 'Desvio estandar de la venta semanal (cajas)'; $ws.Cells[50, 2].Value = [int][math]::Round(0.1 * [int](PlanDe $semanas[1]).TODO, 0); Fmt $ws.Cells[50, 2] '#,##0'; Inp $ws.Cells[50, 2]; Nombre 'SigmaVenta' $ws.Cells[50, 2]
-$ws.Cells[50, 5].Value = 'SUPUESTO = 10% de la venta semanal. Reemplazar por el desvio real cuando haya 8 semanas de venta ERP en Demanda (columna "Venta real").'
+$ws.Cells[50, 1].Value = 'Desvio estandar de la venta semanal (cajas)'; Fmt $ws.Cells[50, 2] '#,##0'; Inp $ws.Cells[50, 2]; Nombre 'SigmaVenta' $ws.Cells[50, 2]
+if (@($PCJ.ventas_reales).Count -ge 4) { $ws.Cells[50, 2].Formula = 'IFERROR(ROUND(STDEV(HistTotal),0),1700)'; $ws.Cells[50, 5].Value = "REAL: desvio estandar del total BR+PY+BO de las $(@($PCJ.ventas_reales).Count) semanas de venta ERP que estan en Demanda (historial). Se puede pisar con un numero." }
+else { $ws.Cells[50, 2].Value = [int][math]::Round(0.1 * [int](PlanDe $semanas[1]).TODO, 0); $ws.Cells[50, 5].Value = 'SUPUESTO = 10% de la venta semanal. Reemplazar por el desvio real cuando haya semanas de venta ERP en plan_compras.xlsx > ventas_semanales.' }
 $ws.Cells[51, 1].Value = 'Stock de seguridad sugerido (cajas)';         $ws.Cells[51, 2].Formula = 'ROUND(Zserv*SigmaVenta*SQRT((LagBR+DiasMadurar)/7+1),0)'; Fmt $ws.Cells[51, 2] '#,##0'; Nombre 'SSsugerido' $ws.Cells[51, 2]
 $ws.Cells[51, 5].Value = 'z x sigma x raiz(lead time en semanas + 1 semana de revision). Cubre la variabilidad de la venta durante el tiempo en que no se puede reaccionar.'
 $ws.Cells[52, 1].Value = 'Minimo sugerido = seguridad + dias de maduracion de venta'; $ws.Cells[52, 2].Formula = 'SSsugerido+ROUND(INDEX(DemVenta,MATCH(FechaHoy-WEEKDAY(FechaHoy,2)+1+7,DemSemana,0))/DiasVenta*DiasMadurar,0)'; Fmt $ws.Cells[52, 2] '#,##0'; Nombre 'MinSugerido' $ws.Cells[52, 2]
@@ -191,6 +193,34 @@ for ($i = 0; $i -lt $NW; $i++) {
     $ws.Cells[$r, 17].Value = $(if ($p.semana_lunes -eq $lun.ToString('yyyy-MM-dd')) { [string]$p.fuente } else { "sin fila en ventas_plan: copia de la semana del $(([DateTime]$p.semana_lunes).ToString('dd/MM')) (SUPUESTO)" })
 }
 CF $ws "P$W0`:P$WL" "ABS(P$W0)>0.1" $AMAR $false
+# --- venta real por semana (hoja ventas_semanales de plan_compras.xlsx, del reporte semanal del ERP; 29/09/2026)
+$hist = @($PCJ.ventas_reales | Sort-Object semana_lunes)
+$histK = @{}; foreach ($hv in $hist) { $histK[[string]$hv.semana_lunes] = $hv }
+for ($i = 0; $i -lt $NW; $i++) { $k = $semanas[$i].ToString('yyyy-MM-dd'); if ($histK.ContainsKey($k)) { $ws.Cells[($W0 + $i), 15].Value = [int]$histK[$k].TODO } }
+$H0 = $WL + 3
+$ws.Cells[($H0 - 1), 1].Value = 'HISTORIAL DE VENTA REAL (ERP, cajas por semana lunes-sabado). Agregar semanas en plan_compras.xlsx > ventas_semanales.'; $ws.Cells[($H0 - 1), 1].Style.Font.Bold = $true
+$hh = @('Semana (lunes)', 'Sabado', 'BR', 'PY', 'BO', 'Ecuador (otro canal)', 'TOTAL banana (BR+PY+BO)', 'Semana del mes'); for ($c = 1; $c -le $hh.Count; $c++) { $ws.Cells[$H0, $c].Value = $hh[$c - 1] }; Hdr $ws $H0 1 $hh.Count
+$r = $H0 + 1
+foreach ($hv in $hist) {
+    $d = [DateTime]$hv.semana_lunes
+    $ws.Cells[$r, 1].Value = $d; Fmt $ws.Cells[$r, 1] 'dd/mm/yyyy'; $ws.Cells[$r, 2].Value = $d.AddDays(5); Fmt $ws.Cells[$r, 2] 'dd/mm/yyyy'
+    $ws.Cells[$r, 3].Value = [int]$hv.BR; $ws.Cells[$r, 4].Value = [int]$hv.PY; $ws.Cells[$r, 5].Value = [int]$hv.BO; $ws.Cells[$r, 6].Value = [int]$hv.EC
+    $ws.Cells[$r, 7].Formula = "C$r+D$r+E$r"; $ws.Cells[$r, 8].Formula = "INT((DAY(A$r)-1)/7)+1"
+    Fmt $ws.Cells[$r, 3, $r, 7] '#,##0'; $r++
+}
+$H1 = $r - 1
+if ($H1 -ge $H0 + 1) {
+    Nombre 'HistTotal' $ws.Cells[($H0 + 1), 7, $H1, 7]; Nombre 'HistSemana' $ws.Cells[($H0 + 1), 1, $H1, 1]
+    $r += 1
+    $est = @(
+        @('Promedio de todas las semanas', "ROUND(AVERAGE(C$($H0 + 1):C$H1),0)", "ROUND(AVERAGE(D$($H0 + 1):D$H1),0)", "ROUND(AVERAGE(E$($H0 + 1):E$H1),0)", "ROUND(AVERAGE(F$($H0 + 1):F$H1),0)", "ROUND(AVERAGE(G$($H0 + 1):G$H1),0)"),
+        @('Promedio ultimas 4 semanas', "ROUND(AVERAGE(C$($H1 - 3):C$H1),0)", "ROUND(AVERAGE(D$($H1 - 3):D$H1),0)", "ROUND(AVERAGE(E$($H1 - 3):E$H1),0)", "ROUND(AVERAGE(F$($H1 - 3):F$H1),0)", "ROUND(AVERAGE(G$($H1 - 3):G$H1),0)"),
+        @('Desvio estandar (todas)', "ROUND(STDEV(C$($H0 + 1):C$H1),0)", "ROUND(STDEV(D$($H0 + 1):D$H1),0)", "ROUND(STDEV(E$($H0 + 1):E$H1),0)", "ROUND(STDEV(F$($H0 + 1):F$H1),0)", "ROUND(STDEV(G$($H0 + 1):G$H1),0)"),
+        @('Mix ultimas 4 semanas (sobre banana)', "SUM(C$($H1 - 3):C$H1)/SUM(G$($H1 - 3):G$H1)", "SUM(D$($H1 - 3):D$H1)/SUM(G$($H1 - 3):G$H1)", "SUM(E$($H1 - 3):E$H1)/SUM(G$($H1 - 3):G$H1)", '""', '1')
+    )
+    foreach ($e in $est) { $ws.Cells[$r, 1].Value = $e[0]; $ws.Cells[$r, 1].Style.Font.Bold = $true; for ($c = 3; $c -le 7; $c++) { $ws.Cells[$r, $c].Formula = $e[$c - 2]; Fmt $ws.Cells[$r, $c] $(if ($e[0] -like 'Mix*') { '0.0%' } else { '#,##0' }) }; $r++ }
+    $ws.Cells[$r, 1].Value = 'Lectura: el plan usa 16.000 (sem 28/09) y 17.000 (despues) contra un promedio real de las ultimas 4 semanas que se ve arriba; el mix real de esas 4 semanas es el que reparte los SUPUESTOS de ventas_plan desde el 29/09. El desvio estandar del total alimenta el stock de seguridad de Parametros.'
+}
 $ws.View.FreezePanes(6, 2)
 $anchos = @(14, 14, 7, 9, 12, 10, 14, 13, 9, 9, 9, 10, 10, 10, 13, 11, 70); for ($c = 1; $c -le $anchos.Count; $c++) { $ws.Column($c).Width = $anchos[$c - 1] }
 Nombre 'DemSemana' $ws.Cells[$W0, 1, $WL, 1]; Nombre 'DemVenta' $ws.Cells[$W0, 8, $WL, 8]
@@ -340,9 +370,8 @@ CF $ws "H$W0`:H$WL" "LEFT(H$W0,4)=`"BAJO`"" $AMAR $true
 CF $ws "H$W0`:H$WL" "H$W0=`"OK`"" $VERDE $false
 CF $ws "C$W0`:C$WL" "AND(C$W0<>`"`",C$W0>0)" $ROJO $true
 $anchos = @(16, 18, 11, 12, 13, 26, 12, 22, 110); for ($c = 1; $c -le $anchos.Count; $c++) { $ws.Column($c).Width = $anchos[$c - 1] }
-$ws.Cells[($WL + 2), 1].Value = 'Como leerlo: "cargar N mas hasta el mie" = camiones que hay que agregar a lo ya dictado para cerrar ese sabado en el minimo; lo que cargue despues del limite descarga la semana siguiente. Los faltantes de una semana se arrastran a la siguiente (Proyeccion, columna "Pedidos anteriores").'
-$ws.Cells[($WL + 3), 1].Value = 'Hay SUPUESTOS de los dos origenes en Cargas: 5 camiones de Paraguay por semana (Estado = Supuesto) y 8 de Brasil los viernes en las semanas posteriores a la ultima dictada (Estado = Supuesto BR). Con ellos, "cargar N mas" es lo que falta ADEMAS del ritmo habitual; para ver toda la necesidad como en el WhatsApp, poner SupBR = 0 en Parametros. Cuando se dictan los reales, reemplazarlos.'
-
+NotaLarga $ws ($WL + 2) 'Como leerlo: "cargar N mas hasta el mie" = camiones que hay que agregar a lo ya dictado para cerrar ese sabado en el minimo; lo que cargue despues del limite descarga la semana siguiente. Los faltantes de una semana se arrastran a la siguiente (Proyeccion, columna "Pedidos anteriores").'
+NotaLarga $ws ($WL + 3) 'Hay SUPUESTOS de los dos origenes en Cargas: 5 camiones de Paraguay por semana (Estado = Supuesto) y 8 de Brasil los viernes en las semanas posteriores a la ultima dictada (Estado = Supuesto BR). Con ellos, "cargar N mas" es lo que falta ADEMAS del ritmo habitual; para ver toda la necesidad como en el WhatsApp, poner SupBR = 0 en Parametros. Cuando se dictan los reales, reemplazarlos.'
 # =====================================================================
 # 7) ESCENARIOS (venta -10% / base / +10%, cadena propia cada uno)
 # =====================================================================
@@ -379,7 +408,7 @@ for ($i = 0; $i -lt $NW; $i++) {
 }
 foreach ($cc in 'L', 'N', 'O', 'P') { CF $ws "$cc$W0`:$cc$WL" "$cc$W0<MinimoSabado" $AMAR $false; CF $ws "$cc$W0`:$cc$WL" "$cc$W0<0" $ROJO $true }
 CF $ws "M$W0`:M$WL" "M$W0>0" $ROJO $true
-$ws.Cells[($WL + 2), 1].Value = 'Lectura: si con -10% igual hay que cargar, el pedido es firme; si solo hace falta con +10%, es un pedido "por las dudas" que conviene decidir el miercoles con la venta real de la semana. "Frontera a P90": todos los camiones sin descarga real tardan lo que tarda el peor 10% (Parametros fila 45). Los shocks (sin HF, camion rechazado, sin Bolivia) se aplican desde la semana proxima sobre el stock base.'
+NotaLarga $ws ($WL + 2) 'Lectura: si con -10% igual hay que cargar, el pedido es firme; si solo hace falta con +10%, es un pedido "por las dudas" que conviene decidir el miercoles con la venta real de la semana. "Frontera a P90": todos los camiones sin descarga real tardan lo que tarda el peor 10% (Parametros fila 45). Los shocks (sin HF, camion rechazado, sin Bolivia) se aplican desde la semana proxima sobre el stock base.'
 $anchos = @(13, 11, 12, 11, 12, 11, 12, 11, 12, 11, 12, 12, 11, 14, 14, 14); for ($c = 1; $c -le $anchos.Count; $c++) { $ws.Column($c).Width = $anchos[$c - 1] }
 $ws.View.FreezePanes(6, 3)
 
@@ -518,7 +547,7 @@ foreach ($x in $inactivos) {
 $rl = $r - 1
 CF $ws "N5:N$rl" "AND(H5<>`"`",N5>H5)" $ROJO $true
 CF $ws "O5:O$rl" "AND(H5<>`"`",O5>H5)" $ROJO $true
-$ws.Cells[($r + 1), 1].Value = 'Rojo en "Camiones esta semana / proxima": se pidio mas de la capacidad semanal observada. La capacidad es editable (columna amarilla). Los nombres de la columna "Nombre en cargas dictadas" tienen que coincidir con los que se usan en la hoja Cargas.'
+NotaLarga $ws ($r + 1) 'Rojo en "Camiones esta semana / proxima": se pidio mas de la capacidad semanal observada. La capacidad es editable (columna amarilla). Los nombres de la columna "Nombre en cargas dictadas" tienen que coincidir con los que se usan en la hoja Cargas.'
 $ws.View.FreezePanes(5, 3)
 $anchos = @(7, 20, 20, 10, 10, 10, 10, 12, 10, 9, 30, 20, 12, 12, 12, 60, 14, 12, 14, 10, 50); for ($c = 1; $c -le $anchos.Count; $c++) { $ws.Column($c).Width = $anchos[$c - 1] }
 
@@ -538,7 +567,7 @@ $cal = @(
     @('Mensual', 'primer lunes', 'Revisar factores de estacionalidad por semana del mes, desvio estandar de la venta, precios de compra por origen, capacidad de camaras, concentracion de proveedores.', 'Gonzalo', 'Parametros, Demanda, KPIs, MercadoPY')
 )
 $r = 5; foreach ($c in $cal) { for ($k = 0; $k -lt 5; $k++) { $ws.Cells[$r, ($k + 1)].Value = $c[$k]; $ws.Cells[$r, ($k + 1)].Style.WrapText = $true; $ws.Cells[$r, ($k + 1)].Style.VerticalAlignment = 'Top' }; $ws.Cells[$r, 1].Style.Font.Bold = $true; $r++ }
-$ws.Cells[($r + 1), 1].Value = 'Reglas fijas: el sabado cierra la semana; lo que descarga el lunes suma a la siguiente; Paraguay carga domingo-lunes-martes (entra en la semana); Brasil cierra pedidos jueves y Paraguay miercoles; minimo 22.500 cajas al sabado, Bolivia incluida.'
+NotaLarga $ws ($r + 1) 'Reglas fijas: el sabado cierra la semana; lo que descarga el lunes suma a la siguiente; Paraguay carga domingo-lunes-martes (entra en la semana); Brasil cierra pedidos jueves y Paraguay miercoles; minimo 22.500 cajas al sabado, Bolivia incluida.'
 $ws.Column(1).Width = 12; $ws.Column(2).Width = 12; $ws.Column(3).Width = 80; $ws.Column(4).Width = 24; $ws.Column(5).Width = 50
 
 # =====================================================================
@@ -616,7 +645,7 @@ for ($i = 0; $i -lt $NW; $i++) {
 CF $ws "G$W0`:G$WL" "LEFT(G$W0,2)=`"SI`"" $ROJO $true
 CF $ws "K$W0`:K$WL" "K$W0=`"NO ENTRA`"" $ROJO $true
 CF $ws "K$W0`:K$WL" "K$W0=`"al limite`"" $AMAR $false
-$ws.Cells[($WL + 2), 1].Value = '"Cajas a madurar" es un PROXY: se toma la venta de la semana siguiente (lo que hay que tener maduro para vender). Referencias (multinacionales): ciclo de maduracion de 4 a 6 dias (5 el mas usado); etileno 100-150 ppm las primeras 24 h; minimo 4 camaras para escalonar entrada, gaseo y despacho; una camara de 20 pallets por cada 20 pallets extra por semana hasta ~140 pallets/semana. Un pallet = 48 cajas de 22 kg aprox.'
+NotaLarga $ws ($WL + 2) '"Cajas a madurar" es un PROXY: se toma la venta de la semana siguiente (lo que hay que tener maduro para vender). Referencias (multinacionales): ciclo de maduracion de 4 a 6 dias (5 el mas usado); etileno 100-150 ppm las primeras 24 h; minimo 4 camaras para escalonar entrada, gaseo y despacho; una camara de 20 pallets por cada 20 pallets extra por semana hasta ~140 pallets/semana. Un pallet = 48 cajas de 22 kg aprox.'
 $anchos = @(13, 11, 12, 16, 16, 10, 22, 12, 14, 12, 12); for ($c = 1; $c -le $anchos.Count; $c++) { $ws.Column($c).Width = $anchos[$c - 1] }
 
 # =====================================================================
@@ -645,7 +674,8 @@ $mpy = @(
     @('Silvia Castillo', '', 0.024, $null, $null, 'proveedora de Nalia'),
     @('Graciela Nunez', '', 0.023, $null, $null, ''),
     @('Gaspar Saldivar & Nietos', '', 0.021, $null, $null, ''),
-    @('El Productor', '', 0.018, $null, $null, '')
+    @('El Productor', '', 0.018, $null, $null, ''),
+    @('Fernandez Andes Schaerer Diego Fernando (persona fisica)', '', 0.009, 0.71, 940, 'Paraguay DF de Almar (Diego). Puesto 23 de 2026; 61% de su fruta 2026 sale con marca PEPE. Mejor ano 2024 (~1.800 cajas/sem, puesto 14); 2025 casi nada; 2026 vuelve. Cupo observado ~1 camion/sem.')
 )
 $r = 5; foreach ($m in $mpy) { $ws.Cells[$r, 1].Value = $m[0]; $ws.Cells[$r, 2].Value = $m[1]; if ($m[1]) { $ws.Cells[$r, 2].Style.Font.Bold = $true }; $ws.Cells[$r, 3].Value = $m[2]; Fmt $ws.Cells[$r, 3] '0.0%'; if ($null -ne $m[3]) { $ws.Cells[$r, 4].Value = $m[3]; Fmt $ws.Cells[$r, 4] '0.00' }; if ($null -ne $m[4]) { $ws.Cells[$r, 5].Value = $m[4]; Fmt $ws.Cells[$r, 5] '#,##0' }; $ws.Cells[$r, 6].Value = $m[5]; $r++ }
 $r += 1
@@ -657,10 +687,10 @@ foreach ($k in (@($agr.Keys) | Sort-Object { -$agr[$_].pct })) {
     $ws.Cells[$r, 1].Value = $k; if ($a.grupo) { $ws.Cells[$r, 1].Style.Font.Bold = $true }
     $ws.Cells[$r, 2].Value = ($a.emp -join ' + '); $ws.Cells[$r, 3].Value = [math]::Round($a.pct, 3); Fmt $ws.Cells[$r, 3] '0.0%'
     if ($a.cajas -gt 0) { $ws.Cells[$r, 4].Value = $a.cajas; Fmt $ws.Cells[$r, 4] '#,##0' }
-    $ws.Cells[$r, 5].Value = $(if ($k -eq 'Misionero + Ecotierra') { 'el grupo del principal proveedor de Almar (PEPE); cajas/sem solo de Misionero (Ecotierra sin kg en la fuente)' } elseif ($k -eq 'Franco + San Jose Obrero') { 'HF de Almar; cajas/sem solo de Franco' } elseif ($k -eq 'Melgarejo + Servi-Fel') { 'Guido (GM) de Almar; cajas/sem solo de Melgarejo' } else { '' })
+    $ws.Cells[$r, 5].Value = $(if ($k -eq 'Misionero + Ecotierra') { 'el grupo del principal proveedor de Almar (Ecotierra, marca PEPE); Misionero 8.600 + Ecotierra 1.750 cajas/sem' } elseif ($k -eq 'Franco + San Jose Obrero') { 'HF de Almar; cajas/sem solo de Franco' } elseif ($k -eq 'Melgarejo + Servi-Fel') { 'Guido (GM) de Almar; cajas/sem solo de Melgarejo' } else { '' })
     $r++
 }
-$ws.Cells[($r + 1), 1].Value = 'Uso: si HF (Franco) o MS no pueden cargar, los cupos de Misionero, Aguero, Karen o Saldivar cubren 2-8 camiones por semana cada uno. Los grupos son SOLO los tres que confirmo Gonzalo (19/09/2026); las demas empresas se cuentan por separado aunque se parezcan de nombre. Fuente: extractos Penta (aduana UY) trabajados en el Excel de exportadores de Paraguay (otra sesion, 28/09/2026).'
+NotaLarga $ws ($r + 1) 'Uso: si HF (Franco) o MS no pueden cargar, los cupos de Misionero, Aguero, Karen o Saldivar cubren 2-8 camiones por semana cada uno. Los grupos son SOLO los tres que confirmo Gonzalo (19/09/2026); las demas empresas se cuentan por separado aunque se parezcan de nombre. Fuente: extractos Penta (aduana UY) trabajados en el Excel de exportadores de Paraguay (otra sesion, 28/09/2026).'
 $ws.Column(1).Width = 34; $ws.Column(2).Width = 34; $ws.Column(3).Width = 14; $ws.Column(4).Width = 14; $ws.Column(5).Width = 16; $ws.Column(6).Width = 80
 
 # =====================================================================

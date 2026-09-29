@@ -30,3 +30,6 @@ respaldos_servidor/
 # son del servidor (correr_servidor.ps1 los preserva); en la laptop no existen salvo que haya config/aloha.json
 fuentes/plan_cargas/*(Aloha API).xlsx
 fuentes/plan_cargas/otros/*(Aloha API).xlsx
+
+# archivos de bloqueo de Excel (~$nombre.xlsx) mientras el libro esta abierto
+~$*
