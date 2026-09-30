@@ -683,6 +683,7 @@ LOG DE CAMBIOS:
                2 dias); sab 17/10 18.614, faltan 4 (las de comienzo de esa semana). Guido carga miercoles y
                con 4 dias descarga el domingo 11: suma a la semana siguiente. Opinion dada en el chat:
                Paraguay sobra (llega en corte 2), Bolivia falta.
+  30/09/2026 -> Gonzalo saca la carga de Cassio del martes 06/10 (queda la del sabado 10). Sab 10/10 cierra en 23.802, ok.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
