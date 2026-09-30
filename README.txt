@@ -664,6 +664,17 @@ LOG DE CAMBIOS:
                (10%) a la real (STDEV del historial, ~1.280 cajas). Notas al pie en celdas combinadas con
                ajuste de texto (se veian cortadas); MercadoPY con los 3 grupos + ranking agrupado y Diego
                Fernandez (puesto 23, ~940 cajas/sem, 61% marca PEPE); .gitignore: ~$*.xlsx (bloqueo de Excel).
+  30/09/2026 -> TRAZABILIDAD DE CORTES, arranque (Gonzalo: "vamos a la trazabilidad, cortes de banana"). Gonzalo
+               paso el prompt/resumen del control por corte de Aloha (IA Opus dentro del ERP, protocolo UAM v1,
+               11 lecturas en 8 camiones descargados el 25 y 26/09, confirmadas por el operario). Cargado en
+               fuentes\calidad_lotes.xlsx: 8 lotes nuevos en la hoja lotes (PYAS012, PYMS021, SUPREMA-2509,
+               PYMS022, FH070, BONITA-278, PEPE-275, BONITA-279) con corte_color de llegada, destino y camara
+               probable (cruce con el conteo del 26/09), y hoja nueva cortes_recepcion (una fila por lectura:
+               pie de camion, lote/marca, pallet, chofer, placa, dedos, puntaje, veredicto, posicion adelantada,
+               sospechas, accion, protocolo, confianza). Imagenes del resumen en
+               fuentes\calidad_fotos\2026-09-25_cortes_aloha_recepcion\. Pipeline corrido: 11 lotes en
+               index_calidad (0 con fecha_rompio: sigue faltando el dato de camara). Pendiente: mostrar la
+               hoja cortes_recepcion en index_calidad (hoy el paso 5g solo lee "lotes").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
