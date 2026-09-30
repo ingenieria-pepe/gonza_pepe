@@ -675,6 +675,14 @@ LOG DE CAMBIOS:
                fuentes\calidad_fotos\2026-09-25_cortes_aloha_recepcion\. Pipeline corrido: 11 lotes en
                index_calidad (0 con fecha_rompio: sigue faltando el dato de camara). Pendiente: mostrar la
                hoja cortes_recepcion en index_calidad (hoy el paso 5g solo lee "lotes").
+  30/09/2026 -> Plan de compras: cargas dictadas por Gonzalo para la semana del 5 al 10/10 (17 filas en
+               cargas_programadas): Brasil 11 (Fisher mar+vie, Agro mie+vie, Cassio mar+sab, Ivo mie+vie,
+               Gilson vie, Stein mar, Marconi vie; transportista supuesto = semana anterior) y Paraguay 6
+               (Milciades lun+mar, Diego lun+mar, Guido mie, Alvarito lun). Bolivia: nada dictado. Resultado:
+               sab 03/10 22.898 ok; sab 10/10 24.738 ok (BR 11.450 = 6,5 dias, PY ~12.800 = 14 dias, BO 450 =
+               2 dias); sab 17/10 18.614, faltan 4 (las de comienzo de esa semana). Guido carga miercoles y
+               con 4 dias descarga el domingo 11: suma a la semana siguiente. Opinion dada en el chat:
+               Paraguay sobra (llega en corte 2), Bolivia falta.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
