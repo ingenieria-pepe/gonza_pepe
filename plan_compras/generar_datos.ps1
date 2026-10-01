@@ -156,15 +156,16 @@ if ($pyPorSemana -gt 0) {
 }
 # ---- supuesto Bolivia [01/10/2026]: "de Bolivia vamos a descargar uno por semana siempre". Clave bo_camiones_semana
 #      de la hoja supuestos. Para cada semana de VENTA del horizonte (lunes a sabado) sin ningun camion BO que
-#      descargue (ni del Plan OTROS ni dictado), se agrega uno cargado 6 dias antes del lunes (descarga el lunes),
-#      pero solo si esa fecha de carga es hoy o despues: lo que debio cargar antes y Aloha no tiene, no se inventa.
+#      descargue (ni del Plan OTROS ni dictado), se agrega uno cargado 6 dias antes del lunes (descarga el lunes).
+#      01/10 (mas tarde), Gonzalo: "conta una carga por semana siempre de Bolivia": se cuenta aunque la fecha de carga
+#      ya haya pasado y Aloha no la tenga todavia (desde la semana en curso).
 function LunesDeVenta($d) { if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { return $d.AddDays(1) }; return $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) }
 $boPorSemana = 0; if ($supuestos.ContainsKey('bo_camiones_semana')) { $boPorSemana = [int]$supuestos['bo_camiones_semana'] }
 $nSupBO = 0
 if ($boPorSemana -gt 0) {
     $hoyD = (Get-Date).Date
     $lun0 = LunesDeVenta $hoyD
-    for ($w = 1; $w -le 4; $w++) {
+    for ($w = 0; $w -le 4; $w++) {
         $lunV = $lun0.AddDays(7 * $w)
         $hayBO = 0
         foreach ($c in $camiones) {
@@ -174,7 +175,6 @@ if ($boPorSemana -gt 0) {
         }
         if ($hayBO -gt 0) { continue }
         $cargaS = $lunV.AddDays(-$LAG_DESC.BO)
-        if ($cargaS -lt $hoyD) { continue }
         $domS = $cargaS.AddDays(-[int]$cargaS.DayOfWeek)
         for ($i = 0; $i -lt $boPorSemana; $i++) {
             $camiones += [PSCustomObject]@{ origen = 'BO'; productor = 'Bolivia (supuesto)'; carga = (Ymd $cargaS); semana_carga = (Ymd $domS); cajas = 1050; status = 'supuesto'; descarga = $null; transportista = ''; fuente = 'supuesto'; nota = "supuesto: $boPorSemana camion BO por semana, descarga el lunes (Gonzalo 01/10)" }

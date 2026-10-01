@@ -705,6 +705,7 @@ LOG DE CAMBIOS:
                camiones imposibles a la semana siguiente (con el minimo nuevo de 25.000, el viernes 02/10 habria
                pedido 3 camiones para el sabado 03/10). Misma regla que el simulador y el Excel.
   01/10/2026 -> ventas_plan: las semanas SUPUESTO (desde el 05/10) pasan de 17.000 a 18.000 (Gonzalo: "si sube es a 18 mil la venta, no mas que eso"), mix real ult. 4 sem.
+  01/10/2026 -> Bolivia: el camion supuesto se cuenta SIEMPRE, una por semana, desde la semana en curso, aunque la fecha de carga ya haya pasado y Aloha no lo tenga (Gonzalo: "conta una carga por semana siempre de Bolivia").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
