@@ -694,6 +694,12 @@ LOG DE CAMBIOS:
                semana que arranca, en los tres lados: Get-PlanComprasLineas (WhatsApp), simulador.html (lunes())
                y Plan_Compras_Simulado.xlsx (columnas Semana de venta y Semana P90 de Cargas). Correccion al
                numero del dia: sab 10/10 cierra en 24.766 (en el chat habia estimado 25.700 por error de suma).
+  01/10/2026 -> MINIMO 25.000 Y BOLIVIA 1 POR SEMANA (Gonzalo: "de Bolivia vamos a descargar uno por semana
+               siempre; comienza el calor en Uruguay, levanta las ventas, quieren mantener 25 mil cajas al cierre
+               del sabado contando todo, PY BOL y BR"). Hoja supuestos de plan_compras.xlsx: minimo_cajas_sabado
+               = 25000 y bo_camiones_semana = 1; generar_datos.ps1 los lee (minimos.TODO; un camion BO supuesto
+               por semana de venta sin descarga BO, cargado 6 dias antes del lunes si esa fecha no paso). Lo toman
+               el WhatsApp, el simulador y el Excel. Textos "supuestos PY" pasan a "supuestos".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -154,6 +154,35 @@ if ($pyPorSemana -gt 0) {
         }
     }
 }
+# ---- supuesto Bolivia [01/10/2026]: "de Bolivia vamos a descargar uno por semana siempre". Clave bo_camiones_semana
+#      de la hoja supuestos. Para cada semana de VENTA del horizonte (lunes a sabado) sin ningun camion BO que
+#      descargue (ni del Plan OTROS ni dictado), se agrega uno cargado 6 dias antes del lunes (descarga el lunes),
+#      pero solo si esa fecha de carga es hoy o despues: lo que debio cargar antes y Aloha no tiene, no se inventa.
+function LunesDeVenta($d) { if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { return $d.AddDays(1) }; return $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) }
+$boPorSemana = 0; if ($supuestos.ContainsKey('bo_camiones_semana')) { $boPorSemana = [int]$supuestos['bo_camiones_semana'] }
+$nSupBO = 0
+if ($boPorSemana -gt 0) {
+    $hoyD = (Get-Date).Date
+    $lun0 = LunesDeVenta $hoyD
+    for ($w = 1; $w -le 4; $w++) {
+        $lunV = $lun0.AddDays(7 * $w)
+        $hayBO = 0
+        foreach ($c in $camiones) {
+            if ($c.origen -ne 'BO') { continue }
+            $desc = $(if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($LAG_DESC.BO) })
+            if ((LunesDeVenta $desc) -eq $lunV) { $hayBO++ }
+        }
+        if ($hayBO -gt 0) { continue }
+        $cargaS = $lunV.AddDays(-$LAG_DESC.BO)
+        if ($cargaS -lt $hoyD) { continue }
+        $domS = $cargaS.AddDays(-[int]$cargaS.DayOfWeek)
+        for ($i = 0; $i -lt $boPorSemana; $i++) {
+            $camiones += [PSCustomObject]@{ origen = 'BO'; productor = 'Bolivia (supuesto)'; carga = (Ymd $cargaS); semana_carga = (Ymd $domS); cajas = 1050; status = 'supuesto'; descarga = $null; transportista = ''; fuente = 'supuesto'; nota = "supuesto: $boPorSemana camion BO por semana, descarga el lunes (Gonzalo 01/10)" }
+            $nSupBO++
+        }
+    }
+}
+$minimoSab = 22500; if ($supuestos.ContainsKey('minimo_cajas_sabado')) { $minimoSab = [int]$supuestos['minimo_cajas_sabado'] }
 #      27/09 (mas tarde): "a esas 22.500 le estas sumando Bolivia?": si, el minimo es del stock TOTAL de banana
 #      (Brasil + Paraguay + Bolivia). Un solo grupo TODO; el simulador lee grupos/nombres/minimos del JSON, asi
 #      que para volver a separar alcanza con cambiar estas lineas.
@@ -172,7 +201,9 @@ $out = [ordered]@{
     nombres = $NOMBRES
     # minimo en CAJAS al cierre del sabado (Gonzalo 27/09/2026: "preciso tener en stock de una semana a otra unas
     # 22/23 mil cajas cerrando el sabado", y Bolivia incluida). Si esta, pisa al minimo por dias de venta.
-    minimos = [ordered]@{ TODO = 22500 }
+    # [01/10/2026] 25.000 (Gonzalo: "comienza el calor en Uruguay, levanta las ventas, quieren mantener 25 mil cajas al
+    # cierre del sabado contando todo"); clave minimo_cajas_sabado de la hoja supuestos.
+    minimos = [ordered]@{ TODO = $minimoSab }
     plan_cargas = [ordered]@{ archivo = $pc.Name; fecha = $pc.LastWriteTime.ToString('yyyy-MM-dd HH:mm'); camiones = $nBRPY; ultima_carga = [ordered]@{ BR = $(if ($maxPlan.BR) { Ymd $maxPlan.BR }); PY = $(if ($maxPlan.PY) { Ymd $maxPlan.PY }) } }
     plan_cargas_otros = [ordered]@{ archivo = $(if ($pcO) { $pcO.Name } else { $null }); fecha = $(if ($pcO) { $pcO.LastWriteTime.ToString('yyyy-MM-dd HH:mm') }); camiones_bo = $nBO; ultima_carga_bo = $(if ($maxPlan.BO) { Ymd $maxPlan.BO }) }
     plan_compras = [ordered]@{ archivo = 'plan_compras\plan_compras.xlsx'; fecha = (Get-Item $pcx).LastWriteTime.ToString('yyyy-MM-dd HH:mm'); dictadas_usadas = $usadas; dictadas_omitidas_por_estar_en_el_plan = $omitidas }
@@ -185,7 +216,7 @@ $out = [ordered]@{
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress
 [IO.File]::WriteAllText((Join-Path $aqui 'plan_compras.json'), $json, (New-Object Text.UTF8Encoding $false))
-Write-Host "plan_compras.json: $($camiones.Count) camiones (BR/PY $nBRPY, BO $nBO, dictadas $usadas, supuestos PY $nSup; $omitidas dictadas ya estan en el plan) · conteo $($conteo.fecha)"
+Write-Host "plan_compras.json: $($camiones.Count) camiones (BR/PY $nBRPY, BO $nBO, dictadas $usadas, supuestos PY $nSup, supuestos BO $nSupBO; $omitidas dictadas ya estan en el plan) · minimo $minimoSab · conteo $($conteo.fecha)"
 
 # ---- inyectar en simulador.html
 $html = Join-Path $aqui 'simulador.html'

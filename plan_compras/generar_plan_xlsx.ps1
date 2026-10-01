@@ -47,7 +47,7 @@ Titulo $ws 'PLAN DE COMPRAS SIMULADO - Almar S.R.L. (banana Brasil + Paraguay + 
 $ini = @(
     @('PARA QUE SIRVE', ''),
     @('', 'Proyectar el stock de banana al cierre de cada sabado, saber cuantos camiones cargar y hasta que dia, y probar escenarios (venta distinta a comienzo/fin de mes, atraso en frontera, camiones de mas o de menos).'),
-    @('', 'Sigue las reglas de Almar: el sabado cierra la semana; lo que descarga el lunes suma a la semana siguiente; Paraguay carga domingo-lunes-martes y entra en la semana; los pedidos a Paraguay cierran el miercoles y a Brasil el jueves; minimo 22.500 cajas al cierre del sabado (Bolivia incluida).'),
+    @('', 'Sigue las reglas de Almar: el sabado cierra la semana; lo que descarga el lunes suma a la semana siguiente; Paraguay carga domingo-lunes-martes y entra en la semana; los pedidos a Paraguay cierran el miercoles y a Brasil el jueves; minimo 25.000 cajas al cierre del sabado contando los tres origenes (desde el 01/10/2026, verano; antes 22.500).'),
     @('', 'Y la practica de las multinacionales de fruta (S&OP semanal): un solo plan de demanda, proyeccion de inventario por semana con dias de cobertura, stock minimo explicito, recomendacion de pedido con fecha limite por lead time, escenarios, KPIs y tablero de proveedores.'),
     @('COMO SE USA', ''),
     @('1', 'Parametros: fecha del conteo, conteo por origen, minimo, lead times, cajas por camion, escenario. Las celdas AMARILLAS son las que se tocan; las blancas son formulas.'),
@@ -62,7 +62,7 @@ $ini = @(
     @('10', 'Calendario: la rutina S&OP de la semana (que se mira cada dia, quien decide, con que hoja). Semaforo: una pantalla con el estado por origen para esta semana, la proxima y la siguiente, mas los riesgos abiertos.'),
     @('11', 'Capacidad: cajas a madurar por semana contra lo que las camaras pueden madurar, y stock contra la capacidad fisica (hay que completar camaras y cajas en Parametros). MercadoPY: exportadores de Paraguay con volumen, como alternativas si falla un proveedor habitual.'),
     @('CONVENCION', 'Amarillo = entrada. Blanco = formula (no tocar). Rojo = falta / bajo minimo. Verde = ok. Las fechas van en dd/mm/aaaa.'),
-    @('ORIGEN DE LOS DATOS', 'plan_compras.json (paso 5j de actualizar_precios.ps1): Plan de Cargas de Aloha, cargas dictadas por Gonzalo (plan_compras.xlsx), supuestos PY, ventas_plan, conteo por camara. Precios: precios_cepea.json (Cepea + cargas 2026).'),
+    @('ORIGEN DE LOS DATOS', 'plan_compras.json (paso 5j de actualizar_precios.ps1): Plan de Cargas de Aloha, cargas dictadas por Gonzalo (plan_compras.xlsx), supuestos PY y BO, ventas_plan, conteo por camara. Precios: precios_cepea.json (Cepea + cargas 2026).'),
     @('', 'Para refrescar los datos: volver a correr el script que arma esta planilla (plan_compras\generar_plan_xlsx.ps1) o pegar a mano las cargas nuevas en la hoja Cargas.'),
     @('QUIEN LA ARMO', 'Pedido de Gonzalo del 28/09/2026 ("una planilla de plan de compras simulado a medida de mis necesidades y de una empresa multinacional"). La armaron dos sesiones de Claude: una investigo la practica S&OP de las multinacionales de fruta y aporto lead times reales, proveedores, precios de aduana y el mercado exportador de Paraguay; la otra armo las hojas y las formulas sobre los datos del pipeline.')
 )
@@ -80,7 +80,7 @@ $ws.Cells[3, 3].Value = 'El stock arranca de aca. Solo cuentan los camiones que 
 $ws.Cells[4, 1].Value = 'Hoy (FechaHoy)';                                         $ws.Cells[4, 2].Formula = 'TODAY()'; Fmt $ws.Cells[4, 2] 'dd/mm/yyyy'; Nombre 'FechaHoy' $ws.Cells[4, 2]
 $ws.Cells[4, 3].Value = 'Se puede pisar con una fecha fija para revisar un plan viejo.'
 $ws.Cells[5, 1].Value = 'Minimo al cierre del sabado (cajas)';          $ws.Cells[5, 2].Value = [int]$PCJ.minimos.TODO; Fmt $ws.Cells[5, 2] '#,##0'; Inp $ws.Cells[5, 2]; Nombre 'MinimoSabado' $ws.Cells[5, 2]
-$ws.Cells[5, 3].Value = 'Gonzalo 27/09/2026: "de una semana a otra unas 22/23 mil cajas cerrando el sabado", Bolivia incluida. Equivale a ~7-8 dias de venta (fruta que todavia no maduro: gas + camara).'
+$ws.Cells[5, 3].Value = 'Viene del JSON (plan_compras.xlsx > supuestos > minimo_cajas_sabado). 01/10/2026: 25.000 contando Brasil + Paraguay + Bolivia ("comienza el calor en Uruguay, levanta las ventas, quieren mantener 25 mil cajas al cierre del sabado"). Antes, 27/09: 22.500 ("de una semana a otra unas 22/23 mil cajas cerrando el sabado"). Equivale a ~8-9 dias de venta.'
 $ws.Cells[6, 1].Value = 'Cobertura objetivo (dias de venta)';           $ws.Cells[6, 2].Value = 7; Inp $ws.Cells[6, 2]; Nombre 'CoberturaObjetivo' $ws.Cells[6, 2]
 $ws.Cells[6, 3].Value = 'Referencia para pintar la cobertura: menos que esto = amarillo, menos de 2 = rojo.'
 $ws.Cells[7, 1].Value = 'Dias de venta por semana';                     $ws.Cells[7, 2].Value = 6; Inp $ws.Cells[7, 2]; Nombre 'DiasVenta' $ws.Cells[7, 2]
@@ -453,8 +453,8 @@ $ws.Cells[$r, 1].Value = 'REFERENCIA MULTINACIONAL (S&OP de fruta fresca)'; $ws.
 $ref = @(
     @('Cadencia S&OP', 'Reunion semanal (15-30 min) de demanda, abastecimiento y riesgos, con KPIs de merma y exactitud del pronostico.', 'El WhatsApp del miercoles 12:00 (pedidos) y del viernes 19:00 (cierre): Cepea, clima, stock proyectado y camiones que faltan. Esta planilla es el soporte para probar antes de dictar.'),
     @('Un solo plan de demanda', 'Un numero de venta por semana acordado entre ventas y compras, con estacionalidad (dia de la semana, semana del mes) y venta real para medir el desvio.', 'Hoja Demanda: venta plan + factor por semana del mes + venta manual + venta real ERP + desvio.'),
-    @('Proyeccion de inventario', 'Stock inicial + recepciones - demanda = stock final, por semana, contra un stock de seguridad explicito; recomendacion de pedido con fecha limite por lead time.', 'Hoja Proyeccion: cierre del sabado, minimo 22.500, camiones a cargar y fecha limite (sabado - lead time).'),
-    @('Stock de seguridad dinamico (perecederos)', 'Sube y baja con la venta (mas antes del fin de semana / comienzo de mes), acotado por la vida util: mas stock = mas merma.', 'Minimo en cajas (22.500) o por dias de venta (7): Parametros. La cobertura objetivo pinta la proyeccion.'),
+    @('Proyeccion de inventario', 'Stock inicial + recepciones - demanda = stock final, por semana, contra un stock de seguridad explicito; recomendacion de pedido con fecha limite por lead time.', 'Hoja Proyeccion: cierre del sabado, minimo 25.000, camiones a cargar y fecha limite (sabado - lead time).'),
+    @('Stock de seguridad dinamico (perecederos)', 'Sube y baja con la venta (mas antes del fin de semana / comienzo de mes), acotado por la vida util: mas stock = mas merma.', 'Minimo en cajas (25.000 desde el 01/10/2026) o por dias de venta (7): Parametros. La cobertura objetivo pinta la proyeccion.'),
     @('Dias de cobertura (DOS / days on hand)', 'Indicador central: stock / venta diaria. Objetivo por categoria; fruta fresca 5-10 dias segun madurez.', 'Columnas "Dias de cobertura" (total y por origen). Almar: 7 dias = fruta que todavia no maduro (gas + camara).'),
     @('Lead time y ciclo de pedido por dia de la semana', 'Cada origen con su lead time y su dia de corte; el sistema avisa antes del corte si la cobertura no llega.', 'Lead time por origen (3/3/6), lead time real por productor (Proveedores), corte PY miercoles / BR jueves, "Cargar hasta" por semana.'),
     @('Capacidad de maduracion', 'Camaras de maduracion planificadas por volumen semanal (regla: una camara de 20 pallets por cada 20 pallets extra por semana, hasta ~140 pallets/sem).', 'Pendiente: cargar capacidad de camaras (ZAC / Coronel Raiz) como tope de recepcion semanal. FechaHoy el limite es el minimo, no el maximo.'),
@@ -568,7 +568,7 @@ $cal = @(
     @('Mensual', 'primer lunes', 'Revisar factores de estacionalidad por semana del mes, desvio estandar de la venta, precios de compra por origen, capacidad de camaras, concentracion de proveedores.', 'Gonzalo', 'Parametros, Demanda, KPIs, MercadoPY')
 )
 $r = 5; foreach ($c in $cal) { for ($k = 0; $k -lt 5; $k++) { $ws.Cells[$r, ($k + 1)].Value = $c[$k]; $ws.Cells[$r, ($k + 1)].Style.WrapText = $true; $ws.Cells[$r, ($k + 1)].Style.VerticalAlignment = 'Top' }; $ws.Cells[$r, 1].Style.Font.Bold = $true; $r++ }
-NotaLarga $ws ($r + 1) 'Reglas fijas: el sabado cierra la semana; lo que descarga el lunes suma a la siguiente; Paraguay carga domingo-lunes-martes (entra en la semana); Brasil cierra pedidos jueves y Paraguay miercoles; minimo 22.500 cajas al sabado, Bolivia incluida.'
+NotaLarga $ws ($r + 1) 'Reglas fijas: el sabado cierra la semana; lo que descarga el lunes suma a la siguiente; Paraguay carga domingo-lunes-martes (entra en la semana); Brasil cierra pedidos jueves y Paraguay miercoles; minimo 25.000 cajas al sabado contando los tres origenes (desde el 01/10/2026).'
 $ws.Column(1).Width = 12; $ws.Column(2).Width = 12; $ws.Column(3).Width = 80; $ws.Column(4).Width = 24; $ws.Column(5).Width = 50
 
 # =====================================================================
@@ -703,7 +703,7 @@ $ws.Cells[3, 1].Value = 'Termino'; $ws.Cells[3, 2].Value = 'Que es'; Hdr $ws 3 1
 $gl = @(
     @('S&OP (Sales & Operations Planning)', 'Proceso semanal/mensual donde ventas, compras y logistica acuerdan UN plan de demanda y de abastecimiento y revisan riesgos con KPIs.'),
     @('Dias de cobertura (DOS, days on hand)', 'Stock dividido la venta diaria. Cuantos dias aguanta el stock sin que entre nada.'),
-    @('Stock de seguridad / minimo', 'Stock que se quiere tener al cierre para absorber atrasos y picos de venta. Aca: 22.500 cajas al sabado (o 7 dias de venta).'),
+    @('Stock de seguridad / minimo', 'Stock que se quiere tener al cierre para absorber atrasos y picos de venta. Aca: 25.000 cajas al sabado desde el 01/10/2026 (antes 22.500), o 7 dias de venta.'),
     @('Lead time', 'Dias entre cargar el camion y descargarlo en Almar. BR/PY 3, BO 6 (reales por productor en Proveedores).'),
     @('Punto de pedido / fecha limite', 'Ultimo dia para cargar de modo que el camion sume a esa semana: sabado menos el lead time (miercoles para BR/PY).'),
     @('Corte de pedido', 'Dia en que el proveedor cierra los pedidos de la semana siguiente: Paraguay miercoles, Brasil jueves.'),

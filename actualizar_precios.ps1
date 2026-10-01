@@ -4165,7 +4165,7 @@ function Get-PlanComprasLineas {
             $faltan = 0; if ($saldoSim -lt $min) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc }
             $sab = $w.AddDays(5)
             $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" }) +
-                   " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos PY)" } else { "" }) + " · vende $($v.ToString('N0'))"
+                   " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos)" } else { "" }) + " · vende $($v.ToString('N0'))"
             if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
             elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
             else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
