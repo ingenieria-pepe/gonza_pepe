@@ -146,9 +146,12 @@ if ($pyPorSemana -gt 0) {
     for ($w = 1; $w -le 3; $w++) {
         $dom = $dom0.AddDays(7 * $w); $kSem = Ymd $dom
         $hayPY = @($camiones | Where-Object { $_.origen -eq 'PY' -and $_.semana_carga -eq $kSem }).Count
-        if ($hayPY -gt 0) { continue }
+        # [01/10/2026] si ya hay cargas PY dictadas pero menos que el ritmo habitual, se completan con supuestos
+        # (Gonzalo dicto solo a Guido para el martes 13 y los otros 4 de la semana se dictan despues)
+        $faltanPY = $pyPorSemana - $hayPY
+        if ($faltanPY -le 0) { continue }
         $lun = $dom.AddDays(1)
-        for ($i = 0; $i -lt $pyPorSemana; $i++) {
+        for ($i = 0; $i -lt $faltanPY; $i++) {
             $camiones += [PSCustomObject]@{ origen = 'PY'; productor = 'Paraguay (supuesto)'; carga = (Ymd $lun); semana_carga = $kSem; cajas = 980; status = 'supuesto'; descarga = $null; transportista = ''; fuente = 'supuesto'; nota = "supuesto: $pyPorSemana camiones PY por semana, cargan dom-lun-mar (Gonzalo 27/09)" }
             $nSup++
         }
