@@ -700,6 +700,10 @@ LOG DE CAMBIOS:
                = 25000 y bo_camiones_semana = 1; generar_datos.ps1 los lee (minimos.TODO; un camion BO supuesto
                por semana de venta sin descarga BO, cargado 6 dias antes del lunes si esa fecha no paso). Lo toman
                el WhatsApp, el simulador y el Excel. Textos "supuestos PY" pasan a "supuestos".
+  01/10/2026 -> WhatsApp, bloque Plan de compras: solo pide camiones si todavia se llega (limite = sabado menos 3
+               dias). Si el limite ya paso, dice "bajo el minimo; ya paso el limite de carga" y NO arrastra
+               camiones imposibles a la semana siguiente (con el minimo nuevo de 25.000, el viernes 02/10 habria
+               pedido 3 camiones para el sabado 03/10). Misma regla que el simulador y el Excel.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -4162,12 +4162,18 @@ function Get-PlanComprasLineas {
             if ($w -lt $wHoy) { continue }
             $min = if ($minCajas -gt 0) { $minCajas } else { [math]::Round($vp / 6 * 7) }
             $saldoSim = $saldo + $extra
-            $faltan = 0; if ($saldoSim -lt $min) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc }
             $sab = $w.AddDays(5)
+            # [01/10/2026] solo se piden camiones si todavia se llega: el limite de carga es el sabado menos el lag del grupo
+            # (3 dias = miercoles). Si ya paso, se dice que cierra bajo el minimo y NO se arrastran camiones imposibles.
+            $lagG = 3; if ($PCJ.lags.$g -and $null -ne $PCJ.lags.$g.descarga) { $lagG = [int]$PCJ.lags.$g.descarga }
+            $limite = $sab.AddDays(-$lagG)
+            $faltan = 0; $tarde = $false
+            if ($saldoSim -lt $min) { if ($limite -ge $hoyD) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc } else { $tarde = $true } }
             $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" }) +
                    " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos)" } else { "" }) + " · vende $($v.ToString('N0'))"
             if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
             elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
+            elseif ($tarde) { $txt += " → *bajo el mínimo* ($($min.ToString('N0'))); ya pasó el límite de carga" }
             else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
             $pedidosAntes += $faltan
             $lineas += $txt
