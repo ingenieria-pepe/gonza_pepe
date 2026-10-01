@@ -684,6 +684,10 @@ LOG DE CAMBIOS:
                con 4 dias descarga el domingo 11: suma a la semana siguiente. Opinion dada en el chat:
                Paraguay sobra (llega en corte 2), Bolivia falta.
   30/09/2026 -> Gonzalo saca la carga de Cassio del martes 06/10 (queda la del sabado 10). Sab 10/10 cierra en 23.802, ok.
+  01/10/2026 -> Semana 05-10/10, version final de Gonzalo (Uruguay pide cerrar el sabado 10 con 25.000): Brasil 11
+               (Fisher mar+vie, Agro mie, Cassio mie+sab, Ivo mie+vie, Gilson vie, Josemar mar, Stein mar, Marconi
+               vie) y Paraguay 5 (Milciades lun+mar, Diego lun+mar, Alvarito lun). Sale Guido. Sab 10/10 cierra
+               en ~25.700. El minimo de las herramientas sigue en 22.500 hasta que Gonzalo diga si 25.000 es fijo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
