@@ -4128,7 +4128,8 @@ function Get-PlanComprasLineas {
     $fCon = [DateTime]$PCJ.conteo.fecha
     $hoyD = (Get-Date).Date
     if ($hoyD.DayOfWeek -eq [DayOfWeek]::Sunday) { $hoyD = $hoyD.AddDays(1) }   # el domingo ya se mira la semana que arranca
-    $lunesDe = { param($d) $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) }
+    # [01/10/2026] el domingo pertenece a la semana que ARRANCA (el sabado ya cerro): una descarga de domingo suma a la semana siguiente
+    $lunesDe = { param($d) if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) } }
     $plan = @($PCJ.ventas_plan | Sort-Object semana_lunes)
     $lineas = @()
     foreach ($gp in @($PCJ.grupos.PSObject.Properties)) {

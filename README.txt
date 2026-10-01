@@ -688,6 +688,12 @@ LOG DE CAMBIOS:
                (Fisher mar+vie, Agro mie, Cassio mie+sab, Ivo mie+vie, Gilson vie, Josemar mar, Stein mar, Marconi
                vie) y Paraguay 5 (Milciades lun+mar, Diego lun+mar, Alvarito lun). Sale Guido. Sab 10/10 cierra
                en ~25.700. El minimo de las herramientas sigue en 22.500 hasta que Gonzalo diga si 25.000 es fijo.
+  01/10/2026 -> FIX semana de descarga: una descarga de DOMINGO se sumaba a la semana que cerro el sabado anterior
+               (lunesDe(domingo) = lunes previo). Con Paraguay a 4 dias (miercoles -> domingo) y Bolivia a 6
+               (lunes -> domingo) eso contaba fruta en un sabado ya cerrado. Ahora el domingo pertenece a la
+               semana que arranca, en los tres lados: Get-PlanComprasLineas (WhatsApp), simulador.html (lunes())
+               y Plan_Compras_Simulado.xlsx (columnas Semana de venta y Semana P90 de Cargas). Correccion al
+               numero del dia: sab 10/10 cierra en 24.766 (en el chat habia estimado 25.700 por error de suma).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

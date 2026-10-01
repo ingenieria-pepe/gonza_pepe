@@ -31,7 +31,7 @@ function NotaLarga($ws, $r, $texto) { $ws.Cells[$r, 1].Value = $texto; $rg = $ws
 
 # ---------- datos base ----------
 $fCon = [DateTime]$PCJ.conteo.fecha
-$lunesDe = { param($d) $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) }
+$lunesDe = { param($d) if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) } }   # domingo = semana que arranca
 $W0 = 6; $NW = 13                                   # filas de semanas: 6..18 (misma fila en Demanda, Proyeccion, Escenarios, QueCargar)
 $WL = $W0 + $NW - 1
 $semanas = @(); $lun0 = & $lunesDe $fCon
@@ -269,13 +269,14 @@ for ($r = $C0; $r -le $CL; $r++) {
     Fmt $ws.Cells[$r, 10] 'dd/mm/yyyy'
     $ws.Cells[$r, 11].Formula = "IF(B$r=`"`",`"`",IFERROR(INDEX(Lags,MATCH(D$r,Origenes,0)),LagBR)+IF(J$r<>`"`",0,AtrasoDias))"
     $ws.Cells[$r, 12].Formula = "IF(B$r=`"`",`"`",IF(J$r<>`"`",J$r,B$r+K$r))"; Fmt $ws.Cells[$r, 12] 'dd/mm/yyyy'
-    $ws.Cells[$r, 13].Formula = "IF(L$r=`"`",`"`",L$r-WEEKDAY(L$r,2)+1)"; Fmt $ws.Cells[$r, 13] 'dd/mm/yyyy'
+    # semana de venta = lunes de la semana de la descarga; una descarga de DOMINGO va a la semana siguiente (el sabado ya cerro)
+    $ws.Cells[$r, 13].Formula = "IF(L$r=`"`",`"`",IF(WEEKDAY(L$r,2)=7,L$r+1,L$r-WEEKDAY(L$r,2)+1))"; Fmt $ws.Cells[$r, 13] 'dd/mm/yyyy'
     $ws.Cells[$r, 14].Formula = "IF(L$r=`"`",`"`",IF(L$r>FechaConteo,1,0)*IF(I$r=`"Supuesto`",SupPY,IF(I$r=`"Supuesto BR`",SupBR,1)))"
     $ws.Cells[$r, 21].Formula = "IF(J$r=`"`",`"`",IF(J$r-B$r<=K$r+1,1,0))"
     $ws.Cells[$r, 15].Formula = "IF(D$r=`"`",`"`",IFERROR(INDEX(CostoOrigen,MATCH(D$r,Origenes,0)),0))"; Fmt $ws.Cells[$r, 15] '0.00'
     $ws.Cells[$r, 16].Formula = "IF(H$r=`"`",`"`",H$r*O$r)"; Fmt $ws.Cells[$r, 16] '#,##0'
     $ws.Cells[$r, 18].Formula = "IF(B$r=`"`",`"`",IF(J$r<>`"`",J$r,B$r+IFERROR(INDEX(LagsP90,MATCH(D$r,Origenes,0)),K$r)))"; Fmt $ws.Cells[$r, 18] 'dd/mm/yyyy'
-    $ws.Cells[$r, 19].Formula = "IF(R$r=`"`",`"`",R$r-WEEKDAY(R$r,2)+1)"; Fmt $ws.Cells[$r, 19] 'dd/mm/yyyy'
+    $ws.Cells[$r, 19].Formula = "IF(R$r=`"`",`"`",IF(WEEKDAY(R$r,2)=7,R$r+1,R$r-WEEKDAY(R$r,2)+1))"; Fmt $ws.Cells[$r, 19] 'dd/mm/yyyy'
     $ws.Cells[$r, 20].Formula = "IF(B$r=`"`",`"`",IF(AND(B$r<=FechaHoy,J$r=`"`",I$r<>`"Supuesto`",I$r<>`"Simulado`"),H$r,0))"; Fmt $ws.Cells[$r, 20] '#,##0'
 }
 Lista $ws "D$C0`:D$CL" @('BR', 'PY', 'BO')
