@@ -729,6 +729,14 @@ LOG DE CAMBIOS:
                promedio ponderado (Fisher 36 x2, Agro 35, Ivo 43 x2, Cassio 35 x2, Gilson 40, Josemar 43, Stein 38
                x2, Marconi 38). Agro del viernes no cargo; Cassio cargo tambien el miercoles con Nilton: corregido
                en plan_compras.xlsx (sab 03/10 pasa a 23.834). Total de la semana con promedio ponderado.
+  02/10/2026 -> Plan de Cargas (paso 5h y resumen): cajas POR CAMION en vez de sumar cajas_mic. Regla (otra sesion, con
+               los exports de Aloha del 24/09): 1) "Cajas desc." si existe y no supera 1,3 x la tipica del origen;
+               2) pallets x cajas por pallet (BR 36, PY 35, BO 48, EC/CO 54); 3) cajas MIC dividido entre las filas
+               que comparten carpeta + factura; 4) la tipica (BR 1.008, PY 980, BO 1.050, EC 1.080). Y un camion con
+               DOS documentos (misma placa y fecha de carga, MICs que suman un camion) se cuenta una vez. Funciones
+               Get-OrigenPlanRow / Get-CajasCamionPlan / Get-CamionesPlan, con fallback a cajas_mic si fallan.
+               Probado con filas sinteticas (8 filas -> 7 camiones, 7.072 cajas). El control de verosimilitud del
+               WhatsApp queda como red; el [diag plan] del log muestra ademas placa y el valor usado.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

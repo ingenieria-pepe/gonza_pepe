@@ -925,7 +925,58 @@ if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
 $PLAN_PENDIENTES = @('Solicitado','Confirmado','Cargado','Mar','Puerto','Frontera','Liberado','Arribado')
 $PLAN_EN_CAMINO  = @('Frontera','Liberado')
 $PLAN_POR_VENIR  = @('Solicitado','Confirmado','Cargado','Mar','Puerto')
-function Get-CajasPlan { param($rows) [int](($rows | ForEach-Object { if ($_.cajas_mic) { [int]$_.cajas_mic } else { 0 } } | Measure-Object -Sum).Sum) }
+# [02/10/2026] Cajas por CAMION (el 02/10 el resumen dijo "20 camiones · 44.036 cajas": cajas_mic de la API trae las cajas
+# del documento aduanero entero, que agrupa varios camiones). Regla (otra sesion, con los exports de Aloha del 24/09):
+#   1) "Cajas desc." si existe y no supera 1,3 x la tipica del origen;  2) pallets x cajas por pallet (BR/PY 36, BO 48, EC/CO 54);
+#   3) cajas MIC dividido entre las filas que comparten el mismo MIC (misma carpeta + factura);  4) la tipica del origen.
+# Caso inverso: un camion con DOS documentos (misma placa y fecha de carga, MICs que suman un camion) se cuenta una vez.
+function Get-OrigenPlanRow { param($c) $p = ([string]$c.productor).Trim(); $k = ([string]$c.carpeta_import).Trim().ToUpper()
+    if ($p -match '^Paraguay' -or $k -match '^PY') { return 'PY' }; if ($p -match 'Bolivia|Banexfrut|Befrut' -or $k -match '^BO') { return 'BO' }
+    if ($k -match '^EC' -or $p -match 'Ecuador|Bonita|Interbanana|Noboa') { return 'EC' }; if ($k -match '^CO') { return 'CO' }; return 'BR' }
+$PLAN_TIPICA = @{ BR = 1008; PY = 980; BO = 1050; EC = 1080; CO = 1080 }
+$PLAN_CAJAS_PALLET = @{ BR = 36; PY = 35; BO = 48; EC = 54; CO = 54 }
+function Get-CajasCamionPlan { param($c, $todos)
+    $o = Get-OrigenPlanRow $c; $tip = $PLAN_TIPICA[$o]; if (-not $tip) { $tip = 1000 }
+    $desc = 0; if ($c.cajas_desc) { try { $desc = [int]$c.cajas_desc } catch {} }
+    if ($desc -gt 0 -and $desc -le 1.3 * $tip) { return $desc }
+    $pal = 0; if ($c.cant_pallet) { try { $pal = [int]$c.cant_pallet } catch {} }
+    if ($pal -gt 0 -and $pal -le 40) { $cpp = $PLAN_CAJAS_PALLET[$o]; if (-not $cpp) { $cpp = 36 }; return $pal * $cpp }
+    $mic = 0; if ($c.cajas_mic) { try { $mic = [int]$c.cajas_mic } catch {} }
+    if ($mic -gt 0) {
+        if ($mic -le 1.3 * $tip) { return $mic }
+        $kc = ([string]$c.carpeta_import).Trim() + '|' + ([string]$c.factura).Trim()
+        $n = 1; if ($kc -ne '|' -and $todos) { $n = @($todos | Where-Object { (([string]$_.carpeta_import).Trim() + '|' + ([string]$_.factura).Trim()) -eq $kc }).Count; if ($n -lt 1) { $n = 1 } }
+        $v = [int][math]::Round($mic / $n); if ($v -ge 0.5 * $tip -and $v -le 1.3 * $tip) { return $v }
+    }
+    return $tip
+}
+# agrupa las filas de un conjunto en camiones (misma placa + misma fecha de carga = un camion) y devuelve @{ camiones; cajas }
+function Get-CamionesPlan { param($rows, $todos)
+    try {
+        $grupos = @{}; $orden = @()
+        foreach ($c in $rows) {
+            $pl = ([string]$c.placa_camion).Trim().ToUpper(); $fc = ([string]$c.fecha_carga).Trim()
+            $k = if ($pl -and $fc) { "$pl|$fc" } else { [string][guid]::NewGuid() }
+            if (-not $grupos.ContainsKey($k)) { $grupos[$k] = @(); $orden += $k }
+            $grupos[$k] += $c
+        }
+        $nCam = 0; $cajas = 0
+        foreach ($k in $orden) {
+            $g = @($grupos[$k])
+            if ($g.Count -gt 1) {
+                $o = Get-OrigenPlanRow $g[0]; $tip = $PLAN_TIPICA[$o]; if (-not $tip) { $tip = 1000 }
+                $sumMic = 0; foreach ($x in $g) { if ($x.cajas_mic) { try { $sumMic += [int]$x.cajas_mic } catch {} } }
+                if ($sumMic -gt 0 -and $sumMic -le 1.3 * $tip) { $nCam++; $cajas += $(if ($sumMic -ge 0.5 * $tip) { $sumMic } else { $tip }); continue }   # un camion, dos documentos
+            }
+            foreach ($x in $g) { $nCam++; $cajas += (Get-CajasCamionPlan $x $todos) }
+        }
+        return @{ camiones = $nCam; cajas = [int]$cajas }
+    } catch {
+        Write-Host "    (Get-CamionesPlan fallo: $($_.Exception.Message); se usa cajas_mic)" -ForegroundColor DarkYellow
+        return @{ camiones = @($rows).Count; cajas = [int](($rows | ForEach-Object { if ($_.cajas_mic) { [int]$_.cajas_mic } else { 0 } } | Measure-Object -Sum).Sum) }
+    }
+}
+function Get-CajasPlan { param($rows) (Get-CamionesPlan $rows $cargasPlan).cajas }
 function Get-ProductoresPlan { param($rows) @($rows | ForEach-Object { ([string]$_.productor).Trim() } | Where-Object { $_ } | Sort-Object -Unique) }
 function Get-ConteoStatus { param($rows) $h = [ordered]@{}; foreach ($r in $rows) { $s = [string]$r.status; if (-not $h.Contains($s)) { $h[$s] = 0 }; $h[$s]++ }; $h }
 
@@ -948,10 +999,12 @@ if ($null -ne $planCargas -and @($planCargas.cargas).Count -gt 0) {
     }
     foreach ($k in ($porSemana.Keys | Sort-Object)) {
         $g = @($porSemana[$k])
+        $cpSem = Get-CamionesPlan $g $cargasPlan
         $planSemanas += [PSCustomObject]@{
             semana_lunes = $k
-            camiones     = $g.Count
-            cajas        = Get-CajasPlan $g
+            camiones     = $cpSem.camiones
+            cajas        = $cpSem.cajas
+            filas        = $g.Count
             cajas_desc   = [int](($g | ForEach-Object { if ($_.cajas_desc) { [int]$_.cajas_desc } else { 0 } } | Measure-Object -Sum).Sum)
             pallets      = [int](($g | ForEach-Object { if ($_.cant_pallet) { [int]$_.cant_pallet } else { 0 } } | Measure-Object -Sum).Sum)
             productores  = Get-ProductoresPlan $g
@@ -1010,9 +1063,9 @@ if ($null -ne $planCargas -and @($planCargas.cargas).Count -gt 0) {
         total           = $cargasPlan.Count
         por_status      = Get-ConteoStatus $cargasPlan
         semana_actual   = $semActual
-        en_camino       = [PSCustomObject]@{ camiones = $enCamino.Count;  cajas = (Get-CajasPlan $enCamino);  por_status = (Get-ConteoStatus $enCamino);  productores = (Get-ProductoresPlan $enCamino) }
-        por_venir       = [PSCustomObject]@{ camiones = $porVenir.Count;  cajas = (Get-CajasPlan $porVenir);  por_status = (Get-ConteoStatus $porVenir);  productores = (Get-ProductoresPlan $porVenir) }
-        arribados       = [PSCustomObject]@{ camiones = $arribados.Count; cajas = (Get-CajasPlan $arribados) }
+        en_camino       = [PSCustomObject]@{ camiones = (Get-CamionesPlan $enCamino $cargasPlan).camiones;  cajas = (Get-CajasPlan $enCamino);  por_status = (Get-ConteoStatus $enCamino);  productores = (Get-ProductoresPlan $enCamino) }
+        por_venir       = [PSCustomObject]@{ camiones = (Get-CamionesPlan $porVenir $cargasPlan).camiones;  cajas = (Get-CajasPlan $porVenir);  por_status = (Get-ConteoStatus $porVenir);  productores = (Get-ProductoresPlan $porVenir) }
+        arribados       = [PSCustomObject]@{ camiones = (Get-CamionesPlan $arribados $cargasPlan).camiones; cajas = (Get-CajasPlan $arribados) }
         ultima_descarga = $ultimaDescObj
         semanas         = $planSemanas
         cargas          = $planLista
@@ -4948,7 +5001,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                     if ($sw -and [int]$sw.camiones -gt 0) { $promCaj = [double]$sw.cajas / [int]$sw.camiones; if ($promCaj -ge 500 -and $promCaj -le 1300) { $cajasTxt = " · $(([int]$sw.cajas).ToString('N0')) cajas" } else { Write-Host "    Plan de Cargas: cajas de la semana $kSem omitidas del WhatsApp (promedio $([math]::Round($promCaj)) por camion no es creible)" -ForegroundColor DarkYellow } }
                     if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) en Aloha$cajasTxt$dictTxt`n" }
                     # diagnostico (solo consola/log): cajas por camion tal como vienen de la API, para entender el doble conteo
-                    try { if ($porSemana -and $porSemana.ContainsKey($kSem)) { foreach ($cpc in @($porSemana[$kSem])) { Write-Host "      [diag plan $kSem] $(([string]$cpc.productor).Trim()) carga=$($cpc.fecha_carga) status=$($cpc.status) mic=$($cpc.cajas_mic) desc=$($cpc.cajas_desc) pallets=$($cpc.cant_pallet) carpeta=$($cpc.carpeta_import) factura=$($cpc.factura)" -ForegroundColor DarkGray } } } catch {}
+                    try { if ($porSemana -and $porSemana.ContainsKey($kSem)) { foreach ($cpc in @($porSemana[$kSem])) { Write-Host "      [diag plan $kSem] $(([string]$cpc.productor).Trim()) carga=$($cpc.fecha_carga) status=$($cpc.status) mic=$($cpc.cajas_mic) desc=$($cpc.cajas_desc) pallets=$($cpc.cant_pallet) placa=$($cpc.placa_camion) carpeta=$($cpc.carpeta_import) factura=$($cpc.factura) -> usa $(Get-CajasCamionPlan $cpc $cargasPlan)" -ForegroundColor DarkGray } } } catch {}
                     else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada en Aloha todavía$dictTxt`n" }
                 }
                 $msg += "`n"
