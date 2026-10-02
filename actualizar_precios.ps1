@@ -4846,38 +4846,45 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             #     las alertas del script (frio <=14, helada <=2, calor >=32, lluvia >=50mm).
             #     [27/09/2026] version compacta ("lo veo muy cargado"): solo las zonas con algo que avisar, una
             #     linea para la semana pasada y otra para los 7 dias; nombres cortos (sin parentesis).
-            function Get-ZonaCorta { param([string]$s) (($s -replace '\s*\(.*?\)', '') -replace '^Paraguay MS$', 'Caaguazú').Trim() }
-            $msg += "*🌡️ Clima*`n"
-            $realLineas = @()
+            #     [02/10/2026] Gonzalo: "el clima lo quiero por lineas, cada departamento y enter; esta todo junto, no se lee
+            #     bien". Una linea por zona: bandera, nombre con tilde, max/min de la semana pasada (con 🔥/🥶/🌧️ si hubo
+            #     dias >=32, <=14 o >=50 mm) y, en la misma linea, los avisos de los proximos 7 dias o "sin avisos".
+            function Get-ZonaCorta { param([string]$s) $n = (($s -replace '\s*\(.*?\)', '') -replace '^Paraguay MS$', 'Caaguazú').Trim(); $tildes = @{ 'Tembiapora' = 'Tembiaporã'; 'Toro Piru' = 'Toro Pirú'; 'Yapacani' = 'Yapacaní'; 'Caaguazu' = 'Caaguazú' }; if ($tildes.ContainsKey($n)) { $tildes[$n] } else { $n } }
+            $banderaEmoji = @{ BR = '🇧🇷'; PY = '🇵🇾'; BO = '🇧🇴' }
+            $msg += "*🌡️ Clima* (semana pasada máx/mín °C · próximos 7 días)`n"
             foreach ($r in $climaData) {
+                $flag = if ($banderaEmoji.ContainsKey([string]$r.bandera)) { $banderaEmoji[[string]$r.bandera] } else { [string]$r.bandera }
+                $linea = "$flag $(Get-ZonaCorta $r.ciudad): "
                 $sp = $r.semana_pasada
-                if ($null -eq $sp -or $null -eq $sp.tmax_c -or $null -eq $sp.tmin_c) { continue }
-                $nHot = 0; $nCold = 0
-                if ($null -ne $sp.dias_max32) { $nHot = [int]$sp.dias_max32 }
-                if ($null -ne $sp.dias_min14) { $nCold = [int]$sp.dias_min14 }
-                $mucho = ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 50)
-                if ($nHot -eq 0 -and $nCold -eq 0 -and -not $mucho) { continue }
-                $t = "$($r.bandera) $(Get-ZonaCorta $r.ciudad) " + $(if ($nHot -gt 0) { "🔥" } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + $(if ($nCold -gt 0) { "🥶" } else { "" }) + ([double]$sp.tmin_c).ToString('F0')
-                if ($mucho) { $t += " 🌧️$(([double]$sp.lluvia_total_mm).ToString('F0'))mm" }
-                $realLineas += $t
-            }
-            $msg += "Semana pasada: " + $(if ($realLineas.Count -gt 0) { ($realLineas -join ' · ') } else { "sin calor, frío ni lluvia fuerte" }) + "`n"
-            $climaLineas = @()
-            foreach ($r in $climaData) {
+                if ($null -ne $sp -and $null -ne $sp.tmax_c -and $null -ne $sp.tmin_c) {
+                    $nHot = 0; $nCold = 0
+                    if ($null -ne $sp.dias_max32) { $nHot = [int]$sp.dias_max32 }
+                    if ($null -ne $sp.dias_min14) { $nCold = [int]$sp.dias_min14 }
+                    $linea += $(if ($nHot -gt 0) { "🔥 " } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + ([double]$sp.tmin_c).ToString('F0') + $(if ($nCold -gt 0) { " 🥶" } else { "" })
+                    if ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 50) { $linea += ", 🌧️ $(([double]$sp.lluvia_total_mm).ToString('F0')) mm" }
+                } else { $linea += "sin dato" }
+                # proximos 7 dias: siempre los numeros (max de las maximas, min de las minimas, lluvia total) y, si corresponde,
+                # los avisos. Gonzalo 02/10: "proximos sin aviso????": decir "sin avisos" solo no sirve.
                 $fc = @($r.forecast_7d)
-                if ($fc.Count -eq 0) { continue }
-                $frios  = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 14 })
-                $helada = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 2 })
-                $calor  = @($fc | Where-Object { $null -ne $_.tmax -and [double]$_.tmax -ge 32 })
-                $lluvia = @($fc | Where-Object { $null -ne $_.lluvia -and [double]$_.lluvia -ge 50 })
                 $partes = @()
-                if ($helada.Count -gt 0) { $partes += "❄️ HELADA $(Get-DiasTxt $helada.Count)" }
-                if ($frios.Count -gt 0) { $piso = $frios | Sort-Object { [double]$_.tmin } | Select-Object -First 1; $partes += "🥶 $($frios.Count)d (piso $(([double]$piso.tmin).ToString('F0'))°)" }
-                if ($calor.Count -gt 0)  { $partes += "🔥 $($calor.Count)d" }
-                if ($lluvia.Count -gt 0) { $partes += "🌧️ $($lluvia.Count)d" }
-                if ($partes.Count -gt 0) { $climaLineas += "$($r.bandera) $(Get-ZonaCorta $r.ciudad) $($partes -join ' ')" }
+                if ($fc.Count -gt 0) {
+                    $tmaxs = @($fc | Where-Object { $null -ne $_.tmax } | ForEach-Object { [double]$_.tmax }); $tmins = @($fc | Where-Object { $null -ne $_.tmin } | ForEach-Object { [double]$_.tmin })
+                    $mmTot = ($fc | Where-Object { $null -ne $_.lluvia } | ForEach-Object { [double]$_.lluvia } | Measure-Object -Sum).Sum
+                    $resumenFc = "máx $(($tmaxs | Measure-Object -Maximum).Maximum.ToString('F0'))°, mín $(($tmins | Measure-Object -Minimum).Minimum.ToString('F0'))°, $(([double]$mmTot).ToString('F0')) mm"
+                    $frios  = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 14 })
+                    $helada = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 2 })
+                    $calor  = @($fc | Where-Object { $null -ne $_.tmax -and [double]$_.tmax -ge 32 })
+                    $lluvia = @($fc | Where-Object { $null -ne $_.lluvia -and [double]$_.lluvia -ge 50 })
+                    if ($helada.Count -gt 0) { $partes += "❄️ HELADA $(Get-DiasTxt $helada.Count)" }
+                    if ($frios.Count -gt 0) { $partes += "🥶 $(Get-DiasTxt $frios.Count) ≤14°" }
+                    if ($calor.Count -gt 0)  { $partes += "🔥 $(Get-DiasTxt $calor.Count) ≥32°" }
+                    if ($lluvia.Count -gt 0) { $partes += "🌧️ $(Get-DiasTxt $lluvia.Count) ≥50 mm" }
+                    elseif ([double]$mmTot -ge 100) { $partes += "🌧️ semana lluviosa" }
+                    $linea += " · próx 7 días: $resumenFc" + $(if ($partes.Count -gt 0) { " (" + ($partes -join ', ') + ")" } else { "" })
+                } else { $linea += " · próx 7 días: sin pronóstico" }
+                $msg += $linea + "`n"
             }
-            $msg += "Próx 7 días: " + $(if ($climaLineas.Count -gt 0) { ($climaLineas -join ' · ') } else { "sin avisos" }) + "`n`n"
+            $msg += "`n"
 
             # --- (27/09/2026: el bloque "Modelo 4 sem" salio del resumen, era casi todo calendario; sigue en index_proyeccion)
 
@@ -4934,7 +4941,14 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                     $kSem = $lunesPc.AddDays($offPc).ToString('yyyy-MM-dd')
                     $sw = @($planResumen.semanas | Where-Object { $_.semana_lunes -eq $kSem }) | Select-Object -First 1
                     $dictTxt = if ($pcDict.ContainsKey($kSem) -and $pcDict[$kSem] -gt 0) { " · $(Get-CamTxt $pcDict[$kSem]) dictados que Aloha aún no tiene" } else { "" }
-                    if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) · $(([int]$sw.cajas).ToString('N0')) cajas$dictTxt`n" }
+                    # [02/10/2026] el 02/10 salio "20 camiones · 44.036 cajas": cajas_mic de la API trae las cajas del documento aduanero
+                    # entero (varios camiones por MIC), asi que la suma por semana se duplica. Hasta ver el dato por camion en el log
+                    # del servidor (diagnostico abajo), si el promedio por camion no es creible (fuera de 500-1.300) se omiten las cajas.
+                    $cajasTxt = ""
+                    if ($sw -and [int]$sw.camiones -gt 0) { $promCaj = [double]$sw.cajas / [int]$sw.camiones; if ($promCaj -ge 500 -and $promCaj -le 1300) { $cajasTxt = " · $(([int]$sw.cajas).ToString('N0')) cajas" } else { Write-Host "    Plan de Cargas: cajas de la semana $kSem omitidas del WhatsApp (promedio $([math]::Round($promCaj)) por camion no es creible)" -ForegroundColor DarkYellow } }
+                    if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) en Aloha$cajasTxt$dictTxt`n" }
+                    # diagnostico (solo consola/log): cajas por camion tal como vienen de la API, para entender el doble conteo
+                    try { if ($porSemana -and $porSemana.ContainsKey($kSem)) { foreach ($cpc in @($porSemana[$kSem])) { Write-Host "      [diag plan $kSem] $(([string]$cpc.productor).Trim()) carga=$($cpc.fecha_carga) status=$($cpc.status) mic=$($cpc.cajas_mic) desc=$($cpc.cajas_desc) pallets=$($cpc.cant_pallet) carpeta=$($cpc.carpeta_import) factura=$($cpc.factura)" -ForegroundColor DarkGray } } } catch {}
                     else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada en Aloha todavía$dictTxt`n" }
                 }
                 $msg += "`n"
@@ -4966,10 +4980,15 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             #     historico del mes y tendencia de 3 semanas, y como viene pagando Almar contra Cepea+servicios
             #     (ultimas 4 semanas, mismo $spreadAvg del score). El score sigue en las alertas Oportunidad/STOP.
             $ladoL = if ($vsProm -lt 0) { "bajo" } else { "sobre" }
-            $tendL = if ($pctChg3w -ge 10) { "y subiendo ($(Get-PctTxt $pctChg3w) en 3 sem)" }
-                     elseif ($pctChg3w -le -10) { "y bajando ($(Get-PctTxt $pctChg3w) en 3 sem)" }
-                     else { "estable en 3 sem ($(Get-PctTxt $pctChg3w))" }
-            $msg += "*👉 Lectura:* Precio $([math]::Abs([math]::Round($vsProm)))% $ladoL el histórico de $nombreMes $tendL."
+            # [02/10/2026] el 02/10 salio "estable en 3 sem (+10%)" con el Cepea cayendo 13,6% en la semana: primero la semana,
+            # despues las 3 semanas, y los umbrales sobre el valor redondeado (+9,7 se mostraba como +10 y decia "estable").
+            $d1 = if ($null -ne $deltaSemPct) { [math]::Round($deltaSemPct) } else { 0 }
+            $d3 = [math]::Round($pctChg3w)
+            $tendL = if ([math]::Abs($d1) -ge 5) { "$(if ($d1 -gt 0) { 'subió' } else { 'bajó' }) $([math]::Abs($d1))% esta semana ($(Get-PctTxt $pctChg3w) en 3 sem)" }
+                     elseif ($d3 -ge 10) { "subiendo ($(Get-PctTxt $pctChg3w) en 3 sem)" }
+                     elseif ($d3 -le -10) { "bajando ($(Get-PctTxt $pctChg3w) en 3 sem)" }
+                     else { "estable ($(Get-PctTxt $pctChg3w) en 3 sem)" }
+            $msg += "*👉 Lectura:* Precio $([math]::Abs([math]::Round($vsProm)))% $ladoL el histórico de $nombreMes, $tendL."
             if ($spreadAvg -ne 0) {
                 $absSp = [math]::Abs($spreadAvg).ToString('F1')
                 if ($spreadAvg -le -2)   { $msg += " Almar viene pagando R$ $absSp/caja por debajo de Cepea+servicios (últimas 4 sem)." }

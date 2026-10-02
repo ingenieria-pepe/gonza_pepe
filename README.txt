@@ -714,6 +714,21 @@ LOG DE CAMBIOS:
                (Fisher mar+sab, Agro mie+vie, Cassio mar+vie, Ivo mie+vie, Celso mie, Marconi mie, Josemar vie) y
                Paraguay 6 (Alvarito lun, Diego lun+mar, Milciades lun+mar, Guido mar). CELSO es un productor
                nuevo: no esta en productores.xlsx ni en Aloha (sin transporte ni nombre completo todavia).
+  02/10/2026 -> El resumen del viernes 19:00 salio con "Pedido semana del 28/09: 20 camiones · 44.036 cajas" (2.200
+               cajas por camion: cajas_mic de la API trae las cajas del documento aduanero entero, que agrupa varios
+               camiones) y con la Lectura "estable en 3 sem (+10%)" con el Cepea cayendo 13,6% en la semana. Se
+               mando a mano un mensaje corregido a los 3 celulares (scratch wa_enviar_texto.ps1; 3/3). Arreglos en
+               actualizar_precios.ps1 para el miercoles: (1) Plan de Cargas: si el promedio de cajas por camion no
+               es creible (fuera de 500-1.300) se omiten las cajas y queda "N camiones en Aloha"; diagnostico por
+               camion en el log ([diag plan ...]) para ver mic/desc/carpeta/factura y arreglarlo de raiz. (2) Lectura:
+               primero la semana ("bajo 14% esta semana") y umbrales sobre el valor redondeado. (3) CLIMA una linea
+               por zona (Gonzalo: "lo quiero por lineas, cada departamento y enter"): bandera, nombre con tilde,
+               max/min de la semana pasada con 🔥/🥶/🌧️, y los proximos 7 dias SIEMPRE con numeros (max, min, mm) mas
+               avisos entre parentesis (Gonzalo: "proximos sin aviso????": decir solo "sin avisos" no servia).
+  02/10/2026 -> Precios y cargas reales de la semana 40 (28/09-03/10) en cargas 2026.xlsx: 12 cargas, R$ 38,33
+               promedio ponderado (Fisher 36 x2, Agro 35, Ivo 43 x2, Cassio 35 x2, Gilson 40, Josemar 43, Stein 38
+               x2, Marconi 38). Agro del viernes no cargo; Cassio cargo tambien el miercoles con Nilton: corregido
+               en plan_compras.xlsx (sab 03/10 pasa a 23.834). Total de la semana con promedio ponderado.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
