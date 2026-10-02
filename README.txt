@@ -737,6 +737,11 @@ LOG DE CAMBIOS:
                Get-OrigenPlanRow / Get-CajasCamionPlan / Get-CamionesPlan, con fallback a cajas_mic si fallan.
                Probado con filas sinteticas (8 filas -> 7 camiones, 7.072 cajas). El control de verosimilitud del
                WhatsApp queda como red; el [diag plan] del log muestra ademas placa y el valor usado.
+  02/10/2026 -> Resumen WhatsApp, bloque Cepea reordenado (Gonzalo: "eso que es???? todo desordenado"): una idea
+               por linea. "Kilo: R$ x · bajo y% en la semana · +z% en 3 semanas" / "Caja de 22 kg: R$ a · con
+               servicios (R$ 18): R$ b" / "Octubre historico (2023-2026): R$ c/kg -> hoy d% mas barato". Almar
+               vuelve a bloque propio: "semana dd/MM: N cargas a R$ p/caja" y "Contra la caja Cepea: +R$ ... ·
+               contra Cepea con servicios: -R$ ...". Mismos numeros que antes, mejor repartidos.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
