@@ -709,6 +709,11 @@ LOG DE CAMBIOS:
   01/10/2026 -> Semana 05-10/10, version 3 de Gonzalo: Brasil 10 (Fisher mar+vie, Agro mie, Cassio mie, Ivo mie+vie, Gilson mie, Josemar mar, Stein mar, Marconi vie), Paraguay 5. Sale Cassio sabado; Gilson pasa a miercoles.
   01/10/2026 -> v4: Gilson vuelve al viernes 09 (Gonzalo: "prefiero cerrar en casi 25 mil que casi 26 mil"). Sab 10/10 24.816 (falta 1), sab 17/10 17.806.
   01/10/2026 -> Guido (Paraguay GM) dictado para el martes 13/10 (descarga sabado 17). generar_datos.ps1: cuando una semana tiene MENOS cargas PY dictadas que el ritmo habitual (5), se completa con supuestos en vez de anularlos.
+  02/10/2026 -> Cargas dictadas (version final sem 05-10/10 + nueva sem 12-17/10). Sem 05/10: Brasil 8 (Fisher mar
+               +vie, Agro mie, Cassio mie, Ivo lun+mie, Stein mar, Celso mie) y Paraguay 5. Sem 12/10: Brasil 11
+               (Fisher mar+sab, Agro mie+vie, Cassio mar+vie, Ivo mie+vie, Celso mie, Marconi mie, Josemar vie) y
+               Paraguay 6 (Alvarito lun, Diego lun+mar, Milciades lun+mar, Guido mar). CELSO es un productor
+               nuevo: no esta en productores.xlsx ni en Aloha (sin transporte ni nombre completo todavia).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
