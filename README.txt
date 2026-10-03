@@ -789,6 +789,18 @@ LOG DE CAMBIOS:
                anterior y variaciones, lectura calculada y una ficha nueva en "De donde sale cada dato". Kilos BRUTOS
                como Penta. Ojo al corte: el ranking llega al 30/09 y el resto del panel usa el detalle al 31/08.
                index_ecuador.html usa LF (no CRLF): respetarlo al editar.
+  03/10/2026 -> ALOHA EN LA LAPTOP. Gonzalo marco que en index_brasil "Camion por camion", "Productores - camiones,
+               cajas, transito y faltantes" y el KPI "En camino ahora" estaban viejos (export del 24/09, "proxima
+               carga 22/09"). Causa: desde el 25/09 el servidor baja el plan de Aloha solo, pero NUNCA sube paneles
+               (correr_servidor.ps1 solo hace fetch + reset); los paneles que se ven son los que genera la laptop,
+               y la laptop no tenia config\aloha.json, asi que 5h tomaba el ultimo export a mano (24/09). Arreglo:
+               Gonzalo paso su acceso a Aloha y se creo config\aloha.json en la laptop (gitignore; NO va al repo).
+               Ahora cada corrida local (logon, mie 12:00, vie 19:00) baja los dos exports (paso 3b) y 5h/5j usan
+               el del dia. Corrida de hoy 16:49: 2639 cargas del plan, 150 camiones en el bloque (11 por venir,
+               129 descargados, fuente Aloha). Las cargas del viernes siguen "Solicitado" en Aloha hasta el lunes,
+               por eso el KPI dice "proxima carga 02/10". Diferencia menor pendiente: el KPI (5h) cuenta 1 camion
+               en camino y el bloque camion por camion (Aloha) 0: clasifican distinto un estado intermedio.
+               Plan de compras con el plan del dia: sab 03/10 22.926 (bajo el minimo, cerrado), sab 10/10 26.788 ok.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
