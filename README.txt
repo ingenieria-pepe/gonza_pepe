@@ -816,6 +816,14 @@ LOG DE CAMBIOS:
                el mix BR/PY del ERP, misma convencion que la fila dictada del 28/09). Las semanas siguientes siguen en
                18.000 supuesto. Resultado: sab 10/10 28.307 (sobran ~3.300 sobre el minimo), sab 17/10 24.221 -> falta
                1 camion hasta el mie 14/10, sab 24/10 18.139 (sin dictar todavia).
+  03/10/2026 -> Cassio contado dos veces en la semana del 05/10: Aloha ya tenia la carga del viernes 02/10 ("Cassio
+               Hauck", AXT, Solicitado) y la dictada del viernes seguia contando porque esa semana habia 2 dictadas
+               (miercoles con Nilton, carga real, + viernes) y 1 en Aloha: la regla "si dicto 2 y el Plan tiene 1
+               queda 1 (la ultima)" dejo la del viernes. Gonzalo: "es Cassio si, solo que Aloha lo usa con nombre y
+               apellido" (el alias ya estaba en productores.xlsx). Se borro la fila dictada del viernes 02/10 de
+               cargas_programadas. Numeros: sab 10/10 27.371 ok, sab 17/10 23.285 -> faltan 2 (el 7mo de PY mas 1),
+               sab 24/10 16.203 -> faltan 9 (semana sin dictar). OJO con la regla: si una de las dictadas de esa
+               misma semana ya descargo antes del conteo, hay que borrar la que Aloha ya tiene, no dejar "la ultima".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
