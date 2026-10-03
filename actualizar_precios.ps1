@@ -4891,7 +4891,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $msg += "*🚚 Almar* — semana $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas"
                 if ($semSin -ge 2) { $msg += " (hace $semSin sem sin cargas nuevas en la planilla)" }
                 $msg += "`n"
-                $msg += "Na roça: R$ $($alRoca.ToString('F2'))/caja = R$ $($alRocaKg.ToString('F2'))/kg (promedio; el precio de la planilla menos los R$ $SERVICIOS_CAJA de servicios)`n"
+                $msg += "Na roça: R$ $($alRoca.ToString('F2'))/caja = R$ $($alRocaKg.ToString('F2'))/kg`n"
                 $msg += "Con servicios: *R$ $($alCaja.ToString('F2'))/caja* = R$ $($alKg.ToString('F2'))/kg`n`n"
             }
 
