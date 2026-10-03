@@ -4868,28 +4868,29 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             # [02/10/2026] Gonzalo: "eso que es???? todo desordenado": una idea por linea. Kilo con sus variaciones; caja de
             # 22 kg y caja con servicios; el historico del mes (de donde sale el %); y Almar en su propio bloque con las
             # dos comparaciones (contra la caja Cepea y contra Cepea + servicios).
-            $cepCajaServ = $cepCaja + $SERVICIOS_CAJA
-            $msg += "*💰 Cepea Nanica 1ª (SC)* — semana $(Get-FechaCorta $nanica[-1].fecha)`n"
-            $kiloTxt = "Kilo: R$ $($oppLast.ToString('F2'))"
-            if ($null -ne $deltaSemPct) { $dR = [math]::Round($deltaSemPct, 1); $kiloTxt += " · $(if ($dR -gt 0) { 'subió' } elseif ($dR -lt 0) { 'bajó' } else { 'igual' }) $(if ($dR -ne 0) { [math]::Abs($dR).ToString('0.#') + '% ' })en la semana" }
-            if ($nanica.Count -ge 4) { $kiloTxt += " · $(Get-PctTxt $pctChg3w 1) en 3 semanas" }
-            $msg += $kiloTxt + "`n"
-            $msg += "Caja de $KG_CAJA_NETO kg: *R$ $($cepCaja.ToString('F2'))* · con servicios (R$ $SERVICIOS_CAJA): R$ $($cepCajaServ.ToString('F2'))`n"
-            $ladoC = if ($vsProm -lt 0) { "más barato" } else { "más caro" }
-            $msg += "$($nombreMes.Substring(0,1).ToUpper() + $nombreMes.Substring(1)) histórico ($($nanica[0].anio)-$($nanica[-1].anio)): R$ $($oppPM.ToString('F2'))/kg → hoy $([math]::Abs([math]::Round($vsProm)))% $ladoC`n`n"
-            # Lo que pago Almar la ultima semana con cargas en la planilla: bloque propio, con la diferencia bruta
-            # contra la caja Cepea (lo que pidio Gonzalo el 27/09) y la neta contra Cepea + servicios.
+            # [03/10/2026] Gonzalo: "cuanto cerro el kilo por semana; cuanto pagamos nosotros na roca, mas servicios; me
+            #     gustaria el valor del kilo de San Pablo tambien". Cepea en R$/kg: Santa Catarina y Sao Paulo (Vale do
+            #     Ribeira, region 52 del paso 2b), cada uno con su variacion semanal. Almar: caja y kilo na roca, y con
+            #     servicios. Sin caja Cepea, sin historico (eso queda en la Lectura) y sin comparaciones cruzadas.
+            function Get-VarSemTxt { param($serie) $s = @($serie); if ($s.Count -lt 2 -or [double]$s[-2].precio -le 0) { return "" }; $d = (([double]$s[-1].precio - [double]$s[-2].precio) / [double]$s[-2].precio) * 100; $dR = [math]::Round($d, 1); if ($dR -gt 0) { return " · subió $($dR.ToString('0.#'))% en la semana" }; if ($dR -lt 0) { return " · bajó $([math]::Abs($dR).ToString('0.#'))% en la semana" }; return " · igual que la semana pasada" }
+            $msg += "*💰 Cepea* — semana $(Get-FechaCorta $nanica[-1].fecha), R$ por kilo al productor`n"
+            $msg += "Santa Catarina: *$($oppLast.ToString('F2'))*$(Get-VarSemTxt $nanica)`n"
+            $spReg = $null; try { if ($regiones) { $spReg = @($regiones | Where-Object { [int]$_.id -eq 52 }) | Select-Object -First 1 } } catch {}
+            if ($spReg -and $spReg.serie -and @($spReg.serie).Count -gt 0) {
+                $spS = @($spReg.serie); $spUlt = $spS[-1]
+                $spTag = if ([string]$spUlt.fecha -ne [string]$nanica[-1].fecha) { " (dato del $(Get-FechaCorta $spUlt.fecha))" } else { "" }
+                $msg += "São Paulo (Vale do Ribeira): *$(([double]$spUlt.precio).ToString('F2'))*$(Get-VarSemTxt $spS)$spTag`n"
+            }
+            $msg += "`n"
             if ($almarSemanas.Count -gt 0) {
                 $alU = $almarSemanas[-1]; $alCaja = [double]$alU.precio_avg_caja
                 $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
-                $msg += "*🚚 Almar* — semana $(Get-FechaCorta $alU.fecha): $($alU.cargas) cargas a *R$ $($alCaja.ToString('F2'))/caja*"
+                $alKg = $alCaja / $KG_CAJA_NETO; $alCajaServ = $alCaja + $SERVICIOS_CAJA; $alKgServ = $alCajaServ / $KG_CAJA_NETO
+                $msg += "*🚚 Almar* — semana $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas"
                 if ($semSin -ge 2) { $msg += " (hace $semSin sem sin cargas nuevas en la planilla)" }
                 $msg += "`n"
-                if ($cepCaja -gt 0 -and $alCaja -gt 0) {
-                    $dBruta = $alCaja - $cepCaja; $dNeta = $alCaja - $cepCajaServ
-                    $msg += "Contra la caja Cepea: $(if ($dBruta -ge 0) {'+'} else {'−'})R$ $([math]::Abs($dBruta).ToString('F2')) · contra Cepea con servicios: $(if ($dNeta -ge 0) {'+'} else {'−'})R$ $([math]::Abs($dNeta).ToString('F2'))`n"
-                }
-                $msg += "`n"
+                $msg += "Na roça: *R$ $($alCaja.ToString('F2'))/caja* = R$ $($alKg.ToString('F2'))/kg`n"
+                $msg += "Con servicios (R$ $SERVICIOS_CAJA/caja): R$ $($alCajaServ.ToString('F2'))/caja = R$ $($alKgServ.ToString('F2'))/kg`n`n"
             }
 
             # --- [27/09/2026] El bloque "Score: N · NIVEL" con su descomposicion salio del resumen (Gonzalo:

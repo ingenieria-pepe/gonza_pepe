@@ -753,6 +753,12 @@ LOG DE CAMBIOS:
                camiones en Aloha, N cajas · 17 dictados"). Sale aunque no haya Aloha (laptop). De paso se saco un
                "else" que habia quedado separado de su "if" por la linea de diagnostico.
   03/10/2026 -> generar_datos.ps1 exporta dictadas_por_semana (lo dictado completo por semana de carga y origen, antes de descontar lo que Aloha ya tiene); el bloque Plan de Cargas lo usa, asi la cuenta no baja cuando Aloha registra las cargas el lunes.
+  03/10/2026 -> Resumen WhatsApp, bloque Cepea rehecho otra vez (Gonzalo: "se lee confuso"; "cuanto cerro el kilo por
+               semana, cuanto pagamos nosotros na roca mas servicios, y el kilo de San Pablo"): Cepea en R$/kg al
+               productor, Santa Catarina y Sao Paulo (Vale do Ribeira, region 52 del paso 2b), cada uno con su
+               variacion semanal; Almar en bloque propio con caja y kilo na roca y con servicios (R$ 18). Afuera:
+               la caja equivalente Cepea, el dato de 3 semanas, el historico del mes (sigue en la Lectura) y las
+               comparaciones cruzadas Almar vs Cepea.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
