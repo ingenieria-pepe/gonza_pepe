@@ -766,6 +766,13 @@ LOG DE CAMBIOS:
                servicios) ya eran coherentes con eso. CLIMA: bandera + sigla del lugar (LA, G, T, C, TP, Y) con
                leyenda en cursiva debajo del titulo, y "prox:" en vez de "prox 7 dias:". Plan de compras: "ya paso
                el limite de carga" pasa a "ya no llega ninguna carga mas para este sabado".
+  03/10/2026 -> Resumen WhatsApp para el CELULAR (captura de Gonzalo: los renglones largos se parten): tope ~38
+               caracteres por renglon. Clima: "🇧🇷 LA 30/14🥶 69mm → 26/16 60mm 🌧️" (pasada → prox 7 dias; avisos
+               como emoji al final), leyenda de siglas en cursiva. Almar: "Na roca: 20,33 = 0,92/kg" y "Con
+               servicios: 38,33 = 1,74/kg" (titulo dice R$/caja). Cepea: titulo corto, SC/SP. Carape sin
+               "(Cepea + servicios)". Plan de Cargas: "Sem dd/MM: N camiones (BR x, PY y)". Plan de compras:
+               "*Sab dd/MM:* N → ok | faltan N camiones | bajo el minimo, ya cerrado" y "descargan X (n sup.) ·
+               vende Y"; titulo "cajas al cierre, min 25.000" con el conteo en cursiva debajo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

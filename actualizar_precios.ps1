@@ -4224,12 +4224,13 @@ function Get-PlanComprasLineas {
             if ($saldoSim -lt $min) { if ($limite -ge $hoyD) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc } else { $tarde = $true } }
             # [03/10/2026] dos renglones por sabado (Gonzalo: "ordenar todos los parrafos como hicimos con las temperaturas"):
             # el primero con el cierre y el veredicto, el segundo con lo que entra y lo que se vende.
-            $txt = "*Sáb $($sab.ToString('dd/MM')):* $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" })
-            if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
-            elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
-            elseif ($tarde) { $txt += " → *bajo el mínimo* ($($min.ToString('N0'))), ya no llega ninguna carga más para este sábado" }
-            else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
-            $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuesto$(if ($nSup -ne 1) { 's' }))" } else { "" }) + " · vende $($v.ToString('N0'))"
+            # [03/10/2026] renglones cortos para el celular: "*Sab dd/MM:* N cajas → veredicto" y debajo "descargan X · vende Y"
+            $txt = "*Sáb $($sab.ToString('dd/MM')):* $($saldoSim.ToString('N0'))" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" })
+            if ($faltan -eq 1) { $txt += " → *falta 1 camión*" }
+            elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones*" }
+            elseif ($tarde) { $txt += " → *bajo el mínimo*, ya cerrado" }
+            else { $txt += " → ok" }
+            $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup sup.)" } else { "" }) + " · vende $($v.ToString('N0'))"
             $pedidosAntes += $faltan
             $lineas += $txt
         }
@@ -4873,7 +4874,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             #     Ribeira, region 52 del paso 2b), cada uno con su variacion semanal. Almar: caja y kilo na roca, y con
             #     servicios. Sin caja Cepea, sin historico (eso queda en la Lectura) y sin comparaciones cruzadas.
             function Get-VarSemTxt { param($serie) $s = @($serie); if ($s.Count -lt 2 -or [double]$s[-2].precio -le 0) { return "" }; $d = (([double]$s[-1].precio - [double]$s[-2].precio) / [double]$s[-2].precio) * 100; $dR = [math]::Round($d, 1); if ($dR -gt 0) { return " · subió $($dR.ToString('0.#'))% en la semana" }; if ($dR -lt 0) { return " · bajó $([math]::Abs($dR).ToString('0.#'))% en la semana" }; return " · igual que la semana pasada" }
-            $msg += "*💰 Cepea* — semana $(Get-FechaCorta $nanica[-1].fecha), R$/kg al productor (SC Santa Catarina, SP São Paulo)`n"
+            $msg += "*💰 Cepea* — R$/kg al productor, sem $(Get-FechaCorta $nanica[-1].fecha)`n"
             $msg += "SC: *$($oppLast.ToString('F2'))*$(Get-VarSemTxt $nanica)`n"
             $spReg = $null; try { if ($regiones) { $spReg = @($regiones | Where-Object { [int]$_.id -eq 52 }) | Select-Object -First 1 } } catch {}
             if ($spReg -and $spReg.serie -and @($spReg.serie).Count -gt 0) {
@@ -4888,11 +4889,12 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $alU = $almarSemanas[-1]; $alCaja = [double]$alU.precio_avg_caja
                 $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
                 $alRoca = $alCaja - $SERVICIOS_CAJA; $alKg = $alCaja / $KG_CAJA_NETO; $alRocaKg = $alRoca / $KG_CAJA_NETO
-                $msg += "*🚚 Almar* — semana $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas"
-                if ($semSin -ge 2) { $msg += " (hace $semSin sem sin cargas nuevas en la planilla)" }
+                # [03/10/2026] renglones de <= 38 caracteres para que no se partan en el celular (captura de Gonzalo)
+                $msg += "*🚚 Almar* — sem $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas, R$/caja"
+                if ($semSin -ge 2) { $msg += "`n_(hace $semSin sem sin cargas nuevas en la planilla)_" }
                 $msg += "`n"
-                $msg += "Na roça: R$ $($alRoca.ToString('F2'))/caja = R$ $($alRocaKg.ToString('F2'))/kg`n"
-                $msg += "Con servicios: *R$ $($alCaja.ToString('F2'))/caja* = R$ $($alKg.ToString('F2'))/kg`n`n"
+                $msg += "Na roça: $($alRoca.ToString('F2')) = $($alRocaKg.ToString('F2'))/kg`n"
+                $msg += "Con servicios: *$($alCaja.ToString('F2'))* = $($alKg.ToString('F2'))/kg`n`n"
             }
 
             # --- [27/09/2026] El bloque "Score: N · NIVEL" con su descomposicion salio del resumen (Gonzalo:
@@ -4917,18 +4919,20 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             $siglaZona = @{ 'Luiz Alves' = 'LA'; 'Guaramirim' = 'G'; 'Tembiaporã' = 'T'; 'Caaguazú' = 'C'; 'Toro Pirú' = 'TP'; 'Yapacaní' = 'Y' }
             function Get-SiglaZona { param([string]$n) if ($siglaZona.ContainsKey($n)) { $siglaZona[$n] } else { (($n -split '\s+') | ForEach-Object { $_.Substring(0, 1).ToUpper() }) -join '' } }
             $leyenda = @(); foreach ($r in $climaData) { $nz = Get-ZonaCorta $r.ciudad; $leyenda += "$(Get-SiglaZona $nz) $nz" }
-            $msg += "*🌡️ Clima* (semana pasada máx/mín · próx 7 días)`n_$($leyenda -join ', ')_`n"
+            # [03/10/2026] formato compacto para el celular (<= 38 caracteres por renglon): "🇧🇷 LA 30/14 🥶 69mm → 26/16 60mm 🌧️"
+            #     = semana pasada max/min y lluvia, flecha, proximos 7 dias max/min y lluvia; los avisos van como emoji al final.
+            $msg += "*🌡️ Clima* máx/mín °C y lluvia · pasada → próx 7d`n_$($leyenda -join ' · ')_`n"
             foreach ($r in $climaData) {
                 $flag = if ($banderaEmoji.ContainsKey([string]$r.bandera)) { $banderaEmoji[[string]$r.bandera] } else { [string]$r.bandera }
-                $linea = "$flag $(Get-SiglaZona (Get-ZonaCorta $r.ciudad)): "
+                $linea = "$flag $(Get-SiglaZona (Get-ZonaCorta $r.ciudad)) "
                 $sp = $r.semana_pasada
                 if ($null -ne $sp -and $null -ne $sp.tmax_c -and $null -ne $sp.tmin_c) {
                     $nHot = 0; $nCold = 0
                     if ($null -ne $sp.dias_max32) { $nHot = [int]$sp.dias_max32 }
                     if ($null -ne $sp.dias_min14) { $nCold = [int]$sp.dias_min14 }
-                    $linea += $(if ($nHot -gt 0) { "🔥 " } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + ([double]$sp.tmin_c).ToString('F0') + $(if ($nCold -gt 0) { " 🥶" } else { "" })
-                    if ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 50) { $linea += ", 🌧️ $(([double]$sp.lluvia_total_mm).ToString('F0')) mm" }
-                } else { $linea += "sin dato" }
+                    $linea += $(if ($nHot -gt 0) { "🔥" } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + ([double]$sp.tmin_c).ToString('F0') + $(if ($nCold -gt 0) { "🥶" } else { "" })
+                    if ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 1) { $linea += " $(([double]$sp.lluvia_total_mm).ToString('F0'))mm" }
+                } else { $linea += "s/d" }
                 # proximos 7 dias: siempre los numeros (max de las maximas, min de las minimas, lluvia total) y, si corresponde,
                 # los avisos. Gonzalo 02/10: "proximos sin aviso????": decir "sin avisos" solo no sirve.
                 $fc = @($r.forecast_7d)
@@ -4936,18 +4940,18 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 if ($fc.Count -gt 0) {
                     $tmaxs = @($fc | Where-Object { $null -ne $_.tmax } | ForEach-Object { [double]$_.tmax }); $tmins = @($fc | Where-Object { $null -ne $_.tmin } | ForEach-Object { [double]$_.tmin })
                     $mmTot = ($fc | Where-Object { $null -ne $_.lluvia } | ForEach-Object { [double]$_.lluvia } | Measure-Object -Sum).Sum
-                    $resumenFc = "máx $(($tmaxs | Measure-Object -Maximum).Maximum.ToString('F0'))°, mín $(($tmins | Measure-Object -Minimum).Minimum.ToString('F0'))°, $(([double]$mmTot).ToString('F0')) mm"
                     $frios  = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 14 })
                     $helada = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 2 })
                     $calor  = @($fc | Where-Object { $null -ne $_.tmax -and [double]$_.tmax -ge 32 })
                     $lluvia = @($fc | Where-Object { $null -ne $_.lluvia -and [double]$_.lluvia -ge 50 })
-                    if ($helada.Count -gt 0) { $partes += "❄️ HELADA $(Get-DiasTxt $helada.Count)" }
-                    if ($frios.Count -gt 0) { $partes += "🥶 $(Get-DiasTxt $frios.Count) ≤14°" }
-                    if ($calor.Count -gt 0)  { $partes += "🔥 $(Get-DiasTxt $calor.Count) ≥32°" }
-                    if ($lluvia.Count -gt 0) { $partes += "🌧️ $(Get-DiasTxt $lluvia.Count) ≥50 mm" }
-                    elseif ([double]$mmTot -ge 100) { $partes += "🌧️ semana lluviosa" }
-                    $linea += " · próx: $resumenFc" + $(if ($partes.Count -gt 0) { " (" + ($partes -join ', ') + ")" } else { "" })
-                } else { $linea += " · próx: sin pronóstico" }
+                    # avisos como emoji pegados a los numeros: ❄️ helada, 🥶 dias <=14, 🔥 dias >=32, 🌧️ dia >=50 mm o semana >=100 mm
+                    $avisoFc = ""
+                    if ($helada.Count -gt 0) { $avisoFc += "❄️" }
+                    if ($frios.Count -gt 0) { $avisoFc += "🥶" }
+                    if ($calor.Count -gt 0) { $avisoFc += "🔥" }
+                    if ($lluvia.Count -gt 0 -or [double]$mmTot -ge 100) { $avisoFc += "🌧️" }
+                    $linea += " → $(($tmaxs | Measure-Object -Maximum).Maximum.ToString('F0'))/$(($tmins | Measure-Object -Minimum).Minimum.ToString('F0')) $(([double]$mmTot).ToString('F0'))mm" + $(if ($avisoFc) { " $avisoFc" } else { "" })
+                } else { $linea += " → s/d" }
                 $msg += $linea + "`n"
             }
             $msg += "`n"
@@ -4976,7 +4980,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $dR = [math]::Round($diffPct)
                 $msg += "*🇵🇾 Carapé*$($pyFecha)`n"
                 $msg += "Caja: PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))$pyVar`n"
-                $msg += "≈ USD $($pyUsdKg.ToString('F2'))/kg · $([math]::Abs($dR))% $(if ($dR -lt 0) { 'más barato' } elseif ($dR -gt 0) { 'más caro' } else { 'igual' }) que Brasil (Cepea + servicios)`n`n"
+                $msg += "USD $($pyUsdKg.ToString('F2'))/kg · $([math]::Abs($dR))% $(if ($dR -lt 0) { 'más barato' } elseif ($dR -gt 0) { 'más caro' } else { 'igual' }) que Brasil`n`n"
             }
 
             # --- (27/09/2026: Ecuador fuera del resumen, va por otro canal de ventas; sigue en index_ecuador)
@@ -5021,9 +5025,9 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                     $kSem = $lunesPc.AddDays($offPc).ToString('yyyy-MM-dd')
                     if ($pcDictSem.ContainsKey($kSem)) {
                         $d = $pcDictSem[$kSem]
-                        $porO = @(); foreach ($o in 'BR', 'PY', 'BO') { if ($d[$o] -gt 0) { $porO += "$(@{ BR = 'Brasil'; PY = 'Paraguay'; BO = 'Bolivia' }[$o]) $($d[$o])" } }
-                        $msg += "Semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $d.n) · $($porO -join ' · ')`n"
-                    } else { $msg += "Semana del $(Get-FechaCorta $kSem): sin cargas dictadas todavía`n" }
+                        $porO = @(); foreach ($o in 'BR', 'PY', 'BO') { if ($d[$o] -gt 0) { $porO += "$o $($d[$o])" } }
+                        $msg += "Sem $(Get-FechaCorta $kSem): $(Get-CamTxt $d.n) ($($porO -join ', '))`n"
+                    } else { $msg += "Sem $(Get-FechaCorta $kSem): sin cargas dictadas`n" }
                 }
                 # control de la semana pasada contra Aloha (que recien se actualiza el lunes)
                 if ($null -ne $planResumen) {
@@ -5033,7 +5037,7 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                         $dAnt = if ($pcDictSem.ContainsKey($kAnt)) { $pcDictSem[$kAnt].n } else { 0 }
                         $cajasTxt = ""
                         if ([int]$sw.camiones -gt 0) { $promCaj = [double]$sw.cajas / [int]$sw.camiones; if ($promCaj -ge 500 -and $promCaj -le 1300) { $cajasTxt = ", $(([int]$sw.cajas).ToString('N0')) cajas" } else { Write-Host "    Plan de Cargas: cajas de la semana $kAnt omitidas del WhatsApp (promedio $([math]::Round($promCaj)) por camion no es creible)" -ForegroundColor DarkYellow } }
-                        $msg += "Semana pasada ($(Get-FechaCorta $kAnt)): $(Get-CamTxt $sw.camiones) en Aloha$cajasTxt · $dAnt dictados`n"
+                        $msg += "Sem $(Get-FechaCorta $kAnt) en Aloha: $(Get-CamTxt $sw.camiones)$cajasTxt`n(dictados: $dAnt)`n"
                         # diagnostico (solo consola/log): cajas por camion tal como vienen de la API
                         try { if ($porSemana -and $porSemana.ContainsKey($kAnt)) { foreach ($cpc in @($porSemana[$kAnt])) { Write-Host "      [diag plan $kAnt] $(([string]$cpc.productor).Trim()) carga=$($cpc.fecha_carga) status=$($cpc.status) mic=$($cpc.cajas_mic) desc=$($cpc.cajas_desc) pallets=$($cpc.cant_pallet) placa=$($cpc.placa_camion) carpeta=$($cpc.carpeta_import) factura=$($cpc.factura) -> usa $(Get-CajasCamionPlan $cpc $cargasPlan)" -ForegroundColor DarkGray } } } catch {}
                     }
@@ -5050,9 +5054,9 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                     $pcLineas = @(Get-PlanComprasLineas -Path $pcJsonPath)
                     if ($pcLineas.Count -gt 0) {
                         $pcConteoF = (Get-Content $pcJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json).conteo.fecha
-                        $msg += "*🧮 Plan de compras* (stock total de banana, conteo $(Get-FechaCorta $pcConteoF))`n"
+                        $msg += "*🧮 Plan de compras* — cajas al cierre, mín 25.000`n_(conteo $(Get-FechaCorta $pcConteoF))_`n"
                         $msg += ($pcLineas -join "`n") + "`n"
-                        $msg += "_Pedidos: Paraguay cierra miércoles, Brasil jueves._`n`n"
+                        $msg += "_Pedidos: Paraguay miércoles, Brasil jueves_`n`n"
                     }
                 } catch { Add-Falla -Paso 'Plan de compras (resumen)' -Detalle $_.Exception.Message }
             }
