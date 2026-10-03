@@ -746,6 +746,12 @@ LOG DE CAMBIOS:
                los parrafos como hicimos con las temperaturas"): Carape en 3 renglones (fuente / caja PYG con su
                variacion / USD por kg contra Brasil); Plan de compras en 2 renglones por sabado (cierre y veredicto /
                descargan y vende); Lectura con titulo propio y una oracion por renglon.
+  03/10/2026 -> Resumen WhatsApp, bloque Plan de Cargas dado vuelta (Gonzalo: "Plan de Cargas es lo que yo te paso;
+               Aloha no actualiza las cargas hasta el lunes, por eso no estan nunca"). Ahora muestra LO DICTADO
+               (plan_compras.json, fuente plan_compras) para esta semana y la que viene, por origen ("Semana del
+               05/10: 13 camiones · Brasil 8 · Paraguay 5"), y Aloha solo como control de la semana pasada ("20
+               camiones en Aloha, N cajas · 17 dictados"). Sale aunque no haya Aloha (laptop). De paso se saco un
+               "else" que habia quedado separado de su "if" por la linea de diagnostico.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

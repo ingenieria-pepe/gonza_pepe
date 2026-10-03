@@ -4981,39 +4981,50 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             #     sin productores, sin estados, sin en camino / deposito / ultima
             #     descarga. Eso queda en los paneles. Se lee de la API en el paso 3b;
             #     si fallo, se dice que es cache y de cuando.
-            if ($null -ne $planResumen) {
-                $pcTag = if ($planResumen.origen -eq 'cache') { "cache del $(Get-FechaCorta $planResumen.generado_en)" } else { "Aloha $(Get-FechaCorta $planResumen.generado_en)" }
-                function Get-CamTxt { param([int]$n) if ($n -eq 1) { "1 camión" } else { "$n camiones" } }
-                $msg += "*🚛 Plan de Cargas* ($pcTag)`n"
-                # [27/09/2026] ademas de lo que tiene Aloha, lo que Gonzalo dicto en plan_compras.xlsx y Aloha
-                # todavia no tiene (el 25/09 salio "nada todavia" para el 28/09 con 15 cargas dictadas)
-                $pcDict = @{}
-                try {
-                    $pcjPath2 = Join-Path $base "plan_compras\plan_compras.json"
-                    if (Test-Path $pcjPath2) {
-                        $pcj2 = Get-Content $pcjPath2 -Raw -Encoding UTF8 | ConvertFrom-Json
-                        foreach ($c in $pcj2.camiones) {
-                            if ([string]$c.fuente -ne 'plan_compras') { continue }
-                            $lunC = [DateTime]$c.carga; $lunC = $lunC.AddDays(-((([int]$lunC.DayOfWeek) + 6) % 7)); $kk = $lunC.ToString('yyyy-MM-dd')
-                            if (-not $pcDict.ContainsKey($kk)) { $pcDict[$kk] = 0 }; $pcDict[$kk]++
-                        }
+            # [03/10/2026] Gonzalo: "Plan de Cargas es lo que yo te paso; Aloha no actualiza las cargas hasta el lunes, por eso
+            #     no estan nunca". Entonces el bloque muestra LO DICTADO (plan_compras.xlsx via plan_compras.json) para esta
+            #     semana y la que viene, por origen, y usa Aloha solo como control de la semana PASADA (que el lunes ya
+            #     esta cargada): dictados vs registrados.
+            function Get-CamTxt { param([int]$n) if ($n -eq 1) { "1 camión" } else { "$n camiones" } }
+            $pcDictSem = @{}   # lunes de la semana de carga -> @{ BR; PY; BO; n }
+            try {
+                $pcjPath2 = Join-Path $base "plan_compras\plan_compras.json"
+                if (Test-Path $pcjPath2) {
+                    $pcj2 = Get-Content $pcjPath2 -Raw -Encoding UTF8 | ConvertFrom-Json
+                    foreach ($c in $pcj2.camiones) {
+                        if ([string]$c.fuente -ne 'plan_compras') { continue }
+                        $lunC = [DateTime]$c.carga
+                        $lunC = $(if ($lunC.DayOfWeek -eq [DayOfWeek]::Sunday) { $lunC.AddDays(1) } else { $lunC.AddDays(-((([int]$lunC.DayOfWeek) + 6) % 7)) })   # domingo = semana que arranca (PY carga domingo)
+                        $kk = $lunC.ToString('yyyy-MM-dd')
+                        if (-not $pcDictSem.ContainsKey($kk)) { $pcDictSem[$kk] = @{ BR = 0; PY = 0; BO = 0; n = 0 } }
+                        $o = [string]$c.origen; if ($pcDictSem[$kk].ContainsKey($o)) { $pcDictSem[$kk][$o]++ }; $pcDictSem[$kk].n++
                     }
-                } catch {}
+                }
+            } catch {}
+            if ($pcDictSem.Count -gt 0 -or $null -ne $planResumen) {
+                $msg += "*🚛 Plan de Cargas* (lo dictado)`n"
                 $lunesPc = (Get-Date).Date
-                $lunesPc = $lunesPc.AddDays(-((([int]$lunesPc.DayOfWeek) + 6) % 7))
+                $lunesPc = $(if ($lunesPc.DayOfWeek -eq [DayOfWeek]::Sunday) { $lunesPc.AddDays(1) } else { $lunesPc.AddDays(-((([int]$lunesPc.DayOfWeek) + 6) % 7)) })
                 foreach ($offPc in 0, 7) {
                     $kSem = $lunesPc.AddDays($offPc).ToString('yyyy-MM-dd')
-                    $sw = @($planResumen.semanas | Where-Object { $_.semana_lunes -eq $kSem }) | Select-Object -First 1
-                    $dictTxt = if ($pcDict.ContainsKey($kSem) -and $pcDict[$kSem] -gt 0) { " · $(Get-CamTxt $pcDict[$kSem]) dictados que Aloha aún no tiene" } else { "" }
-                    # [02/10/2026] el 02/10 salio "20 camiones · 44.036 cajas": cajas_mic de la API trae las cajas del documento aduanero
-                    # entero (varios camiones por MIC), asi que la suma por semana se duplica. Hasta ver el dato por camion en el log
-                    # del servidor (diagnostico abajo), si el promedio por camion no es creible (fuera de 500-1.300) se omiten las cajas.
-                    $cajasTxt = ""
-                    if ($sw -and [int]$sw.camiones -gt 0) { $promCaj = [double]$sw.cajas / [int]$sw.camiones; if ($promCaj -ge 500 -and $promCaj -le 1300) { $cajasTxt = " · $(([int]$sw.cajas).ToString('N0')) cajas" } else { Write-Host "    Plan de Cargas: cajas de la semana $kSem omitidas del WhatsApp (promedio $([math]::Round($promCaj)) por camion no es creible)" -ForegroundColor DarkYellow } }
-                    if ($sw) { $msg += "Pedido semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $sw.camiones) en Aloha$cajasTxt$dictTxt`n" }
-                    # diagnostico (solo consola/log): cajas por camion tal como vienen de la API, para entender el doble conteo
-                    try { if ($porSemana -and $porSemana.ContainsKey($kSem)) { foreach ($cpc in @($porSemana[$kSem])) { Write-Host "      [diag plan $kSem] $(([string]$cpc.productor).Trim()) carga=$($cpc.fecha_carga) status=$($cpc.status) mic=$($cpc.cajas_mic) desc=$($cpc.cajas_desc) pallets=$($cpc.cant_pallet) placa=$($cpc.placa_camion) carpeta=$($cpc.carpeta_import) factura=$($cpc.factura) -> usa $(Get-CajasCamionPlan $cpc $cargasPlan)" -ForegroundColor DarkGray } } } catch {}
-                    else { $msg += "Pedido semana del $(Get-FechaCorta $kSem): nada en Aloha todavía$dictTxt`n" }
+                    if ($pcDictSem.ContainsKey($kSem)) {
+                        $d = $pcDictSem[$kSem]
+                        $porO = @(); foreach ($o in 'BR', 'PY', 'BO') { if ($d[$o] -gt 0) { $porO += "$(@{ BR = 'Brasil'; PY = 'Paraguay'; BO = 'Bolivia' }[$o]) $($d[$o])" } }
+                        $msg += "Semana del $(Get-FechaCorta $kSem): $(Get-CamTxt $d.n) · $($porO -join ' · ')`n"
+                    } else { $msg += "Semana del $(Get-FechaCorta $kSem): sin cargas dictadas todavía`n" }
+                }
+                # control de la semana pasada contra Aloha (que recien se actualiza el lunes)
+                if ($null -ne $planResumen) {
+                    $kAnt = $lunesPc.AddDays(-7).ToString('yyyy-MM-dd')
+                    $sw = @($planResumen.semanas | Where-Object { $_.semana_lunes -eq $kAnt }) | Select-Object -First 1
+                    if ($sw) {
+                        $dAnt = if ($pcDictSem.ContainsKey($kAnt)) { $pcDictSem[$kAnt].n } else { 0 }
+                        $cajasTxt = ""
+                        if ([int]$sw.camiones -gt 0) { $promCaj = [double]$sw.cajas / [int]$sw.camiones; if ($promCaj -ge 500 -and $promCaj -le 1300) { $cajasTxt = ", $(([int]$sw.cajas).ToString('N0')) cajas" } else { Write-Host "    Plan de Cargas: cajas de la semana $kAnt omitidas del WhatsApp (promedio $([math]::Round($promCaj)) por camion no es creible)" -ForegroundColor DarkYellow } }
+                        $msg += "Semana pasada ($(Get-FechaCorta $kAnt)): $(Get-CamTxt $sw.camiones) en Aloha$cajasTxt · $dAnt dictados`n"
+                        # diagnostico (solo consola/log): cajas por camion tal como vienen de la API
+                        try { if ($porSemana -and $porSemana.ContainsKey($kAnt)) { foreach ($cpc in @($porSemana[$kAnt])) { Write-Host "      [diag plan $kAnt] $(([string]$cpc.productor).Trim()) carga=$($cpc.fecha_carga) status=$($cpc.status) mic=$($cpc.cajas_mic) desc=$($cpc.cajas_desc) pallets=$($cpc.cant_pallet) placa=$($cpc.placa_camion) carpeta=$($cpc.carpeta_import) factura=$($cpc.factura) -> usa $(Get-CajasCamionPlan $cpc $cargasPlan)" -ForegroundColor DarkGray } } } catch {}
+                    }
                 }
                 $msg += "`n"
             }
