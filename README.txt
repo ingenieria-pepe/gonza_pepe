@@ -773,6 +773,13 @@ LOG DE CAMBIOS:
                "(Cepea + servicios)". Plan de Cargas: "Sem dd/MM: N camiones (BR x, PY y)". Plan de compras:
                "*Sab dd/MM:* N → ok | faltan N camiones | bajo el minimo, ya cerrado" y "descargan X (n sup.) ·
                vende Y"; titulo "cajas al cierre, min 25.000" con el conteo en cursiva debajo.
+  03/10/2026 -> PENTA ECUADOR (los PDFs que faltaban desde el 03/09): Gonzalo dejo en Descargas los dos "desglose
+               operadorLocal UYimport" de Ecuador, ranking por importador NCM 0803.90, ene-sep 2026 y ene-sep 2025.
+               Guardados en penta\rankings_pdf\ con el decodificado (decodificar_pdf_penta.ps1). Ecuador ene-sep:
+               2026 13,33 M USD / 14.460 t brutas (Almar 45,6 %, Proexur 21,5 %, Ciro 17,5 %, Lina Fresh 10,5 %,
+               Henderson 5,0 %); 2025 10,91 M USD / 11.744 t (Almar 41,8 %, Proexur 27,4 %, Ciro 23,0 %, Henderson
+               4,9 %, Lina Fresh 2,5 %, Marama 0,5 %). Todavia NO entra en ningun panel (index_ecuador usa el
+               detalle xlsx con corte 31/08): pendiente decidir con Gonzalo si va como seccion de competencia.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

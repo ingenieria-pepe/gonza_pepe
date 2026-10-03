@@ -1,0 +1,105 @@
+Decodificado el 03/10/2026 con penta\decodificar_pdf_penta.ps1 (PDFs dejados por Gonzalo en Descargas el 03/10)
+
+==========================================================
+ 2026-10-03_ranking_importadores_ecuador_ene-sep2025.pdf   (3 bloques)
+==========================================================
+  ---- bloque 1 ----
+  ---- bloque 2 ----
+  ---- bloque 3 ----
+  Uruguay - Ranking por Importador
+  1/2025 - 9/2025
+  Importaciones
+  Totales y Parámetros
+  U$S VNA
+  10.908.620,68
+  Kgs. Brutos
+  11.743.642,26
+  Kgs. Netos
+  10.750.408,74
+  Código NCM
+  0803.90
+  País de Origen
+  Ecuador
+  Importador
+  U$S VNA
+  % Inc.
+  Kgs. Brutos
+  ALMAR S.R.L.
+  4.553.941
+  41,75%
+  4.914.198
+  PROEXUR S R L
+  2.989.720
+  27,41%
+  3.240.630
+  CIRO GENTILE S.A.
+  2.503.877
+  22,95%
+  2.648.494
+  HENDERSON Y CIA S.A.
+  528.962
+  4,85%
+  572.702
+  LINA FRESH URUGUAY SAS
+  273.799
+  2,51%
+  302.815
+  MARAMA IMPORT AND EXPORT LTDA
+  58.320
+  0,53%
+  64.800
+  Copyright 2026. Todos los derechos reservados.
+  1
+  / 1
+  Penta-Transaction
+  penta-transaction.com
+
+==========================================================
+ 2026-10-03_ranking_importadores_ecuador_ene-sep2026.pdf   (2 bloques)
+==========================================================
+  ---- bloque 1 ----
+  ---- bloque 2 ----
+  Uruguay - Ranking por Importador
+  1/2026 - 9/2026
+  Importaciones
+  Totales y Parámetros
+  U$S VNA
+  13.330.736,47
+  Kgs. Brutos
+  14.460.335,57
+  Kgs. Netos
+  13.283.125,87
+  Código NCM
+  0803.90
+  País de Origen
+  Ecuador
+  Importador
+  U$S VNA
+  % Inc.
+  Kgs. Brutos
+  ALMAR S.R.L.
+  6.071.596
+  45,55%
+  6.535.025
+  PROEXUR S R L
+  2.866.062
+  21,50%
+  3.104.333
+  CIRO GENTILE S.A.
+  2.326.745
+  17,45%
+  2.570.827
+  LINA FRESH URUGUAY SAS
+  1.397.324
+  10,48%
+  1.547.960
+  HENDERSON Y CIA S.A.
+  669.006
+  5,02%
+  702.188
+  Copyright 2026. Todos los derechos reservados.
+  1
+  / 1
+  Penta-Transaction
+  penta-transaction.com
+
