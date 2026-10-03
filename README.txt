@@ -742,6 +742,10 @@ LOG DE CAMBIOS:
                servicios (R$ 18): R$ b" / "Octubre historico (2023-2026): R$ c/kg -> hoy d% mas barato". Almar
                vuelve a bloque propio: "semana dd/MM: N cargas a R$ p/caja" y "Contra la caja Cepea: +R$ ... ·
                contra Cepea con servicios: -R$ ...". Mismos numeros que antes, mejor repartidos.
+  03/10/2026 -> Resumen WhatsApp, el resto de los parrafos a una idea por linea (Gonzalo: "hay que ordenar todos
+               los parrafos como hicimos con las temperaturas"): Carape en 3 renglones (fuente / caja PYG con su
+               variacion / USD por kg contra Brasil); Plan de compras en 2 renglones por sabado (cierre y veredicto /
+               descargan y vende); Lectura con titulo propio y una oracion por renglon.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -4222,12 +4222,14 @@ function Get-PlanComprasLineas {
             $limite = $sab.AddDays(-$lagG)
             $faltan = 0; $tarde = $false
             if ($saldoSim -lt $min) { if ($limite -ge $hoyD) { $faltan = [int][math]::Ceiling(($min - $saldoSim) / $cxc); $extra += $faltan * $cxc } else { $tarde = $true } }
-            $txt = "Sáb $($sab.ToString('dd/MM')): $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" }) +
-                   " · descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos)" } else { "" }) + " · vende $($v.ToString('N0'))"
+            # [03/10/2026] dos renglones por sabado (Gonzalo: "ordenar todos los parrafos como hicimos con las temperaturas"):
+            # el primero con el cierre y el veredicto, el segundo con lo que entra y lo que se vende.
+            $txt = "*Sáb $($sab.ToString('dd/MM')):* $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" })
             if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
             elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
             elseif ($tarde) { $txt += " → *bajo el mínimo* ($($min.ToString('N0'))); ya pasó el límite de carga" }
             else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
+            $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos)" } else { "" }) + " · vende $($v.ToString('N0'))"
             $pedidosAntes += $faltan
             $lineas += $txt
         }
@@ -4959,10 +4961,15 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                     $pyFecha = " (SIMA $(Get-FechaCorta $pyOrd[-1].fecha))"
                     if ($pyOrd.Count -ge 2 -and [double]$pyOrd[-2].precio_caja_pyg -gt 0) {
                         $pyD = (([double]$pyOrd[-1].precio_caja_pyg - [double]$pyOrd[-2].precio_caja_pyg) / [double]$pyOrd[-2].precio_caja_pyg) * 100
-                        $pyVar = " · $(Get-PctTxt $pyD) vs $(Get-FechaCorta $pyOrd[-2].fecha)"
+                        $pyR = [math]::Round($pyD, 1)
+                        $pyVar = " · " + $(if ($pyR -gt 0) { "subió $($pyR.ToString('0.#'))%" } elseif ($pyR -lt 0) { "bajó $([math]::Abs($pyR).ToString('0.#'))%" } else { "igual que" }) + " $(if ($pyR -ne 0) { 'vs ' })el $(Get-FechaCorta $pyOrd[-2].fecha)"
                     }
                 }
-                $msg += "*🇵🇾 Carapé*$($pyFecha): PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))/caja$pyVar · ≈USD $($pyUsdKg.ToString('F2'))/kg · $(Get-PctTxt $diffPct) vs BR`n`n"
+                # [03/10/2026] tres renglones: fuente, caja en guaranies con su variacion, y el kilo en dolares contra Brasil
+                $dR = [math]::Round($diffPct)
+                $msg += "*🇵🇾 Carapé*$($pyFecha)`n"
+                $msg += "Caja: PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))$pyVar`n"
+                $msg += "≈ USD $($pyUsdKg.ToString('F2'))/kg · $([math]::Abs($dR))% $(if ($dR -lt 0) { 'más barato' } elseif ($dR -gt 0) { 'más caro' } else { 'igual' }) que Brasil (Cepea + servicios)`n`n"
             }
 
             # --- (27/09/2026: Ecuador fuera del resumen, va por otro canal de ventas; sigue en index_ecuador)
@@ -5045,12 +5052,13 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                      elseif ($d3 -ge 10) { "subiendo ($(Get-PctTxt $pctChg3w) en 3 sem)" }
                      elseif ($d3 -le -10) { "bajando ($(Get-PctTxt $pctChg3w) en 3 sem)" }
                      else { "estable ($(Get-PctTxt $pctChg3w) en 3 sem)" }
-            $msg += "*👉 Lectura:* Precio $([math]::Abs([math]::Round($vsProm)))% $ladoL el histórico de $nombreMes, $tendL."
+            $msg += "*👉 Lectura*`nPrecio $([math]::Abs([math]::Round($vsProm)))% $ladoL el histórico de $nombreMes, $tendL."
             if ($spreadAvg -ne 0) {
                 $absSp = [math]::Abs($spreadAvg).ToString('F1')
-                if ($spreadAvg -le -2)   { $msg += " Almar viene pagando R$ $absSp/caja por debajo de Cepea+servicios (últimas 4 sem)." }
-                elseif ($spreadAvg -ge 2) { $msg += " Almar viene pagando R$ $absSp/caja por encima de Cepea+servicios (últimas 4 sem)." }
-                else                      { $msg += " Almar viene pagando en línea con Cepea+servicios (últimas 4 sem)." }
+                $msg += "`n"
+                if ($spreadAvg -le -2)   { $msg += "Almar viene pagando R$ $absSp/caja por debajo de Cepea+servicios (últimas 4 sem)." }
+                elseif ($spreadAvg -ge 2) { $msg += "Almar viene pagando R$ $absSp/caja por encima de Cepea+servicios (últimas 4 sem)." }
+                else                      { $msg += "Almar viene pagando en línea con Cepea+servicios (últimas 4 sem)." }
             }
             $alertasFire += @{ tipo='resumen'; msg=$msg }
         }
