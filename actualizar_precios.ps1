@@ -4229,7 +4229,7 @@ function Get-PlanComprasLineas {
             elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
             elseif ($tarde) { $txt += " → *bajo el mínimo* ($($min.ToString('N0'))); ya pasó el límite de carga" }
             else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
-            $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuestos)" } else { "" }) + " · vende $($v.ToString('N0'))"
+            $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuesto$(if ($nSup -ne 1) { 's' }))" } else { "" }) + " · vende $($v.ToString('N0'))"
             $pedidosAntes += $faltan
             $lineas += $txt
         }
