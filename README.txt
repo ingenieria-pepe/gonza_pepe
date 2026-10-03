@@ -752,6 +752,7 @@ LOG DE CAMBIOS:
                05/10: 13 camiones · Brasil 8 · Paraguay 5"), y Aloha solo como control de la semana pasada ("20
                camiones en Aloha, N cajas · 17 dictados"). Sale aunque no haya Aloha (laptop). De paso se saco un
                "else" que habia quedado separado de su "if" por la linea de diagnostico.
+  03/10/2026 -> generar_datos.ps1 exporta dictadas_por_semana (lo dictado completo por semana de carga y origen, antes de descontar lo que Aloha ya tiene); el bloque Plan de Cargas lo usa, asi la cuenta no baja cuando Aloha registra las cargas el lunes.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

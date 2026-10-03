@@ -4991,13 +4991,18 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                 $pcjPath2 = Join-Path $base "plan_compras\plan_compras.json"
                 if (Test-Path $pcjPath2) {
                     $pcj2 = Get-Content $pcjPath2 -Raw -Encoding UTF8 | ConvertFrom-Json
-                    foreach ($c in $pcj2.camiones) {
-                        if ([string]$c.fuente -ne 'plan_compras') { continue }
-                        $lunC = [DateTime]$c.carga
-                        $lunC = $(if ($lunC.DayOfWeek -eq [DayOfWeek]::Sunday) { $lunC.AddDays(1) } else { $lunC.AddDays(-((([int]$lunC.DayOfWeek) + 6) % 7)) })   # domingo = semana que arranca (PY carga domingo)
-                        $kk = $lunC.ToString('yyyy-MM-dd')
-                        if (-not $pcDictSem.ContainsKey($kk)) { $pcDictSem[$kk] = @{ BR = 0; PY = 0; BO = 0; n = 0 } }
-                        $o = [string]$c.origen; if ($pcDictSem[$kk].ContainsKey($o)) { $pcDictSem[$kk][$o]++ }; $pcDictSem[$kk].n++
+                    if ($pcj2.dictadas_por_semana) {
+                        # lo dictado completo (antes de descontar lo que Aloha ya tiene): lo arma generar_datos.ps1
+                        foreach ($pp in $pcj2.dictadas_por_semana.PSObject.Properties) { $pcDictSem[[string]$pp.Name] = @{ BR = [int]$pp.Value.BR; PY = [int]$pp.Value.PY; BO = [int]$pp.Value.BO; n = [int]$pp.Value.n } }
+                    } else {
+                        foreach ($c in $pcj2.camiones) {
+                            if ([string]$c.fuente -ne 'plan_compras') { continue }
+                            $lunC = [DateTime]$c.carga
+                            $lunC = $(if ($lunC.DayOfWeek -eq [DayOfWeek]::Sunday) { $lunC.AddDays(1) } else { $lunC.AddDays(-((([int]$lunC.DayOfWeek) + 6) % 7)) })   # domingo = semana que arranca (PY carga domingo)
+                            $kk = $lunC.ToString('yyyy-MM-dd')
+                            if (-not $pcDictSem.ContainsKey($kk)) { $pcDictSem[$kk] = @{ BR = 0; PY = 0; BO = 0; n = 0 } }
+                            $o = [string]$c.origen; if ($pcDictSem[$kk].ContainsKey($o)) { $pcDictSem[$kk][$o]++ }; $pcDictSem[$kk].n++
+                        }
                     }
                 }
             } catch {}

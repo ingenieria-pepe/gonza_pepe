@@ -215,6 +215,19 @@ $out = [ordered]@{
     conteo = $conteo
     ventas_plan = $ventas
     ventas_reales = $ventasReales
+    # [03/10/2026] lo dictado por semana de carga (lunes como clave; domingo = semana que arranca) ANTES de descontar lo que
+    # Aloha ya tiene, para el bloque Plan de Cargas del WhatsApp ("Semana del dd/MM: N camiones · Brasil x · Paraguay y")
+    dictadas_por_semana = $(
+        $h = [ordered]@{}
+        foreach ($p in $prog) {
+            try { $d = [DateTime]$p.carga } catch { continue }
+            $lun = $(if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) })
+            $k = Ymd $lun
+            if (-not $h.Contains($k)) { $h[$k] = [ordered]@{ BR = 0; PY = 0; BO = 0; n = 0 } }
+            $o = [string]$p.origen; if ($h[$k].Contains($o)) { $h[$k][$o]++ }; $h[$k].n++
+        }
+        $h
+    )
     camiones = @($camiones | Sort-Object carga, origen)
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress
