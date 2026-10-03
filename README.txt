@@ -811,6 +811,11 @@ LOG DE CAMBIOS:
                hasta el mie 14/10; sab 24/10 18.139 -> faltan 7. Resumen WhatsApp (Get-PlanComprasLineas): si el
                conteo es del mismo sabado o posterior, ese sabado sale como "cerro bajo el minimo (conteo)" sin el
                renglon "descargan 0 · vende 0".
+  03/10/2026 -> Venta de la semana del 05/10 planificada en 17.000 (Gonzalo: "la venta semana que viene esta planificada
+               en 17 mil cajas"): fila del 05/10 en ventas_plan = BO 1.050 (1 carga) + BR 10.593 + PY 5.357 (resto con
+               el mix BR/PY del ERP, misma convencion que la fila dictada del 28/09). Las semanas siguientes siguen en
+               18.000 supuesto. Resultado: sab 10/10 28.307 (sobran ~3.300 sobre el minimo), sab 17/10 24.221 -> falta
+               1 camion hasta el mie 14/10, sab 24/10 18.139 (sin dictar todavia).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
