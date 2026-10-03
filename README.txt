@@ -801,6 +801,16 @@ LOG DE CAMBIOS:
                por eso el KPI dice "proxima carga 02/10". Diferencia menor pendiente: el KPI (5h) cuenta 1 camion
                en camino y el bloque camion por camion (Aloha) 0: clasifican distinto un estado intermedio.
                Plan de compras con el plan del dia: sab 03/10 22.926 (bajo el minimo, cerrado), sab 10/10 26.788 ok.
+  03/10/2026 -> CONTEO DE CAMARAS 03/10 (sabado). Gonzalo mando las 3 planillas de camaras: la general BR+PY (el
+               color de la celda CAM dice el origen: gris = Paraguay, naranja = Brasil), Bolivia y Carton (= Ecuador).
+               Guardadas en fuentes\stock\ (3 jpeg + 2026-10-03_conteo_camaras.xlsx, una hoja por planilla: cub,
+               camara, sede, cajas, dia de gas, dia de venta, obs). Conteo: BR 12.269 (ZAC 10.253 + Coronel Raiz
+               cam 4 2.016), PY 9.676, BO 1.500, EC 7.993 (solo ZAC, referencia). Cierre del sabado 03/10 = 23.445
+               cajas madera + Bolivia (Gonzalo: "cerramos la semana con 23445"), bajo el minimo de 25.000. Con eso
+               el plan da: sab 10/10 27.307 ok (descargan 22, 1 supuesto BO); sab 17/10 23.221 -> faltan 2 camiones
+               hasta el mie 14/10; sab 24/10 18.139 -> faltan 7. Resumen WhatsApp (Get-PlanComprasLineas): si el
+               conteo es del mismo sabado o posterior, ese sabado sale como "cerro bajo el minimo (conteo)" sin el
+               renglon "descargan 0 · vende 0".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

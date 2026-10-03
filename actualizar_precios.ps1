@@ -4226,11 +4226,17 @@ function Get-PlanComprasLineas {
             # el primero con el cierre y el veredicto, el segundo con lo que entra y lo que se vende.
             # [03/10/2026] renglones cortos para el celular: "*Sab dd/MM:* N cajas → veredicto" y debajo "descargan X · vende Y"
             $txt = "*Sáb $($sab.ToString('dd/MM')):* $($saldoSim.ToString('N0'))" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" })
-            if ($faltan -eq 1) { $txt += " → *falta 1 camión*" }
-            elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones*" }
-            elseif ($tarde) { $txt += " → *bajo el mínimo*, ya cerrado" }
-            else { $txt += " → ok" }
-            $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup sup.)" } else { "" }) + " · vende $($v.ToString('N0'))"
+            if ($fCon -ge $sab) {
+                # [03/10/2026] el conteo es de ese mismo sabado (o posterior): es el cierre real, no una proyeccion.
+                # Sin el renglon "descargan 0 · vende 0" (Gonzalo conto el sabado 03/10 y el texto quedaba raro).
+                $txt += $(if ($saldoSim -lt $min) { " → cerró *bajo el mínimo* (conteo)" } else { " → cerró ok (conteo)" })
+            } else {
+                if ($faltan -eq 1) { $txt += " → *falta 1 camión*" }
+                elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones*" }
+                elseif ($tarde) { $txt += " → *bajo el mínimo*, ya cerrado" }
+                else { $txt += " → ok" }
+                $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup sup.)" } else { "" }) + " · vende $($v.ToString('N0'))"
+            }
             $pedidosAntes += $faltan
             $lineas += $txt
         }
