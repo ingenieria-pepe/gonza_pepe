@@ -780,6 +780,15 @@ LOG DE CAMBIOS:
                Henderson 5,0 %); 2025 10,91 M USD / 11.744 t (Almar 41,8 %, Proexur 27,4 %, Ciro 23,0 %, Henderson
                4,9 %, Lina Fresh 2,5 %, Marama 0,5 %). Todavia NO entra en ningun panel (index_ecuador usa el
                detalle xlsx con corte 31/08): pendiente decidir con Gonzalo si va como seccion de competencia.
+  03/10/2026 -> PANEL ECUADOR, seccion "Almar vs competencia - banana de Ecuador en aduana UY" (Gonzalo dijo "si"
+               a la propuesta). Fuente: los dos PDF "Ranking por Importador" de Penta (ene-set 2025 y ene-set 2026)
+               pasados A MANO a un JSON embebido en index_ecuador.html entre /*__EC_RANKING_JSON__*/ y
+               /*__END_EC_RANKING__*/ (actualizar_precios.ps1 NO lo toca; para sumar un periodo se agrega un
+               elemento a "periodos"). Muestra 4 KPIs (cuota 45,55 %, #1 de 5, 6.535 t brutas +33 %, USD/kg 0,929),
+               donas SVG por periodo (la pagina no carga Chart.js), "Totales y Parametros", tabla Penta con el periodo
+               anterior y variaciones, lectura calculada y una ficha nueva en "De donde sale cada dato". Kilos BRUTOS
+               como Penta. Ojo al corte: el ranking llega al 30/09 y el resto del panel usa el detalle al 31/08.
+               index_ecuador.html usa LF (no CRLF): respetarlo al editar.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -51,6 +51,27 @@ svg{display:block;max-width:100%;height:auto}
 .dot.ok{background:var(--good)} .dot.old{background:var(--s4)} .dot.no{background:var(--bad)}
 .f .d{color:var(--muted);line-height:1.45}
 code{background:rgba(120,120,120,.13);padding:1px 5px;border-radius:4px;font-size:12px}
+/* --- Almar vs competencia (ranking Penta por importador, 03/10/2026) --- */
+.h3{font-size:14.5px;margin:18px 0 8px}
+.ecr .pos{color:var(--good)} .ecr .neg{color:var(--bad)} .ecr .nil{color:var(--faint)}
+.ecr-penta{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.ecr-donas{display:flex;gap:14px;flex-wrap:wrap;flex:1 1 420px;justify-content:space-around}
+.ecr-dona{flex:1 1 200px;min-width:200px;max-width:280px;text-align:center}
+.ecr-dona .tit{font-size:13px;font-weight:700;margin-bottom:2px}
+.ecr-dona .val{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px}
+.ecr-tot{flex:0 0 300px;max-width:100%;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.ecr-tot-h{background:#42a5f5;color:#fff;font-weight:700;padding:8px 12px;font-size:14px}
+.ecr-tot table{min-width:0;font-size:13px}
+.ecr-tot td{padding:6px 12px;white-space:normal}
+.ecr-tot td:first-child{font-weight:600;width:52%}
+.ecr-leyenda{display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:center;margin-top:12px;font-size:12px;color:var(--muted)}
+.ecr-leyenda span i{display:inline-block;width:14px;height:10px;margin-right:5px;vertical-align:baseline;border-radius:1px}
+.ecr-tabla thead th{background:#42a5f5;color:#fff;text-transform:none;font-size:12.5px;letter-spacing:0}
+.ecr-tabla tbody tr.hi{background:rgba(66,165,245,.14)}
+.ecr-tabla tr.tot td{border-top:2px solid #90caf9;font-weight:700}
+.ecr-tabla td.prev{color:var(--muted)}
+.ecr-sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:baseline}
+.ecr ul{margin:0;padding-left:18px} .ecr li{margin:0 0 6px}
 </style>
 </head>
 <body>
@@ -115,7 +136,23 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 
 <section class="card">
   <h2>Ecuador en aduana</h2>
-  <p class="sub">El volumen mensual, la comparación con los otros orígenes y los importadores están en <a href="index_mercado.html">🌎 Mercado UY</a> (mismos datos de aduana). Acá quedan los indicadores de arriba: precio en aduana, volumen actual y contra el año pasado.</p>
+  <p class="sub">El volumen mensual y la comparación con los otros orígenes están en <a href="index_mercado.html">🌎 Mercado UY</a> (mismos datos de aduana). Acá quedan los indicadores de arriba (precio en aduana, volumen actual y contra el año pasado) y, abajo, quién importa la banana de Ecuador.</p>
+</section>
+
+<section class="card ecr" id="competencia">
+  <h2>🥊 Almar vs competencia — banana de Ecuador en aduana UY</h2>
+  <p class="sub" id="ecrIntro">Cargando…</p>
+  <div class="kpis" id="ecrKpis" style="margin:14px 0"></div>
+  <h3 class="h3" id="ecrH2">Importaciones por importador — valor en aduana (U$S VNA)</h3>
+  <div class="ecr-penta">
+    <div class="ecr-donas" id="ecrDonas"></div>
+    <div class="ecr-tot"><div class="ecr-tot-h">Totales y Parámetros</div><table><tbody id="ecrTot"></tbody></table></div>
+  </div>
+  <div class="ecr-leyenda" id="ecrLeyenda"></div>
+  <h3 class="h3" id="ecrH3">Ranking de importadores de banana de Ecuador</h3>
+  <div class="tblwrap"><table class="ecr-tabla" id="ecrTabla"></table></div>
+  <div class="note flag" id="ecrLectura"></div>
+  <p class="note" id="ecrFuente"></p>
 </section>
 
 <section class="card">
@@ -127,7 +164,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
 
 </div>
 
-<script id="datosEc" type="application/json">/*__ECUADOR2_JSON__*/{"generado":"2026-10-03 09:20","penta":{"fuente":"Penta Transaction · valor en aduana Uruguay","corte":"2026-08-31","anio":2026,"usdKg":1.007,"tMesV1":1693,"tMesV2":1245,"mensual":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5],"meses":8,"interanual":{"2024":1107,"2025":1008,"2026":1245},"comparativa":[{"origen":"Brasil","usdKg":0.525,"tMes":1698},{"origen":"Paraguay","usdKg":0.52,"tMes":931},{"origen":"Bolivia","usdKg":0.611,"tMes":206}]},"mundial":{"fuente":"IndexMundi / Banco Mundial · banana Centroamerica y Ecuador, FOB puertos EEUU","unidad":"USD/kg","puntos":55,"ultimo":"2026-03","ultimoValor":1.21,"serie":[{"fecha":"2021-09","usdKg":1.18},{"fecha":"2021-10","usdKg":1.15},{"fecha":"2021-11","usdKg":1.14},{"fecha":"2021-12","usdKg":1.16},{"fecha":"2022-01","usdKg":1.16},{"fecha":"2022-02","usdKg":1.24},{"fecha":"2022-03","usdKg":1.39},{"fecha":"2022-04","usdKg":1.46},{"fecha":"2022-05","usdKg":1.46},{"fecha":"2022-06","usdKg":1.44},{"fecha":"2022-07","usdKg":1.53},{"fecha":"2022-08","usdKg":1.67},{"fecha":"2022-09","usdKg":1.62},{"fecha":"2022-10","usdKg":1.57},{"fecha":"2022-11","usdKg":1.65},{"fecha":"2022-12","usdKg":1.68},{"fecha":"2023-01","usdKg":1.68},{"fecha":"2023-02","usdKg":1.66},{"fecha":"2023-03","usdKg":1.6},{"fecha":"2023-04","usdKg":1.65},{"fecha":"2023-05","usdKg":1.61},{"fecha":"2023-06","usdKg":1.59},{"fecha":"2023-07","usdKg":1.55},{"fecha":"2023-08","usdKg":1.56},{"fecha":"2023-09","usdKg":1.56},{"fecha":"2023-10","usdKg":1.57},{"fecha":"2023-11","usdKg":1.55},{"fecha":"2023-12","usdKg":1.57},{"fecha":"2024-01","usdKg":1.61},{"fecha":"2024-02","usdKg":1.57},{"fecha":"2024-03","usdKg":1.64},{"fecha":"2024-04","usdKg":1.63},{"fecha":"2024-05","usdKg":1.42},{"fecha":"2024-06","usdKg":1.09},{"fecha":"2024-07","usdKg":1.03},{"fecha":"2024-08","usdKg":1.01},{"fecha":"2024-09","usdKg":1.03},{"fecha":"2024-10","usdKg":1.03},{"fecha":"2024-11","usdKg":0.91},{"fecha":"2024-12","usdKg":0.83},{"fecha":"2025-01","usdKg":1.11},{"fecha":"2025-02","usdKg":1.25},{"fecha":"2025-03","usdKg":1.18},{"fecha":"2025-04","usdKg":1.1},{"fecha":"2025-05","usdKg":1.09},{"fecha":"2025-06","usdKg":0.92},{"fecha":"2025-07","usdKg":1.01},{"fecha":"2025-08","usdKg":1.02},{"fecha":"2025-09","usdKg":1.02},{"fecha":"2025-10","usdKg":1.13},{"fecha":"2025-11","usdKg":1.16},{"fecha":"2025-12","usdKg":1.16},{"fecha":"2026-01","usdKg":1.2},{"fecha":"2026-02","usdKg":1.21},{"fecha":"2026-03","usdKg":1.21}]},"tridge":{"fuente":"Tridge (bloqueado desde ~24/07/2026)","ultimo":"2026-09-22","usdKg":0.92,"dias":11,"puntos":26}}/*__END_ECUADOR2__*/</script>
+<script id="datosEc" type="application/json">/*__ECUADOR2_JSON__*/{"generado":"2026-10-03 16:50","penta":{"fuente":"Penta Transaction · valor en aduana Uruguay","corte":"2026-08-31","anio":2026,"usdKg":1.007,"tMesV1":1693,"tMesV2":1245,"mensual":[1518.8,1529,2379.8,1344,1396.3,1277.6,1131.2,1175.5],"meses":8,"interanual":{"2024":1107,"2025":1008,"2026":1245},"comparativa":[{"origen":"Brasil","usdKg":0.525,"tMes":1698},{"origen":"Paraguay","usdKg":0.52,"tMes":931},{"origen":"Bolivia","usdKg":0.611,"tMes":206}]},"mundial":{"fuente":"IndexMundi / Banco Mundial · banana Centroamerica y Ecuador, FOB puertos EEUU","unidad":"USD/kg","puntos":55,"ultimo":"2026-03","ultimoValor":1.21,"serie":[{"fecha":"2021-09","usdKg":1.18},{"fecha":"2021-10","usdKg":1.15},{"fecha":"2021-11","usdKg":1.14},{"fecha":"2021-12","usdKg":1.16},{"fecha":"2022-01","usdKg":1.16},{"fecha":"2022-02","usdKg":1.24},{"fecha":"2022-03","usdKg":1.39},{"fecha":"2022-04","usdKg":1.46},{"fecha":"2022-05","usdKg":1.46},{"fecha":"2022-06","usdKg":1.44},{"fecha":"2022-07","usdKg":1.53},{"fecha":"2022-08","usdKg":1.67},{"fecha":"2022-09","usdKg":1.62},{"fecha":"2022-10","usdKg":1.57},{"fecha":"2022-11","usdKg":1.65},{"fecha":"2022-12","usdKg":1.68},{"fecha":"2023-01","usdKg":1.68},{"fecha":"2023-02","usdKg":1.66},{"fecha":"2023-03","usdKg":1.6},{"fecha":"2023-04","usdKg":1.65},{"fecha":"2023-05","usdKg":1.61},{"fecha":"2023-06","usdKg":1.59},{"fecha":"2023-07","usdKg":1.55},{"fecha":"2023-08","usdKg":1.56},{"fecha":"2023-09","usdKg":1.56},{"fecha":"2023-10","usdKg":1.57},{"fecha":"2023-11","usdKg":1.55},{"fecha":"2023-12","usdKg":1.57},{"fecha":"2024-01","usdKg":1.61},{"fecha":"2024-02","usdKg":1.57},{"fecha":"2024-03","usdKg":1.64},{"fecha":"2024-04","usdKg":1.63},{"fecha":"2024-05","usdKg":1.42},{"fecha":"2024-06","usdKg":1.09},{"fecha":"2024-07","usdKg":1.03},{"fecha":"2024-08","usdKg":1.01},{"fecha":"2024-09","usdKg":1.03},{"fecha":"2024-10","usdKg":1.03},{"fecha":"2024-11","usdKg":0.91},{"fecha":"2024-12","usdKg":0.83},{"fecha":"2025-01","usdKg":1.11},{"fecha":"2025-02","usdKg":1.25},{"fecha":"2025-03","usdKg":1.18},{"fecha":"2025-04","usdKg":1.1},{"fecha":"2025-05","usdKg":1.09},{"fecha":"2025-06","usdKg":0.92},{"fecha":"2025-07","usdKg":1.01},{"fecha":"2025-08","usdKg":1.02},{"fecha":"2025-09","usdKg":1.02},{"fecha":"2025-10","usdKg":1.13},{"fecha":"2025-11","usdKg":1.16},{"fecha":"2025-12","usdKg":1.16},{"fecha":"2026-01","usdKg":1.2},{"fecha":"2026-02","usdKg":1.21},{"fecha":"2026-03","usdKg":1.21}]},"tridge":{"fuente":"Tridge (bloqueado desde ~24/07/2026)","ultimo":"2026-09-22","usdKg":0.92,"dias":12,"puntos":26}}/*__END_ECUADOR2__*/</script>
 
 <script>
 (function () {
@@ -339,6 +376,209 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       (dif>=0?'+':'')+fmt(dif,0)+'%. Si esa brecha se abriera mucho, valdría revisar el dato.';
     nm.appendChild(p2);
   })();
+})();
+</script>
+
+<script id="datosEcRanking" type="application/json">/*__EC_RANKING_JSON__*/{"fuente":"Penta Transaction · Uruguay - Ranking por Importador · NCM 0803.90 · origen Ecuador","actualizado":"2026-10-03","almar":"ALMAR S.R.L.","carpeta":"penta/rankings_pdf/","periodos":[{"id":"2025","label":"ene–set 2025","periodo":"1/2025 - 9/2025","usd":10908620.68,"kgBrutos":11743642.26,"kgNetos":10750408.74,"pdf":"2026-10-03_ranking_importadores_ecuador_ene-sep2025.pdf","importadores":[{"nombre":"ALMAR S.R.L.","usd":4553941,"inc":41.75,"kg":4914198},{"nombre":"PROEXUR S R L","usd":2989720,"inc":27.41,"kg":3240630},{"nombre":"CIRO GENTILE S.A.","usd":2503877,"inc":22.95,"kg":2648494},{"nombre":"HENDERSON Y CIA S.A.","usd":528962,"inc":4.85,"kg":572702},{"nombre":"LINA FRESH URUGUAY SAS","usd":273799,"inc":2.51,"kg":302815},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","usd":58320,"inc":0.53,"kg":64800}]},{"id":"2026","label":"ene–set 2026","periodo":"1/2026 - 9/2026","usd":13330736.47,"kgBrutos":14460335.57,"kgNetos":13283125.87,"pdf":"2026-10-03_ranking_importadores_ecuador_ene-sep2026.pdf","importadores":[{"nombre":"ALMAR S.R.L.","usd":6071596,"inc":45.55,"kg":6535025},{"nombre":"PROEXUR S R L","usd":2866062,"inc":21.50,"kg":3104333},{"nombre":"CIRO GENTILE S.A.","usd":2326745,"inc":17.45,"kg":2570827},{"nombre":"LINA FRESH URUGUAY SAS","usd":1397324,"inc":10.48,"kg":1547960},{"nombre":"HENDERSON Y CIA S.A.","usd":669006,"inc":5.02,"kg":702188}]}]}/*__END_EC_RANKING__*/</script>
+
+<script>
+// ============ ALMAR vs COMPETENCIA — banana de Ecuador en aduana UY (03/10/2026) ============
+// Misma idea que la sección de Brasil (index_brasil.html, 26/09/2026), pero la fuente son los reportes PDF
+// "Uruguay - Ranking por Importador" de Penta que Gonzalo baja a mano (penta/rankings_pdf/, decodificados con
+// penta/decodificar_pdf_penta.ps1). El JSON de arriba se escribe a mano desde el DECODIFICADO: un elemento de
+// "periodos" por reporte (mismo rango de meses para poder comparar). actualizar_precios.ps1 NO toca este bloque.
+// Las donas son SVG puro (esta página no carga Chart.js). Kilos BRUTOS, como los muestra Penta en el reporte.
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var intro = $('ecrIntro');
+  var R = null;
+  try {
+    R = JSON.parse($('datosEcRanking').textContent
+      .replace(/\/\*__EC_RANKING_JSON__\*\//, '').replace(/\/\*__END_EC_RANKING__\*\//, ''));
+  } catch (e) { R = null; }
+  if (!R || !R.periodos || !R.periodos.length) { if (intro) intro.textContent = 'Sin ranking de Penta cargado todavía.'; return; }
+
+  var nz = function (v) { return v === null || v === undefined || isNaN(v); };
+  var fmtN = function (v, d) { return nz(v) ? '—' : Number(v).toLocaleString('es-UY', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); };
+  var fmtI = function (v) { return fmtN(v, 0); }, fmt1 = function (v) { return fmtN(v, 1); };
+  var fmt2 = function (v) { return fmtN(v, 2); }, fmt3 = function (v) { return fmtN(v, 3); };
+  var sgnP = function (v) { return nz(v) ? '—' : (v > 0 ? '+' : '') + fmt1(v) + ' %'; };
+  var sgnPP = function (v) { return nz(v) ? '—' : (v > 0 ? '+' : '') + fmt2(v) + ' pp'; };
+  var clsDe = function (v) { return nz(v) ? 'nil' : (v > 0 ? 'pos' : (v < 0 ? 'neg' : '')); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  var b = function (s, cls) { return '<strong class="' + (cls || '') + '">' + s + '</strong>'; };
+  var fmtF = function (s) { return s ? s.substring(8, 10) + '/' + s.substring(5, 7) + '/' + s.substring(0, 4) : '—'; };
+  var titulo = function (n) { return String(n).split(/\s+/).map(function (w) { return (w.length > 3 && /^[A-ZÁÉÍÓÚÑ]+$/.test(w)) ? w[0] + w.slice(1).toLowerCase() : w; }).join(' '); };
+  var corto = function (n) {
+    return String(n).replace(/\s+(S\.?\s?R\.?\s?L\.?|S\.?\s?A\.?\s?S?\.?|LTDA\.?|SOCIEDAD ANONIMA|SAS)\s*$/i, '').trim()
+      .split(/\s+/).map(function (w) { return w.length > 2 ? w[0] + w.slice(1).toLowerCase() : w; }).join(' ');
+  };
+
+  var per = R.periodos.slice().sort(function (a, c) { return String(a.id) < String(c.id) ? -1 : 1; });
+  var A = per[per.length - 1], P = per.length > 1 ? per[per.length - 2] : null;
+  var almarN = R.almar || 'ALMAR S.R.L.';
+  var cero = { usd: 0, kg: 0, inc: 0 };
+  var find = function (p, n) { if (!p) return null; for (var i = 0; i < p.importadores.length; i++) if (p.importadores[i].nombre === n) return p.importadores[i]; return null; };
+  var pk = function (p, n) { return find(p, n) || cero; };
+  var nombres = [];
+  per.forEach(function (p) { p.importadores.forEach(function (i) { if (nombres.indexOf(i.nombre) < 0) nombres.push(i.nombre); }); });
+  var usdDe = function (n, p) { return Number(pk(p, n).usd) || 0; };
+  var kgDe = function (n, p) { return Number(pk(p, n).kg) || 0; };
+  var rankDe = function (p) { return nombres.filter(function (n) { return usdDe(n, p) > 0; }).sort(function (x, y) { return usdDe(y, p) - usdDe(x, p); }); };
+  var rankA = rankDe(A), rankP = P ? rankDe(P) : [];
+  var rankGlobal = nombres.slice().sort(function (x, y) { return usdDe(y, A) - usdDe(x, A) || (P ? usdDe(y, P) - usdDe(x, P) : 0); });
+  var PAL = ['#f44336', '#3f51b5', '#ff9800', '#2e7d32', '#9c27b0', '#00acc1', '#e91e63', '#8d6e63', '#607d8b', '#3949ab'];   // el 6° (Marama) era casi igual al índigo de Proexur
+  var GRIS = '#bdbdbd';
+  var colorMap = {}; rankGlobal.forEach(function (n, k) { colorMap[n] = k < PAL.length ? PAL[k] : GRIS; });
+  var colorDe = function (n) { return colorMap[n] || GRIS; };
+  var nombre = function (n) { return n === almarN ? 'Almar' : corto(n); };
+  var incDe = function (n, p) { return (p && p.usd) ? usdDe(n, p) / p.usd * 100 : 0; };          // "% Inc." de Penta = participación en U$S VNA
+  var cuotaKg = function (n, p) { return (p && p.kgBrutos) ? kgDe(n, p) / p.kgBrutos * 100 : 0; };
+  var usdKg = function (usd, kg) { return kg ? usd / kg : null; };
+
+  var aA = pk(A, almarN), aP = P ? pk(P, almarN) : cero;
+  var pos = rankA.indexOf(almarN) + 1;
+  var vT = (P && aP.kg) ? (aA.kg - aP.kg) / aP.kg * 100 : null;
+  var vM = (P && P.kgBrutos) ? (A.kgBrutos - P.kgBrutos) / P.kgBrutos * 100 : null;
+  var dCuota = P ? incDe(almarN, A) - incDe(almarN, P) : null;
+  var mUsdKg = usdKg(A.usd, A.kgBrutos), aUsdKg = usdKg(aA.usd, aA.kg);
+  var dUsd = (aUsdKg && mUsdKg) ? (aUsdKg - mUsdKg) / mUsdKg * 100 : null;
+  var pUsdKg = P ? usdKg(P.usd, P.kgBrutos) : null;
+  var dM = (pUsdKg && mUsdKg) ? (mUsdKg - pUsdKg) / pUsdKg * 100 : null;
+  var comp = rankA.filter(function (n) { return n !== almarN; });
+  var top3 = rankA.slice(0, 3).reduce(function (s, n) { return s + incDe(n, A); }, 0);
+  var parte = (P && (A.kgBrutos - P.kgBrutos) > 0) ? (aA.kg - aP.kg) / (A.kgBrutos - P.kgBrutos) * 100 : null;
+  var varKg = function (n) {
+    var a = kgDe(n, A), p = P ? kgDe(n, P) : 0;
+    if (!P) return { t: '—', cls: 'nil' };
+    if (!p && a) return { t: 'nuevo', cls: 'pos' };
+    if (p && !a) return { t: 'salió', cls: 'neg' };
+    if (!p) return { t: '—', cls: 'nil' };
+    var d = (a - p) / p * 100;
+    return d >= 100 ? { t: '×' + fmt1(a / p), cls: 'pos' } : { t: sgnP(d), cls: clsDe(d) };
+  };
+
+  // ---- intro
+  intro.innerHTML = 'Importaciones uruguayas de banana de origen Ecuador según aduana (Penta Transaction, NCM 0803.90): <strong>' + esc(A.label) + '</strong>' +
+    (P ? ' contra <strong>' + esc(P.label) + '</strong>, mismo período' : '') + '. Mismo formato que el reporte "Ranking por Importador" de Penta: participación por <strong>valor en aduana (U$S VNA)</strong>.';
+
+  // ---- KPIs
+  var k = $('ecrKpis'); k.innerHTML = '';
+  var tile = function (lab, val, u, dl) {
+    var x = document.createElement('div'); x.className = 'tile';
+    x.innerHTML = '<div class="lab">' + lab + '</div><div class="val">' + val + (u ? '<span class="u">' + u + '</span>' : '') + '</div><div class="dl">' + dl + '</div>';
+    k.appendChild(x);
+  };
+  tile('Cuota Almar · ' + esc(A.label), fmt2(incDe(almarN, A)) + ' %', '',
+    'en U$S VNA · ' + fmt1(cuotaKg(almarN, A)) + ' % de los kilos' + (P ? ' · ' + esc(P.label) + ': ' + fmt2(incDe(almarN, P)) + ' % (' + b(sgnPP(dCuota), clsDe(dCuota)) + ')' : ''));
+  var n2 = comp[0], n3 = comp[1];
+  tile('Posición', pos ? '#' + pos + ' de ' + rankA.length : '—', '',
+    (n2 ? '2°: ' + esc(nombre(n2)) + ' ' + fmt2(incDe(n2, A)) + ' %' : '') + (n3 ? ' · 3°: ' + esc(nombre(n3)) + ' ' + fmt2(incDe(n3, A)) + ' %' : ''));
+  tile('Toneladas Almar · ' + esc(A.label), fmtI(aA.kg / 1000), 't brutas',
+    P ? esc(P.label) + ': ' + fmtI(aP.kg / 1000) + ' t → ' + b(sgnP(vT), clsDe(vT)) + ' · el mercado ' + b(sgnP(vM), clsDe(vM)) : '');
+  tile('USD/kg declarado Almar', fmt3(aUsdKg), '/kg',
+    'mercado ' + fmt3(mUsdKg) + (nz(dUsd) ? '' : ' (' + b(sgnP(dUsd), dUsd > 0 ? 'neg' : 'pos') + ')') +
+    comp.slice(0, 2).map(function (n) { return ' · ' + esc(nombre(n)) + ' ' + fmt3(usdKg(usdDe(n, A), kgDe(n, A))); }).join(''));
+
+  // ---- donas (SVG): una por período, U$S VNA por importador, "Valor total" arriba, leyenda común abajo
+  var MAXP = 8, usados = {};
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var mk = function (t, a) { var e = document.createElementNS(svgNS, t); for (var q in a) e.setAttribute(q, a[q]); return e; };
+  var donas = $('ecrDonas'); donas.innerHTML = '';
+  per.forEach(function (p) {
+    var lista = p.importadores.filter(function (i) { return (Number(i.usd) || 0) > 0; }).sort(function (x, y) { return (Number(y.usd) || 0) - (Number(x.usd) || 0); });
+    var con = lista.slice(0, MAXP), resto = lista.slice(MAXP);
+    var slices = con.map(function (i) { usados[i.nombre] = true; return { lab: titulo(i.nombre), v: Number(i.usd), c: colorDe(i.nombre) }; });
+    var rOtros = resto.reduce(function (s, i) { return s + (Number(i.usd) || 0); }, 0);
+    if (rOtros > 0) slices.push({ lab: 'Otros (' + resto.length + ')', v: rOtros, c: GRIS });
+    var total = Number(p.usd) || slices.reduce(function (s, d) { return s + d.v; }, 0);
+    var card = document.createElement('div'); card.className = 'ecr-dona';
+    card.innerHTML = '<div class="tit">' + esc(p.label) + '</div><div class="val">Valor total: ' + fmtI(total) + '</div>';
+    var S = 220, cx = 110, cy = 110, r = 72, w = 46, C = 2 * Math.PI * r, off = 0;
+    var svg = mk('svg', { viewBox: '0 0 ' + S + ' ' + S, role: 'img', 'aria-label': 'Importadores de banana de Ecuador, ' + p.label });
+    slices.forEach(function (s) {
+      var frac = total ? s.v / total : 0, len = frac * C;
+      var c = mk('circle', { cx: cx, cy: cy, r: r, fill: 'none', stroke: s.c, 'stroke-width': w,
+        'stroke-dasharray': len + ' ' + (C - len), 'stroke-dashoffset': -off, transform: 'rotate(-90 ' + cx + ' ' + cy + ')' });
+      var t = document.createElementNS(svgNS, 'title'); t.textContent = s.lab + ': U$S ' + fmtI(s.v) + ' (' + fmt2(frac * 100) + ' %)'; c.appendChild(t);
+      svg.appendChild(c);
+      if (frac >= 0.06) {
+        var ang = -Math.PI / 2 + (off + len / 2) / C * 2 * Math.PI;
+        var tx = mk('text', { x: cx + Math.cos(ang) * r, y: cy + Math.sin(ang) * r + 4, 'text-anchor': 'middle', 'font-size': 11, 'font-weight': 700, fill: '#fff' });
+        tx.textContent = fmt1(frac * 100) + ' %'; svg.appendChild(tx);
+      }
+      off += len;
+    });
+    card.appendChild(svg); donas.appendChild(card);
+  });
+  $('ecrLeyenda').innerHTML = rankGlobal.filter(function (n) { return usados[n]; }).map(function (n) { return '<span><i style="background:' + colorDe(n) + '"></i>' + esc(titulo(n)) + '</span>'; }).join('');
+  $('ecrH2').textContent = 'Importaciones por importador en U$S VNA — ' + per.map(function (p) { return p.label; }).join(' · ');
+
+  // ---- Totales y Parámetros (período actual)
+  $('ecrTot').innerHTML = [
+    ['U$S VNA', fmtI(A.usd)],
+    ['Kgs. Brutos', fmtI(A.kgBrutos)],
+    ['Kgs. Netos', A.kgNetos ? fmtI(A.kgNetos) : '—'],
+    ['USD/kg bruto', fmt3(mUsdKg)],
+    ['Importadores', fmtI(rankA.length)],
+    ['Código NCM', '0803.90'],
+    ['País de Origen', 'Ecuador'],
+    ['Período', esc(A.periodo || A.label)]
+  ].map(function (r2) { return '<tr><td>' + r2[0] + '</td><td>' + r2[1] + '</td></tr>'; }).join('');
+
+  // ---- tabla Penta: Importador | U$S VNA | % Inc. | Kgs. Brutos, más el período anterior y las variaciones
+  var sw = function (c) { return '<span class="ecr-sw" style="background:' + c + '"></span>'; };
+  var filas = rankGlobal.filter(function (n) { return usdDe(n, A) > 0 || (P && usdDe(n, P) > 0); });
+  var html = '<thead><tr><th>Importador</th><th>U$S VNA ' + esc(A.label) + '</th><th>% Inc.</th><th>Kgs. Brutos</th>' +
+    (P ? '<th>Kgs. Brutos ' + esc(P.label) + '</th><th>Var. kg</th><th>Δ % Inc.</th>' : '') + '</tr></thead><tbody>';
+  filas.forEach(function (n) {
+    var a = pk(A, n), p = P ? pk(P, n) : cero, inc = incDe(n, A), dInc = P ? inc - incDe(n, P) : null, vk = varKg(n);
+    html += '<tr' + (n === almarN ? ' class="hi"' : '') + '><td>' + sw(colorDe(n)) + esc(String(n).toUpperCase()) + '</td>' +
+      '<td>' + (a.usd ? fmtI(a.usd) : '—') + '</td><td>' + (a.usd ? fmt2(inc) + '%' : '—') + '</td><td>' + (a.kg ? fmtI(a.kg) : '—') + '</td>' +
+      (P ? '<td class="prev">' + (p.kg ? fmtI(p.kg) : '—') + '</td><td class="' + vk.cls + '">' + vk.t + '</td><td class="' + clsDe(dInc) + '">' + sgnPP(dInc) + '</td>' : '') + '</tr>';
+  });
+  html += '<tr class="tot"><td>TOTAL</td><td>' + fmtI(A.usd) + '</td><td>100,00%</td><td>' + fmtI(A.kgBrutos) + '</td>' +
+    (P ? '<td class="prev">' + fmtI(P.kgBrutos) + '</td><td class="' + clsDe(vM) + '">' + sgnP(vM) + '</td><td></td>' : '') + '</tr></tbody>';
+  $('ecrTabla').innerHTML = html;
+
+  // ---- lectura
+  var L = [];
+  L.push(b('Almar es el ' + fmt2(incDe(almarN, A)) + ' % del valor en aduana (' + fmt1(cuotaKg(almarN, A)) + ' % de los kilos) de la banana ecuatoriana que entró a Uruguay en ' + esc(A.label) + '.', '') +
+    (comp.length ? ' ' + comp.slice(0, 2).map(function (n) { return esc(nombre(n)) + ' ' + fmt2(incDe(n, A)) + ' %'; }).join(' y ') + '; los tres primeros, ' + fmt1(top3) + ' % del valor.' : ''));
+  if (P && aP.kg) {
+    L.push('Contra ' + esc(P.label) + ': el mercado ' + b(sgnP(vM), clsDe(vM)) + ' (' + fmtI(P.kgBrutos / 1000) + ' → ' + fmtI(A.kgBrutos / 1000) + ' t) y Almar ' + b(sgnP(vT), clsDe(vT)) +
+      ' (' + fmtI(aP.kg / 1000) + ' → ' + fmtI(aA.kg / 1000) + ' t)' + (nz(parte) ? '' : ': se llevó el ' + fmtI(parte) + ' % del crecimiento') +
+      ' y ' + (dCuota >= 0 ? 'ganó ' : 'perdió ') + fmt1(Math.abs(dCuota)) + ' pp de cuota.' +
+      (comp.length ? ' Competencia: ' + comp.map(function (n) { var v = varKg(n); return esc(nombre(n)) + ' ' + b(v.t, v.cls); }).join(', ') + '.' : ''));
+    var mejor = null, mejorD = 0;
+    nombres.forEach(function (n) { if (n === almarN) return; var d = kgDe(n, A) - kgDe(n, P); if (d > mejorD) { mejorD = d; mejor = n; } });
+    if (mejor) {
+      var rp = rankP.indexOf(mejor) + 1, ra = rankA.indexOf(mejor) + 1;
+      var masRapidos = comp.filter(function (n) { var p0 = kgDe(n, P); return p0 && (kgDe(n, A) - p0) / p0 * 100 > vT; });
+      L.push('El competidor que más crece es ' + b(esc(nombre(mejor)), '') + ': de ' + fmtI(kgDe(mejor, P) / 1000) + ' a ' + fmtI(kgDe(mejor, A) / 1000) + ' t' +
+        (rp ? ' (del puesto #' + rp + ' al #' + ra + ')' : ' (nuevo, puesto #' + ra + ')') + '.' +
+        (masRapidos.length === 1 && masRapidos[0] === mejor ? ' Es el único que crece más rápido que Almar.' : ''));
+    }
+  }
+  if (!nz(dUsd)) L.push('Precio declarado en aduana: Almar USD ' + fmt3(aUsdKg) + '/kg bruto contra USD ' + fmt3(mUsdKg) + ' del mercado (' + b(sgnP(dUsd), dUsd > 0 ? 'neg' : 'pos') + '): ' +
+    (Math.abs(dUsd) < 2 ? 'paga prácticamente lo mismo que la competencia.' : (dUsd > 0 ? 'declara más caro que la competencia.' : 'declara más barato que la competencia.')) +
+    (nz(dM) ? '' : ' El USD/kg del mercado ' + (Math.abs(dM) < 2 ? 'no se movió' : (dM > 0 ? 'subió ' + fmt1(dM) + ' %' : 'bajó ' + fmt1(-dM) + ' %')) + ' (' + fmt3(pUsdKg) + ' → ' + fmt3(mUsdKg) + ').'));
+  $('ecrLectura').innerHTML = '<ul>' + L.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>';
+  $('ecrFuente').innerHTML = 'Fuente: ' + esc(R.fuente) + '. Reportes ' + per.map(function (p) { return esc(p.periodo || p.label); }).join(' y ') +
+    ' (PDFs del ' + fmtF(R.actualizado) + ' en <code>' + esc(R.carpeta || 'penta/rankings_pdf/') + '</code>). Kilos brutos, como los muestra Penta en el reporte. ' +
+    'Ojo: este ranking llega hasta el fin del período (' + esc(A.label) + '); el precio en aduana y el volumen de arriba usan el detalle de Penta, que tiene otro corte. ' +
+    'Para agregar un período nuevo: dejar el PDF de Penta en Descargas y pedir que se cargue (el JSON de esta sección se escribe a mano).';
+
+  // ---- ficha en "De dónde sale cada dato"
+  var fc = $('fuentes');
+  if (fc) {
+    var x = document.createElement('div'); x.className = 'f';
+    x.innerHTML = '<div class="n"><span class="dot ok"></span>Penta — ranking por importador</div><div class="d">' +
+      esc('Reportes PDF "Ranking por Importador" de Penta (Ecuador, ' + per.map(function (p) { return p.label; }).join(' y ') + '), bajados el ' + fmtF(R.actualizado) +
+        '. Alimentan la sección Almar vs competencia. Se cargan a mano cuando dejás un PDF nuevo en Descargas.') + '</div>';
+    fc.appendChild(x);
+  }
 })();
 </script>
 </body>
