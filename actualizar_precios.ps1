@@ -4227,7 +4227,7 @@ function Get-PlanComprasLineas {
             $txt = "*Sáb $($sab.ToString('dd/MM')):* $($saldoSim.ToString('N0')) cajas" + $(if ($pedidosAntes -eq 1) { " (con el 1 de arriba)" } elseif ($pedidosAntes -gt 1) { " (con los $pedidosAntes de arriba)" } else { "" })
             if ($faltan -eq 1) { $txt += " → *falta 1 camión* para $($min.ToString('N0'))" }
             elseif ($faltan -gt 1) { $txt += " → *faltan $faltan camiones* para $($min.ToString('N0'))" }
-            elseif ($tarde) { $txt += " → *bajo el mínimo* ($($min.ToString('N0'))); ya pasó el límite de carga" }
+            elseif ($tarde) { $txt += " → *bajo el mínimo* ($($min.ToString('N0'))), ya no llega ninguna carga más para este sábado" }
             else { $txt += " → ok, mínimo $($min.ToString('N0'))" }
             $txt += "`n" + "descargan $($ll.Count)" + $(if ($nSup -gt 0) { " ($nSup supuesto$(if ($nSup -ne 1) { 's' }))" } else { "" }) + " · vende $($v.ToString('N0'))"
             $pedidosAntes += $faltan
@@ -4873,24 +4873,26 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             #     Ribeira, region 52 del paso 2b), cada uno con su variacion semanal. Almar: caja y kilo na roca, y con
             #     servicios. Sin caja Cepea, sin historico (eso queda en la Lectura) y sin comparaciones cruzadas.
             function Get-VarSemTxt { param($serie) $s = @($serie); if ($s.Count -lt 2 -or [double]$s[-2].precio -le 0) { return "" }; $d = (([double]$s[-1].precio - [double]$s[-2].precio) / [double]$s[-2].precio) * 100; $dR = [math]::Round($d, 1); if ($dR -gt 0) { return " · subió $($dR.ToString('0.#'))% en la semana" }; if ($dR -lt 0) { return " · bajó $([math]::Abs($dR).ToString('0.#'))% en la semana" }; return " · igual que la semana pasada" }
-            $msg += "*💰 Cepea* — semana $(Get-FechaCorta $nanica[-1].fecha), R$ por kilo al productor`n"
-            $msg += "Santa Catarina: *$($oppLast.ToString('F2'))*$(Get-VarSemTxt $nanica)`n"
+            $msg += "*💰 Cepea* — semana $(Get-FechaCorta $nanica[-1].fecha), R$/kg al productor (SC Santa Catarina, SP São Paulo)`n"
+            $msg += "SC: *$($oppLast.ToString('F2'))*$(Get-VarSemTxt $nanica)`n"
             $spReg = $null; try { if ($regiones) { $spReg = @($regiones | Where-Object { [int]$_.id -eq 52 }) | Select-Object -First 1 } } catch {}
             if ($spReg -and $spReg.serie -and @($spReg.serie).Count -gt 0) {
                 $spS = @($spReg.serie); $spUlt = $spS[-1]
                 $spTag = if ([string]$spUlt.fecha -ne [string]$nanica[-1].fecha) { " (dato del $(Get-FechaCorta $spUlt.fecha))" } else { "" }
-                $msg += "São Paulo (Vale do Ribeira): *$(([double]$spUlt.precio).ToString('F2'))*$(Get-VarSemTxt $spS)$spTag`n"
+                $msg += "SP: *$(([double]$spUlt.precio).ToString('F2'))*$(Get-VarSemTxt $spS)$spTag`n"
             }
             $msg += "`n"
+            # [03/10/2026] Gonzalo: "na roca esta mal: yo pague 20 reales y algunos 25, mas los 18 de servicios". El precio de la
+            #     planilla cargas 2026.xlsx (36, 43, 40...) YA incluye los servicios: na roca = precio - 18. Se muestra derivado.
             if ($almarSemanas.Count -gt 0) {
                 $alU = $almarSemanas[-1]; $alCaja = [double]$alU.precio_avg_caja
                 $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
-                $alKg = $alCaja / $KG_CAJA_NETO; $alCajaServ = $alCaja + $SERVICIOS_CAJA; $alKgServ = $alCajaServ / $KG_CAJA_NETO
+                $alRoca = $alCaja - $SERVICIOS_CAJA; $alKg = $alCaja / $KG_CAJA_NETO; $alRocaKg = $alRoca / $KG_CAJA_NETO
                 $msg += "*🚚 Almar* — semana $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas"
                 if ($semSin -ge 2) { $msg += " (hace $semSin sem sin cargas nuevas en la planilla)" }
                 $msg += "`n"
-                $msg += "Na roça: *R$ $($alCaja.ToString('F2'))/caja* = R$ $($alKg.ToString('F2'))/kg`n"
-                $msg += "Con servicios (R$ $SERVICIOS_CAJA/caja): R$ $($alCajaServ.ToString('F2'))/caja = R$ $($alKgServ.ToString('F2'))/kg`n`n"
+                $msg += "Na roça: R$ $($alRoca.ToString('F2'))/caja = R$ $($alRocaKg.ToString('F2'))/kg (promedio; el precio de la planilla menos los R$ $SERVICIOS_CAJA de servicios)`n"
+                $msg += "Con servicios: *R$ $($alCaja.ToString('F2'))/caja* = R$ $($alKg.ToString('F2'))/kg`n`n"
             }
 
             # --- [27/09/2026] El bloque "Score: N · NIVEL" con su descomposicion salio del resumen (Gonzalo:
@@ -4911,10 +4913,14 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
             #     dias >=32, <=14 o >=50 mm) y, en la misma linea, los avisos de los proximos 7 dias o "sin avisos".
             function Get-ZonaCorta { param([string]$s) $n = (($s -replace '\s*\(.*?\)', '') -replace '^Paraguay MS$', 'Caaguazú').Trim(); $tildes = @{ 'Tembiapora' = 'Tembiaporã'; 'Toro Piru' = 'Toro Pirú'; 'Yapacani' = 'Yapacaní'; 'Caaguazu' = 'Caaguazú' }; if ($tildes.ContainsKey($n)) { $tildes[$n] } else { $n } }
             $banderaEmoji = @{ BR = '🇧🇷'; PY = '🇵🇾'; BO = '🇧🇴' }
-            $msg += "*🌡️ Clima* (semana pasada máx/mín °C · próximos 7 días)`n"
+            # [03/10/2026] Gonzalo: "pones la bandera y la inicial del lugar, asi se acorta el renglon": siglas + leyenda en el titulo
+            $siglaZona = @{ 'Luiz Alves' = 'LA'; 'Guaramirim' = 'G'; 'Tembiaporã' = 'T'; 'Caaguazú' = 'C'; 'Toro Pirú' = 'TP'; 'Yapacaní' = 'Y' }
+            function Get-SiglaZona { param([string]$n) if ($siglaZona.ContainsKey($n)) { $siglaZona[$n] } else { (($n -split '\s+') | ForEach-Object { $_.Substring(0, 1).ToUpper() }) -join '' } }
+            $leyenda = @(); foreach ($r in $climaData) { $nz = Get-ZonaCorta $r.ciudad; $leyenda += "$(Get-SiglaZona $nz) $nz" }
+            $msg += "*🌡️ Clima* (semana pasada máx/mín · próx 7 días)`n_$($leyenda -join ', ')_`n"
             foreach ($r in $climaData) {
                 $flag = if ($banderaEmoji.ContainsKey([string]$r.bandera)) { $banderaEmoji[[string]$r.bandera] } else { [string]$r.bandera }
-                $linea = "$flag $(Get-ZonaCorta $r.ciudad): "
+                $linea = "$flag $(Get-SiglaZona (Get-ZonaCorta $r.ciudad)): "
                 $sp = $r.semana_pasada
                 if ($null -ne $sp -and $null -ne $sp.tmax_c -and $null -ne $sp.tmin_c) {
                     $nHot = 0; $nCold = 0
@@ -4940,8 +4946,8 @@ if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
                     if ($calor.Count -gt 0)  { $partes += "🔥 $(Get-DiasTxt $calor.Count) ≥32°" }
                     if ($lluvia.Count -gt 0) { $partes += "🌧️ $(Get-DiasTxt $lluvia.Count) ≥50 mm" }
                     elseif ([double]$mmTot -ge 100) { $partes += "🌧️ semana lluviosa" }
-                    $linea += " · próx 7 días: $resumenFc" + $(if ($partes.Count -gt 0) { " (" + ($partes -join ', ') + ")" } else { "" })
-                } else { $linea += " · próx 7 días: sin pronóstico" }
+                    $linea += " · próx: $resumenFc" + $(if ($partes.Count -gt 0) { " (" + ($partes -join ', ') + ")" } else { "" })
+                } else { $linea += " · próx: sin pronóstico" }
                 $msg += $linea + "`n"
             }
             $msg += "`n"

@@ -759,6 +759,13 @@ LOG DE CAMBIOS:
                variacion semanal; Almar en bloque propio con caja y kilo na roca y con servicios (R$ 18). Afuera:
                la caja equivalente Cepea, el dato de 3 semanas, el historico del mes (sigue en la Lectura) y las
                comparaciones cruzadas Almar vs Cepea.
+  03/10/2026 -> Ajustes de Gonzalo al resumen: Cepea solo "SC" y "SP" (leyenda en el titulo). ALMAR: el precio de la
+               planilla cargas 2026.xlsx YA incluye los R$ 18 de servicios ("yo pague 20 reales y algunos 25, mas los
+               18 de servicios"), asi que na roca = precio - 18 y se muestra derivado (R$ 20,33/caja = 0,92/kg) junto
+               al precio con servicios (38,33 = 1,74/kg). Las comparaciones del score (precio planilla vs Cepea +
+               servicios) ya eran coherentes con eso. CLIMA: bandera + sigla del lugar (LA, G, T, C, TP, Y) con
+               leyenda en cursiva debajo del titulo, y "prox:" en vez de "prox 7 dias:". Plan de compras: "ya paso
+               el limite de carga" pasa a "ya no llega ninguna carga mas para este sabado".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
