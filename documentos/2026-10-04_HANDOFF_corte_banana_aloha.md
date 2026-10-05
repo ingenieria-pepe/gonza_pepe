@@ -1,5 +1,7 @@
 <!-- Copia del handoff que escribio el Claude del servidor (Uruguay) el 04/10/2026 para la sesion 'Corte de Banana' de Aloha. Gonzalo lo dejo en Descargas y pidio publicarlo aca. Se omitio una sola linea (ver mas abajo). -->
 
+> **VIEJO (05/10/2026):** lo reemplaza [2026-10-05_PROMPT_corte_banana_aloha.md](2026-10-05_PROMPT_corte_banana_aloha.md). Lo que aca dice "nada mergeado" ya esta mergeado y deployado en testing y main.
+
 # Handoff — Control de corte de banana (04/10/2026)
 
 Contexto para la sesión «Corte de Banana». Otra sesión trabajó sobre tu feature hoy.

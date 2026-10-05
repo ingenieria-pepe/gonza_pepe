@@ -830,6 +830,13 @@ LOG DE CAMBIOS:
                semana de cinta necesita migracion). Gonzalo lo dejo en Descargas y pidio publicarlo. Se omitio una sola
                linea (URL de la camara en vivo sin credenciales). Nos toca: el corte de SUPREMA del 25/09 esta guardado
                en el pie #249 (del 17/09) en Aloha; en calidad_lotes.xlsx el lote SUPREMA-2509 esta bien fechado.
+  05/10/2026 -> documentos\2026-10-05_PROMPT_corte_banana_aloha.md: version nueva del traspaso del Claude del servidor.
+               Todo lo del 04/10 ya esta MERGEADO y DEPLOYADO en testing y main (9 PR): matcheo corte-camion por QR que
+               descarta en vez de desempatar, mas contexto del camion para la IA, mover un corte al pie correcto (mig
+               0228, sin DELETE a proposito), selector de pie afuera de CorteTab. Sigue abierto: cerrar el ciclo en
+               camara (CloudPepeV2), semana de cinta (migracion), la camara del carrito sin login (el arreglo es en la
+               app de la laptop de recepcion o el tunel, no en Aloha) y mover a mano el corte de SUPREMA del 25/09 que
+               sigue en el pie #249. El handoff del 04/10 queda marcado como viejo arriba del todo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
