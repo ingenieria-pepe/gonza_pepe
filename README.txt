@@ -824,6 +824,12 @@ LOG DE CAMBIOS:
                cargas_programadas. Numeros: sab 10/10 27.371 ok, sab 17/10 23.285 -> faltan 2 (el 7mo de PY mas 1),
                sab 24/10 16.203 -> faltan 9 (semana sin dictar). OJO con la regla: si una de las dictadas de esa
                misma semana ya descargo antes del conteo, hay que borrar la que Aloha ya tiene, no dejar "la ultima".
+  04/10/2026 -> documentos\2026-10-04_HANDOFF_corte_banana_aloha.md: traspaso que escribio el Claude del servidor para
+               la sesion "Corte de Banana" de Aloha (3 ramas sin mergear: matcheo corte-camion por QR, mas contexto del
+               camion para la IA, mover un corte al pie correcto; abierto: cerrar el ciclo en camara vive en CloudPepeV2,
+               semana de cinta necesita migracion). Gonzalo lo dejo en Descargas y pidio publicarlo. Se omitio una sola
+               linea (URL de la camara en vivo sin credenciales). Nos toca: el corte de SUPREMA del 25/09 esta guardado
+               en el pie #249 (del 17/09) en Aloha; en calidad_lotes.xlsx el lote SUPREMA-2509 esta bien fechado.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
