@@ -870,6 +870,19 @@ LOG DE CAMBIOS:
                sab 17/10 24.277 -> falta 1 camion (lun 12 a mie 14), sab 24/10 18.203 -> faltan 7 (sin dictar).
                Gonzalo pide que el texto diga "objetivo 25.000 de stock al cierre de los sabados" (no "minimo"): por ahora
                solo en los mensajes armados a mano; el titulo del bloque automatico sigue "min 25.000" hasta que lo pida.
+  06/10/2026 -> MENSAJE "DESCARGAS SEMANA" AUTOMATICO (Gonzalo: "pasame un prompt para el otro Claude de como mandar este
+               mensaje, asi lo configuramos... con los dos mensajes"). actualizar_precios.ps1: funcion
+               Get-DescargasSemanaTexto (antes del paso [WA]) arma "*Descargas semana dd-dd/MM*" desde plan_compras.json:
+               arranque (conteo + semanas anteriores), camiones por dia numerados de corrido (nombre canonico, "(BR)" para
+               Brasil, "(supuesto)" para los supuestos), total, venta prevista, cierre del sabado con check/alerta y
+               "faltan N camiones, cargados entre lun y mie" si todavia se llega, y el pie "Objetivo: 25.000 de stock al
+               cierre de los sabados". Dia mostrado: lo que cae domingo o lunes se muestra el martes (regla de Gonzalo del
+               06/10). MODO: con la variable de entorno PORONGA_WA_DESCARGAS=1 la corrida manda SOLO esos dos mensajes
+               (semana en curso y siguiente) a todos los telefonos y no corre el resumen, las alertas ni el state; con
+               PORONGA_WA_PRUEBA=dry se imprimen y no se mandan; con PORONGA_WA_PRUEBA=1 se mandan aunque enabled=false.
+               generar_datos.ps1: cada camion lleva "nombre" (canonico de productores.xlsx; "Ivo zimer" -> "Ivo" en el
+               mensaje). Pensado como tarea aparte del servidor los martes a la manana. Probado en seco en la laptop:
+               semana 05-10/10 21 camiones / 28.371, semana 12-17/10 13 camiones / 24.277 (falta 1).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

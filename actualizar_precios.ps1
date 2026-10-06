@@ -4396,6 +4396,82 @@ $nuevoEstado | ConvertTo-Json -Depth 5 | Out-File $statePath -Encoding UTF8
 # ==========================================================================
 # 7) Alertas WhatsApp via Whapi.cloud
 # ==========================================================================
+function Get-DescargasSemanaTexto {
+    # Mensaje "Descargas semana dd-dd/MM" por dia, numerado de corrido [06/10/2026]. Gonzalo: "las descargas por dia las
+    # quiero tipo orden numerico 1 xxx 2 xxx", "yo pondria la semana entera, a pesar de lo que se pudo haber descargado",
+    # y el pie "Objetivo: 25.000 de stock al cierre de los sabados". Misma cuenta que Get-PlanComprasLineas y el simulador:
+    # arranque = conteo + descargas de las semanas anteriores - ventas; descarga = fecha real o carga + lag del origen; lo
+    # que llega domingo cuenta para la semana que arranca. Dia mostrado: lo que cae domingo o lunes se muestra el MARTES
+    # (Gonzalo 06/10: "lunes no se descarga nada: la banana que se carga viernes y sabado cruza recien el lunes, se
+    # descarga a partir del martes"). Nombres: campo 'nombre' del JSON (canonico de productores.xlsx). Renglones <= 38.
+    param([string]$Path, [DateTime]$Lunes, [DateTime]$Hoy)
+    $J = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $J.camiones -or -not $J.conteo) { return $null }
+    $fCon = [DateTime]$J.conteo.fecha
+    $lunesDe = { param($d) if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) } }
+    $sab = $Lunes.AddDays(5)
+    $plan = @($J.ventas_plan | Sort-Object semana_lunes)
+    $ventaDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; $v = 0; if ($fila) { foreach ($o in 'BR', 'PY', 'BO') { $v += [int]$fila.$o } }; $v }
+    $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); [math]::Round($v * $dias / 6) } else { $v } }
+    $cam = @()
+    foreach ($c in $J.camiones) {
+        $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
+        $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
+        if ($desc -le $fCon) { continue }
+        $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
+        if ($nm -match '^(\S+) [a-záéíóúñ]+$') { $nm = $Matches[1] }   # "Ivo zimer" -> "Ivo", "Joao vinter" -> "Joao" (apellido en minuscula = apodo de la ficha)
+        $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto') }
+    }
+    # arranque de la semana pedida
+    $saldo = [int]$J.conteo.TODO
+    for ($w = (& $lunesDe $fCon); $w -lt $Lunes; $w = $w.AddDays(7)) {
+        $cajasW = 0; foreach ($x in @($cam | Where-Object { $_.sem -eq $w })) { $cajasW += $x.cajas }
+        $saldo += $cajasW - (& $prorrateo $w (& $ventaDe $w))
+    }
+    $arranque = $saldo
+    $ll = @($cam | Where-Object { $_.sem -eq $Lunes })
+    $tot = 0; foreach ($x in $ll) { $tot += $x.cajas }
+    $venta = & $prorrateo $Lunes (& $ventaDe $Lunes)
+    $cierre = $arranque + $tot - $venta
+    $min = 25000; if ($J.minimos -and $J.minimos.TODO) { $min = [int]$J.minimos.TODO }
+    $cxc = 1000; if ($J.cajas_camion -and $J.cajas_camion.TODO) { $cxc = [int]$J.cajas_camion.TODO }
+    $diaDe = { param($d) if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(2) } elseif ($d.DayOfWeek -eq [DayOfWeek]::Monday) { $d.AddDays(1) } else { $d } }
+    $DOW = @{ 1 = 'Lun'; 2 = 'Mar'; 3 = 'Mié'; 4 = 'Jue'; 5 = 'Vie'; 6 = 'Sáb'; 0 = 'Dom' }
+    $ordenO = @{ BR = 0; PY = 1; BO = 2 }
+    $L = @()
+    $L += "*🚚 Descargas semana $($Lunes.ToString('dd'))–$($sab.ToString('dd/MM'))*"
+    $L += "_(arranque $($arranque.ToString('N0')) cajas)_"
+    $n = 0
+    $conDia = @($ll | ForEach-Object { [PSCustomObject]@{ dia = (& $diaDe $_.desc); o = $ordenO[$_.origen]; nombre = $_.nombre; origen = $_.origen; sup = $_.sup } } | Sort-Object dia, o, nombre)
+    foreach ($g in @($conDia | Group-Object { $_.dia.ToString('yyyy-MM-dd') })) {
+        $d = [DateTime]$g.Name
+        $L += ''; $L += "*$($DOW[[int]$d.DayOfWeek]) $($d.ToString('dd'))*"
+        foreach ($x in $g.Group) {
+            $n++
+            $tag = ''
+            if ($x.origen -eq 'BR') { $tag = ' (BR)' } elseif ($x.origen -eq 'BO' -and $x.nombre -notmatch '(?i)^bolivia') { $tag = ' (BO)' }
+            $sup = if ($x.sup -and $x.nombre -notmatch '(?i)supuesto') { ' (supuesto)' } else { '' }
+            $L += "$n $($x.nombre)$tag$sup"
+        }
+    }
+    $L += ''
+    $L += "*Total:* $($ll.Count) camiones · $($tot.ToString('N0')) cajas"
+    $L += "*Venta prevista:* $($venta.ToString('N0'))"
+    if ($cierre -ge $min) {
+        $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
+    } else {
+        $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ⚠️"
+        $lagG = 3; if ($J.lags.TODO -and $null -ne $J.lags.TODO.descarga) { $lagG = [int]$J.lags.TODO.descarga }
+        $faltan = [int][math]::Ceiling(($min - $cierre) / $cxc)
+        if ($sab.AddDays(-$lagG) -ge $Hoy) {
+            $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
+            $L += "entre lun $($Lunes.ToString('dd')) y mié $($Lunes.AddDays(2).ToString('dd'))"
+        } else { $L += 'Bajo el objetivo, ya cerrado' }
+    }
+    $L += "Objetivo: $($min.ToString('N0')) de stock al cierre"
+    $L += 'de los sábados'
+    return ($L -join "`n")
+}
 Write-Host "[WA] Evaluando alertas WhatsApp..." -ForegroundColor Cyan
 
 $waConfig = $null
@@ -4420,9 +4496,46 @@ if ($null -ne $waConfig) {
 $waPrueba = ($env:PORONGA_WA_PRUEBA -eq '1' -or $env:PORONGA_WA_PRUEBA -eq 'dry')
 $waDry    = ($env:PORONGA_WA_PRUEBA -eq 'dry')
 if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con encabezado PRUEBA, sin tocar el state$(if ($waDry) { ' (dry: se imprime, no se manda)' })" -ForegroundColor Magenta }
-if ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
-    Write-Host "    WhatsApp deshabilitado (config/whatsapp.json)" -ForegroundColor DarkYellow
-} elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) {
+# MODO DESCARGAS [06/10/2026]: con PORONGA_WA_DESCARGAS=1 la corrida manda SOLO los dos mensajes "Descargas semana"
+# (semana en curso y la siguiente), armados desde plan_compras.json (paso 5j) con Get-DescargasSemanaTexto, a todos los
+# telefonos, y NO manda el resumen ni evalua alertas ni toca el state. Con PORONGA_WA_PRUEBA=dry se imprimen y no se
+# mandan; con PORONGA_WA_PRUEBA=1 se mandan aunque config tenga enabled=false (prueba desde la laptop). Pensado para
+# una tarea aparte en el servidor, el martes a la manana, cuando Aloha ya cargo las fechas reales del lunes.
+$waSoloDescargas = ($env:PORONGA_WA_DESCARGAS -eq '1')
+if ($waSoloDescargas) {
+    Write-Host "    MODO DESCARGAS: solo los mensajes de descargas por dia (semana en curso y siguiente)$(if ($waDry) { ' (dry: se imprimen, no se mandan)' })" -ForegroundColor Magenta
+    $pcjDesc = Join-Path $base 'plan_compras\plan_compras.json'
+    $hoyDesc = (Get-Date).Date; if ($hoyDesc.DayOfWeek -eq [DayOfWeek]::Sunday) { $hoyDesc = $hoyDesc.AddDays(1) }
+    $lunDesc = $hoyDesc.AddDays(-((([int]$hoyDesc.DayOfWeek) + 6) % 7))
+    $msgsDesc = @()
+    foreach ($wD in 0, 1) {
+        try { $txtD = Get-DescargasSemanaTexto -Path $pcjDesc -Lunes $lunDesc.AddDays(7 * $wD) -Hoy $hoyDesc; if ($txtD) { $msgsDesc += $txtD } }
+        catch { Add-Falla -Paso 'WhatsApp descargas' -Detalle $_.Exception.Message; Write-Host "    descargas semana +$wD FALLO: $($_.Exception.Message)" -ForegroundColor Red }
+    }
+    foreach ($mD in $msgsDesc) { Write-Host "    ----- DESCARGAS$(if ($waDry) { ' (dry: no se manda)' }) -----"; Write-Host $mD; Write-Host "    ----- fin ($($mD.Length) caracteres) -----" }
+    if ($waDry) { }
+    elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) { Write-Host "    WhatsApp deshabilitado (config/whatsapp.json): no se mandan" -ForegroundColor DarkYellow }
+    elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) { Write-Host "    Falta phones o token en config/whatsapp.json" -ForegroundColor DarkYellow }
+    else {
+        $hdrD = @{ 'Authorization' = "Bearer $($waConfig.token)" }
+        foreach ($mD in $msgsDesc) {
+            foreach ($pD in $waPhones) {
+                $phD = ([string]$pD) -replace '[^\d]', ''; if (-not $phD) { continue }
+                $bD = [System.Text.Encoding]::UTF8.GetBytes((@{ to = $phD; body = $mD } | ConvertTo-Json -Compress))
+                $okD = $false
+                for ($iD = 1; $iD -le 3 -and -not $okD; $iD++) {
+                    try { $rD = Invoke-RestMethod -Uri 'https://gate.whapi.cloud/messages/text' -Method Post -Headers $hdrD -Body $bD -ContentType 'application/json; charset=utf-8' -TimeoutSec 90; $okD = $true; Write-Host ("      OK    ...{0} {1}" -f $phD.Substring([math]::Max(0, $phD.Length - 4)), $(if ($rD.message.id) { [string]$rD.message.id } else { '(sin id)' })) -ForegroundColor Green }
+                    catch { Write-Host ("      retry ...{0} {1}/3: {2}" -f $phD.Substring([math]::Max(0, $phD.Length - 4)), $iD, $_.Exception.Message) -ForegroundColor DarkYellow; if ($iD -lt 3) { Start-Sleep -Seconds 3 } }
+                }
+                if (-not $okD) { Add-Falla -Paso 'WhatsApp descargas' -Detalle "sin envio a ...$($phD.Substring([math]::Max(0, $phD.Length - 4)))" }
+            }
+        }
+    }
+}
+if ($waSoloDescargas) {
+    Write-Host "    modo descargas: el resumen y las alertas no corren en esta corrida" -ForegroundColor Magenta
+} elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
+    Write-Host "    WhatsApp deshabilitado (config/whatsapp.json)" -ForegroundColor DarkYellow} elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) {
     Write-Host "    Falta phones o token en config/whatsapp.json - completar para activar" -ForegroundColor DarkYellow
 } else {
 

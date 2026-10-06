@@ -211,6 +211,9 @@ $GRUPOS = [ordered]@{ TODO = @('BR', 'PY', 'BO') }
 $NOMBRES = [ordered]@{ TODO = 'Banana Brasil + Paraguay + Bolivia' }
 function GrupoDe($o) { foreach ($k in $GRUPOS.Keys) { if ($GRUPOS[$k] -contains $o) { return $k } }; return $null }
 foreach ($c in $camiones) { $c | Add-Member -NotePropertyName grupo -NotePropertyValue (GrupoDe $c.origen) -Force }
+# [06/10/2026] nombre corto para los mensajes de WhatsApp (descargas por dia): el canonico de productores.xlsx (Productor o
+# alias: "Cassio Hauck" -> "Cassio", "Osnildo Stein" -> "Stein"); si no hay ficha, queda el nombre tal cual (Bolivia, supuestos).
+foreach ($c in $camiones) { $nm = Canon $c.productor; if ($nm -eq (Norm $c.productor)) { $nm = [string]$c.productor }; $c | Add-Member -NotePropertyName nombre -NotePropertyValue $nm -Force }
 foreach ($k in $GRUPOS.Keys) {
     $conteo[$k] = 0; foreach ($o in $GRUPOS[$k]) { $conteo[$k] += [int]$conteo[$o] }
     foreach ($v in $ventas) { $s = 0; foreach ($o in $GRUPOS[$k]) { $s += [int]$v.$o }; $v | Add-Member -NotePropertyName $k -NotePropertyValue $s -Force }
