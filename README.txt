@@ -837,6 +837,16 @@ LOG DE CAMBIOS:
                camara (CloudPepeV2), semana de cinta (migracion), la camara del carrito sin login (el arreglo es en la
                app de la laptop de recepcion o el tunel, no en Aloha) y mover a mano el corte de SUPREMA del 25/09 que
                sigue en el pie #249. El handoff del 04/10 queda marcado como viejo arriba del todo.
+  06/10/2026 -> Corrida con el Aloha del martes (Aloha carga las fechas reales de la semana el lunes). El plan real de la
+               semana 05-10/10 quedo UN DIA MAS TARDE que lo dictado: Fischer/Ivo/Stein mie 07 (dictados mar 06 y lun/mie),
+               Cassio/Celso/Corupa/Ivo JUEVES 08 (dictados mie 07), Fischer tambien sab 10; PY AS/DF/MS mar 06 y DF/MS mie 07
+               (dictados lun/mar). Bolivia real: cargo vie 02, descarga jue 08. Los del viernes 02 descargaron el MARTES 06
+               (7 BR, 7.056 cajas; Cassio en frontera). Resultado: hasta el sab 10 descargan 15 camiones (15.006) y cierra en
+               21.451, bajo el minimo; los 4 BR del jueves y los 2 PY del miercoles pasan al domingo 11 / martes 13 (semana
+               del 17, que queda en 23.285 -> faltan 2). Regla de Gonzalo (06/10): "lunes no se descarga nada: la banana que
+               se carga viernes y sabado cruza recien el lunes, se descarga a partir del martes". No cambia la semana de
+               ninguna descarga (lunes y martes son la misma semana), solo el dia; a tener en cuenta al listar por dia.
+               Aloha trae DOS camiones de Ivo cargados el vie 02 (1.008 cada uno, descargados mar 06): a confirmar.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
