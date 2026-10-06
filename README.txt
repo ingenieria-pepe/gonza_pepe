@@ -860,6 +860,11 @@ LOG DE CAMBIOS:
                Diego lun y mar, Milciades lun y mar, Guido mar). Venta de la semana 05/10 = 16.000 ("la venta fallo ayer
                lunes"; el 03/10 habia dicho 17.000). Resultado: sab 10/10 28.371 ok (21 camiones), sab 17/10 25.293 ok
                (15 camiones), sab 24/10 19.219 -> faltan 6 (semana sin dictar; solo las cargas del vie 16 y sab 17).
+  06/10/2026 -> Dictado CORREGIDO por Gonzalo ("le erre yo") de la semana 05-10/10: BR 8 (Fisher mar y vie, Agro mie,
+               Cassio mie, Celso mie, Ivo mar y mie, Stein mar) + PY 5 (igual). Salen Gilson, Josemar y Marconi de esa
+               semana; Celso vuelve (y reemplaza a la Solicitado de Aloha del jueves 08). La semana 12-17/10 no cambia.
+               Resultado: sab 10/10 28.371 ok (21 camiones: 8 del viernes 02 ya en Aloha + 8 BR y 5 PY dictados... mas
+               Bolivia), sab 17/10 23.277 -> faltan 2 (13 camiones), sab 24/10 17.203 -> faltan 8 (sin dictar).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
