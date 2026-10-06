@@ -211,9 +211,23 @@ $GRUPOS = [ordered]@{ TODO = @('BR', 'PY', 'BO') }
 $NOMBRES = [ordered]@{ TODO = 'Banana Brasil + Paraguay + Bolivia' }
 function GrupoDe($o) { foreach ($k in $GRUPOS.Keys) { if ($GRUPOS[$k] -contains $o) { return $k } }; return $null }
 foreach ($c in $camiones) { $c | Add-Member -NotePropertyName grupo -NotePropertyValue (GrupoDe $c.origen) -Force }
-# [06/10/2026] nombre corto para los mensajes de WhatsApp (descargas por dia): el canonico de productores.xlsx (Productor o
-# alias: "Cassio Hauck" -> "Cassio", "Osnildo Stein" -> "Stein"); si no hay ficha, queda el nombre tal cual (Bolivia, supuestos).
-foreach ($c in $camiones) { $nm = Canon $c.productor; if ($nm -eq (Norm $c.productor)) { $nm = [string]$c.productor }; $c | Add-Member -NotePropertyName nombre -NotePropertyValue $nm -Force }
+# [06/10/2026] 'nombre' para los mensajes de WhatsApp (descargas por dia). Gonzalo: "pone los nombres que usa Aloha":
+# el productor tal como lo escribe Aloha para ese canonico de productores.xlsx (el mas frecuente entre las filas del Plan:
+# "Fisher" dictado -> "Fischer", "Stein" -> "Osnildo Stein", "Agrocurupa" -> "Corupá"); si Aloha nunca lo tuvo (Celso,
+# supuestos) queda el nombre dictado.
+$alohaNom = @{}
+foreach ($c in $camiones) {
+    if ([string]$c.fuente -notlike 'plan_cargas*') { continue }
+    $k = Canon $c.productor; $pn = [string]$c.productor
+    if (-not $alohaNom.ContainsKey($k)) { $alohaNom[$k] = @{} }
+    if (-not $alohaNom[$k].ContainsKey($pn)) { $alohaNom[$k][$pn] = 0 }
+    $alohaNom[$k][$pn]++
+}
+foreach ($c in $camiones) {
+    $k = Canon $c.productor; $nm = [string]$c.productor
+    if ($alohaNom.ContainsKey($k)) { $nm = ($alohaNom[$k].GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1).Key }
+    $c | Add-Member -NotePropertyName nombre -NotePropertyValue $nm -Force
+}
 foreach ($k in $GRUPOS.Keys) {
     $conteo[$k] = 0; foreach ($o in $GRUPOS[$k]) { $conteo[$k] += [int]$conteo[$o] }
     foreach ($v in $ventas) { $s = 0; foreach ($o in $GRUPOS[$k]) { $s += [int]$v.$o }; $v | Add-Member -NotePropertyName $k -NotePropertyValue $s -Force }

@@ -4403,7 +4403,7 @@ function Get-DescargasSemanaTexto {
     # arranque = conteo + descargas de las semanas anteriores - ventas; descarga = fecha real o carga + lag del origen; lo
     # que llega domingo cuenta para la semana que arranca. Dia mostrado: lo que cae domingo o lunes se muestra el MARTES
     # (Gonzalo 06/10: "lunes no se descarga nada: la banana que se carga viernes y sabado cruza recien el lunes, se
-    # descarga a partir del martes"). Nombres: campo 'nombre' del JSON (canonico de productores.xlsx). Renglones <= 38.
+    # descarga a partir del martes"). Nombres: campo 'nombre' del JSON (como los escribe Aloha; Gonzalo 06/10). Renglones <= 38.
     param([string]$Path, [DateTime]$Lunes, [DateTime]$Hoy)
     $J = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json
     if (-not $J.camiones -or -not $J.conteo) { return $null }
@@ -4419,7 +4419,6 @@ function Get-DescargasSemanaTexto {
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
         if ($desc -le $fCon) { continue }
         $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
-        if ($nm -match '^(\S+) [a-záéíóúñ]+$') { $nm = $Matches[1] }   # "Ivo zimer" -> "Ivo", "Joao vinter" -> "Joao" (apellido en minuscula = apodo de la ficha)
         $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto') }
     }
     # arranque de la semana pedida

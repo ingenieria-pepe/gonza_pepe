@@ -883,6 +883,11 @@ LOG DE CAMBIOS:
                generar_datos.ps1: cada camion lleva "nombre" (canonico de productores.xlsx; "Ivo zimer" -> "Ivo" en el
                mensaje). Pensado como tarea aparte del servidor los martes a la manana. Probado en seco en la laptop:
                semana 05-10/10 21 camiones / 28.371, semana 12-17/10 13 camiones / 24.277 (falta 1).
+  06/10/2026 -> Nombres en el mensaje "Descargas semana" como los escribe ALOHA (Gonzalo: "pone los nombres que usa Aloha").
+               generar_datos.ps1: "nombre" = el productor tal como figura en Aloha para ese canonico de productores.xlsx (el
+               mas frecuente entre las filas del Plan): Fisher -> Fischer, Stein -> Osnildo Stein, Agrocurupa -> Corupá,
+               Ivo zimer -> Ivo Zimerman, Cassio -> Cassio Hauck, Josemar -> Josemar Provesi, Marconi -> Marconi Kons.
+               Si Aloha nunca lo tuvo (Celso, supuestos) queda el nombre dictado. Se saco el recorte "Ivo zimer" -> "Ivo".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
