@@ -865,6 +865,11 @@ LOG DE CAMBIOS:
                semana; Celso vuelve (y reemplaza a la Solicitado de Aloha del jueves 08). La semana 12-17/10 no cambia.
                Resultado: sab 10/10 28.371 ok (21 camiones: 8 del viernes 02 ya en Aloha + 8 BR y 5 PY dictados... mas
                Bolivia), sab 17/10 23.277 -> faltan 2 (13 camiones), sab 24/10 17.203 -> faltan 8 (sin dictar).
+  06/10/2026 -> Venta de la semana del 12/10 = 17.000 (Gonzalo: "la segunda semana la venta es de 17 no 18"); fila del
+               12/10 en ventas_plan = BO 1.050 + BR 10.593 + PY 5.357. Las siguientes siguen en 18.000 supuesto. Resultado:
+               sab 17/10 24.277 -> falta 1 camion (lun 12 a mie 14), sab 24/10 18.203 -> faltan 7 (sin dictar).
+               Gonzalo pide que el texto diga "objetivo 25.000 de stock al cierre de los sabados" (no "minimo"): por ahora
+               solo en los mensajes armados a mano; el titulo del bloque automatico sigue "min 25.000" hasta que lo pida.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
