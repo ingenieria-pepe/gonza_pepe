@@ -847,6 +847,19 @@ LOG DE CAMBIOS:
                se carga viernes y sabado cruza recien el lunes, se descarga a partir del martes". No cambia la semana de
                ninguna descarga (lunes y martes son la misma semana), solo el dia; a tener en cuenta al listar por dia.
                Aloha trae DOS camiones de Ivo cargados el vie 02 (1.008 cada uno, descargados mar 06): a confirmar.
+  06/10/2026 -> MANDA EL DICTADO (Gonzalo: "manda mi dictado si, siempre es asi. aca mando yo"). generar_datos.ps1: una
+               dictada reemplaza a la fila 'Solicitado' de Aloha del mismo productor (nombre o alias) y semana de carga
+               (fecha, cajas y transportista del dictado; emparejadas por orden de fecha); lo que Aloha ya tiene cargado o
+               descargado (Frontera, Puerto, Arribado, Descargado) queda como hecho y la dictada se omite; una 'Solicitado'
+               sin dictada en una semana/origen dictada se descarta (Celso jueves 08); lo cargado sin dictar se suma igual
+               (los dos Ivo del viernes 02). Reemplaza la regla del 24/09. Tambien en plan_compras\LEEME.txt.
+               DICTADO NUEVO del 06/10 en cargas_programadas (reemplaza lo del 02/10): semana 05-10/10 BR 10 (Fisher mar
+               y vie, Agro mie, Cassio mie, Ivo mie y vie, Gilson mie, Josemar mar, Stein mar, Marconi vie) + PY 5
+               (Milciades lun y mar, Diego lun y mar, Alvarito lun); semana 12-17/10 BR 11 (Fisher sab, Agro mie y vie,
+               Cassio mar y vie, Ivo mie y vie, Celso mie, Marconi mie, Josemar vie, Stein vie) + PY 6 (Alvarito lun,
+               Diego lun y mar, Milciades lun y mar, Guido mar). Venta de la semana 05/10 = 16.000 ("la venta fallo ayer
+               lunes"; el 03/10 habia dicho 17.000). Resultado: sab 10/10 28.371 ok (21 camiones), sab 17/10 25.293 ok
+               (15 camiones), sab 24/10 19.219 -> faltan 6 (semana sin dictar; solo las cargas del vie 16 y sab 17).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

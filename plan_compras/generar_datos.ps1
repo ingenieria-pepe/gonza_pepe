@@ -95,13 +95,17 @@ if ($pcO) {
     }
 }
 
-# ---- dictadas: se cuentan salvo que el Plan ya tenga ESA carga  [regla nueva 24/09/2026]
-# Antes valian solo para fechas POSTERIORES a la ultima carga del plan de su origen. Fallaba con
-# Aloha cargado a medias: el 24/09 el plan ya tenia cargas del viernes 25/09 (Cassio, Corupa) y por
-# eso se tiraban Stein, Josemar, Marconi e Ivo del mismo viernes, dictados por Gonzalo y todavia no
-# cargados en Aloha; Brasil aparecia con 2 dias de stock. Ahora se compara POR PRODUCTOR (mismo
-# nombre o alias de fuentes\productores.xlsx) y semana de carga: una dictada se omite si el Plan ya
-# tiene una carga de ese productor esa semana; si dicto 2 y el Plan tiene 1, queda 1 (la ultima).
+# ---- dictadas: MANDA EL DICTADO de Gonzalo  [regla 06/10/2026; reemplaza a la del 24/09]
+# 24/09: una dictada se omitia si Aloha ya tenia una carga de ese productor (nombre o alias de
+# fuentes\productores.xlsx) en esa misma semana de carga: "lo que Aloha tiene manda". El 06/10 Aloha
+# trajo las cargas de la semana un dia mas tarde que lo dictado (jueves en vez de miercoles) y 6
+# camiones se corrieron al sabado siguiente. Gonzalo: "manda mi dictado, siempre es asi". Ahora:
+#   - Aloha 'Solicitado' (todavia no cargo) del mismo productor y semana: la fila de Aloha se REEMPLAZA
+#     por la dictada (fecha, cajas y transportista del dictado). Se emparejan por orden de fecha.
+#   - Aloha ya cargado o descargado (Frontera, Puerto, Arribado, Descargado...): es un hecho, queda como
+#     esta y la dictada correspondiente se omite para no contar dos veces.
+#   - Lo que Aloha ya tiene CARGADO y no fue dictado (por ejemplo un segundo camion) se suma igual. Una 'Solicitado'
+#     sin dictada, en una semana/origen que si fue dictada, se descarta: el dictado es el plan de esa semana.
 $maxPlan = @{}
 foreach ($o in 'BR', 'PY', 'BO') { $maxPlan[$o] = ($camiones | Where-Object { $_.origen -eq $o } | ForEach-Object { [DateTime]$_.carga } | Sort-Object | Select-Object -Last 1) }
 function Norm($s) { $t = ([string]$s).ToLower().Trim().Normalize([Text.NormalizationForm]::FormD); $sb = New-Object Text.StringBuilder; foreach ($ch in $t.ToCharArray()) { if ([Globalization.CharUnicodeInfo]::GetUnicodeCategory($ch) -ne [Globalization.UnicodeCategory]::NonSpacingMark) { [void]$sb.Append($ch) } }; return [regex]::Replace($sb.ToString(), '\s+', ' ') }
@@ -120,15 +124,29 @@ function Canon($name) {
     foreach ($k in $canonMap.Keys) { if ($k.Length -ge 4 -and ($n.Contains($k) -or $k.Contains($n))) { return $canonMap[$k] } }
     return $n
 }
-$enPlan = @{}    # "productor canonico|semana_carga" -> cargas que ya trae el Plan
-foreach ($c in $camiones) { $k = (Canon $c.productor) + '|' + $c.semana_carga; if (-not $enPlan.ContainsKey($k)) { $enPlan[$k] = 0 }; $enPlan[$k]++ }
-$omitidas = 0; $usadas = 0
+$pend = @{}; $hechos = @{}   # clave "productor canonico|semana_carga"
+for ($i = 0; $i -lt $camiones.Count; $i++) {
+    $c = $camiones[$i]; $k = (Canon $c.productor) + '|' + $c.semana_carga
+    if ([string]$c.status -match '^Solicitad') { if (-not $pend.ContainsKey($k)) { $pend[$k] = New-Object System.Collections.ArrayList }; [void]$pend[$k].Add($i) }
+    else { if (-not $hechos.ContainsKey($k)) { $hechos[$k] = 0 }; $hechos[$k]++ }
+}
+$quitar = @{}; $omitidas = 0; $usadas = 0; $reemplazadas = 0
 foreach ($p in ($prog | Sort-Object carga)) {
     $k = (Canon $p.productor) + '|' + $p.semana_carga
-    if ($enPlan.ContainsKey($k) -and $enPlan[$k] -gt 0) { $enPlan[$k]--; $omitidas++; continue }
-    $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = $p.nota }
+    if ($hechos.ContainsKey($k) -and $hechos[$k] -gt 0) { $hechos[$k]--; $omitidas++; continue }   # ya cargado/descargado en Aloha: hecho
+    $nota = [string]$p.nota
+    if ($pend.ContainsKey($k) -and $pend[$k].Count -gt 0) {
+        $idx = [int]$pend[$k][0]; $pend[$k].RemoveAt(0); $quitar[$idx] = $true; $reemplazadas++
+        $nota = "manda el dictado: reemplaza a Aloha ($($camiones[$idx].productor) $($camiones[$idx].carga), Solicitado)" + $(if ($nota) { ' · ' + $nota } else { '' })
+    }
+    $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = $nota }
     $usadas++
 }
+# Solicitadas de Aloha sin dictada, en una semana/origen que SI tiene dictado: se descartan (el dictado es el plan de esa semana).
+$dictSem = @{}; foreach ($p in $prog) { $dictSem[([string]$p.origen) + '|' + $p.semana_carga] = $true }
+$descartadas = 0
+foreach ($k in @($pend.Keys)) { foreach ($idx in @($pend[$k])) { $c = $camiones[[int]$idx]; if ($dictSem.ContainsKey(([string]$c.origen) + '|' + $c.semana_carga) -and -not $quitar.ContainsKey([int]$idx)) { $quitar[[int]$idx] = $true; $descartadas++ } } }
+if ($quitar.Count -gt 0) { $camiones = @(for ($i = 0; $i -lt $camiones.Count; $i++) { if (-not $quitar.ContainsKey($i)) { $camiones[$i] } }) }
 
 # ---- grupos [27/09/2026]: Gonzalo pidio unificar la compra Brasil + Paraguay ("para mi es lo mismo una u otra,
 #      de ahi despues yo veo que cargar"); Bolivia sigue aparte. El simulador proyecta por grupo; cada camion
@@ -232,7 +250,7 @@ $out = [ordered]@{
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress
 [IO.File]::WriteAllText((Join-Path $aqui 'plan_compras.json'), $json, (New-Object Text.UTF8Encoding $false))
-Write-Host "plan_compras.json: $($camiones.Count) camiones (BR/PY $nBRPY, BO $nBO, dictadas $usadas, supuestos PY $nSup, supuestos BO $nSupBO; $omitidas dictadas ya estan en el plan) · minimo $minimoSab · conteo $($conteo.fecha)"
+Write-Host "plan_compras.json: $($camiones.Count) camiones (BR/PY $nBRPY, BO $nBO, dictadas $usadas, supuestos PY $nSup, supuestos BO $nSupBO; $reemplazadas dictadas reemplazan a Aloha, $descartadas solicitadas de Aloha sin dictar descartadas, $omitidas ya cargadas/descargadas en Aloha) · minimo $minimoSab · conteo $($conteo.fecha)"
 
 # ---- inyectar en simulador.html
 $html = Join-Path $aqui 'simulador.html'
