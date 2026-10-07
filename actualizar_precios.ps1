@@ -3405,13 +3405,20 @@ if ($pcXlsx.Count -eq 0) {
     }
     function PC-Resumen { param($lista)
         $desc = @($lista | Where-Object { $_.status -match '^Descargado' })
+        # [07/10/2026] Ranking, totales por anio y YTD cuentan camiones CARGADOS: descargados + en camino
+        # (Cargado/Frontera/Puerto/Liberado/Arribado/Confirmado) con fecha de carga hasta hoy. Antes solo
+        # descargados, y el corte era la ultima descarga (PY 29/09 con Aloha al 07/10): Gonzalo lo leia como
+        # "desactualizado". Los Solicitado (sin cargar) siguen afuera. Transito, faltantes, fronteras,
+        # transportistas y la serie semanal siguen saliendo de los descargados (unicos con fecha de descarga).
+        $hoyPC = (Get-Date).Date
+        $cargados = @($lista | Where-Object { ($_.status -match '^Descargado') -or (($_.status -match '^(Cargado|Frontera|Puerto|Liberado|Arribado|Confirmado)') -and $_.fecha -le $hoyPC) })
         $ttv  = @($desc | Where-Object { $null -ne $_.tt } | ForEach-Object { $_.tt })
         $conDesc = @($desc | Where-Object { $null -ne $_.faltante })
         $micV = PC-Sum $conDesc 'mic'; $desV = PC-Sum $conDesc 'desc'
-        $anios = @($desc | Select-Object -ExpandProperty anio -Unique | Sort-Object)
+        $anios = @($cargados | Select-Object -ExpandProperty anio -Unique | Sort-Object)
         $porAnio = [ordered]@{}
         foreach ($a in $anios) {
-            $da = @($desc | Where-Object { $_.anio -eq $a }); $cd = @($da | Where-Object { $null -ne $_.faltante })
+            $da = @($cargados | Where-Object { $_.anio -eq $a }); $cd = @($da | Where-Object { $null -ne $_.faltante })
             $m = PC-Sum $cd 'mic'; $d = PC-Sum $cd 'desc'; $cajas = PC-Sum $da 'mic'
             $porAnio["$a"] = [ordered]@{
                 camiones = $da.Count; cajas = [math]::Round($cajas, 0)
@@ -3426,9 +3433,13 @@ if ($pcXlsx.Count -eq 0) {
         $ytd = $null
         if ($anios.Count -ge 1) {
             $aMax = $anios[-1]
-            $ult = ($desc | Where-Object { $_.anio -eq $aMax } | Sort-Object fecha | Select-Object -Last 1)
-            $cur = @($desc | Where-Object { $_.anio -eq $aMax }); $prev = @($desc | Where-Object { $_.anio -eq ($aMax - 1) -and $_.doy -le $ult.doy })
-            $ytd = [ordered]@{ anio = $aMax; corte = $ult.fecha.ToString('yyyy-MM-dd'); camiones = $cur.Count; cajas = [math]::Round((PC-Sum $cur 'mic'), 0)
+            $ult = ($cargados | Where-Object { $_.anio -eq $aMax } | Sort-Object fecha | Select-Object -Last 1)
+            $cur = @($cargados | Where-Object { $_.anio -eq $aMax }); $prev = @($cargados | Where-Object { $_.anio -eq ($aMax - 1) -and $_.doy -le $hoyPC.DayOfYear })
+            $curDesc = @($cur | Where-Object { $_.status -match '^Descargado' })
+            # corte = hoy (el Plan viene de Aloha en vivo); ultimaCarga = ultima fecha de carga contada
+            $ytd = [ordered]@{ anio = $aMax; corte = $hoyPC.ToString('yyyy-MM-dd'); camiones = $cur.Count; cajas = [math]::Round((PC-Sum $cur 'mic'), 0)
+                               descargados = $curDesc.Count; enCamino = ($cur.Count - $curDesc.Count)
+                               ultimaCarga = $(if ($ult) { $ult.fecha.ToString('yyyy-MM-dd') } else { $null })
                                anioPrev = ($aMax - 1); camionesPrev = $prev.Count; cajasPrev = [math]::Round((PC-Sum $prev 'mic'), 0) }
         }
         $semanal = @($desc | Group-Object viernes | Sort-Object Name | ForEach-Object {
@@ -3444,7 +3455,7 @@ if ($pcXlsx.Count -eq 0) {
             return $null
         }
         $productores = @()
-        foreach ($g in ($desc | Group-Object key)) {
+        foreach ($g in ($cargados | Group-Object key)) {
             $cd = @($g.Group | Where-Object { $null -ne $_.faltante })
             $m = PC-Sum $cd 'mic'; $d = PC-Sum $cd 'desc'; $cajas = PC-Sum $g.Group 'mic'
             $pa = [ordered]@{}; foreach ($a in $anios) { $pa["$a"] = @($g.Group | Where-Object { $_.anio -eq $a }).Count }
@@ -3462,7 +3473,7 @@ if ($pcXlsx.Count -eq 0) {
                 frontera = $frP; transportista = $(if ($trP) { $trP } else { 'sin dato' })
                 precio = (PC-PrecioInfo $g.Group)
                 ficha = (PC-Ficha $nombre[$g.Name])
-                ult4sem = $(if ($ult) { @($g.Group | Where-Object { $_.fecha -ge $ult.fecha.AddDays(-28) }).Count } else { $null })   # camiones en las ultimas 4 semanas del Plan (estado del ranking) [15/09/2026]
+                ult4sem = @($g.Group | Where-Object { $_.fecha -ge $hoyPC.AddDays(-28) }).Count   # camiones cargados en las ultimas 4 semanas contadas desde hoy (estado del ranking) [15/09/2026, hoy desde 07/10/2026]
             }
         }
         $productores = @($productores | Sort-Object @{Expression={ $_.camiones };Descending=$true}, @{Expression={ $_.nombre }})

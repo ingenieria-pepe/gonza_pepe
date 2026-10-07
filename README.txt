@@ -917,6 +917,14 @@ LOG DE CAMBIOS:
                en curso y la siguiente. El codigo del control queda apagado con un $false por si vuelve.
   07/10/2026 -> Gonzalo agrega Gilson miercoles 14/10 a la semana 12-17/10 (BR pasa de 10 a 11 dictados). Sab 17/10:
                24.305 -> falta 1 camion (14 camiones, venta 17.000); sab 24/10 17.223 -> faltan 8 (sin dictar).
+  07/10/2026 -> PLAN DE CARGAS (paso 5h, hecho por la otra sesion a pedido de Gonzalo: "Ranking de productores 2026 (1/1 al
+               29/09/2026) no esta actualizado"): el ranking de productores, porAnio y el YTD cuentan camiones CARGADOS =
+               descargados + en camino (Cargado/Frontera/Puerto/Liberado/Arribado/Confirmado) con fecha de carga <= hoy;
+               los Solicitado siguen afuera. ytd.corte = HOY (Aloha es en vivo; antes era la fecha de la ultima descarga,
+               por eso PY decia 29/09) y se agregan ytd.descargados / ytd.enCamino / ytd.ultimaCarga; el "mismo periodo" del
+               anio anterior va al mismo dia del anio. Transito, faltantes, serie semanal, fronteras y transportistas siguen
+               sobre descargados. HTML: el KPI "Camiones 2026" dice cuantos son en camino y la nota del ranking PY explica
+               que cuenta. Hoy: PY 151 (148 + 3 en camino), BR 453 (452 + 1); titulo PY "(1/1 al 07/10/2026)".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
