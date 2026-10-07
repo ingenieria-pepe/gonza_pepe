@@ -888,6 +888,13 @@ LOG DE CAMBIOS:
                mas frecuente entre las filas del Plan): Fisher -> Fischer, Stein -> Osnildo Stein, Agrocurupa -> Corupá,
                Ivo zimer -> Ivo Zimerman, Cassio -> Cassio Hauck, Josemar -> Josemar Provesi, Marconi -> Marconi Kons.
                Si Aloha nunca lo tuvo (Celso, supuestos) queda el nombre dictado. Se saco el recorte "Ivo zimer" -> "Ivo".
+  07/10/2026 -> PENTA SETIEMBRE 2026 ("te deje en descarga entrada de banana setiembre"): 4 extractos detalle_UYimport del
+               03/09 (nombre de Penta) con las operaciones del 01 al 30/09 por origen: Ecuador 35 ops (1.669 t brutas),
+               Brasil 19 (1.640 t), Paraguay 23 (1.608 t), Bolivia 7 (203 t). Copiados a penta\ y corrida completa: los
+               paneles pasan del corte 31/08 al 30/09 (mercado_uy 721 reg; mercado_br 937 reg, Almar 53,6 % de Brasil 2026;
+               Paraguay Almar 46,6 %, Bolivia 46,4 %; Almar 49,4 % del mercado total 2026). OJO formato: estos .xlsx los lee
+               bien el .NET ZipFile del script (Read-XlsxHoja) pero NO EPPlus/ImportExcel ("Bad signature 0x000004A5"):
+               para inspeccionarlos a mano hay que abrir el zip y parsear sheet1.xml (strings inline), no Import-Excel.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
