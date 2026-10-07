@@ -915,6 +915,8 @@ LOG DE CAMBIOS:
   07/10/2026 -> Bloque Plan de Cargas del resumen: fuera el renglon "Sem dd/MM en Aloha: N camiones, cajas (dictados: N)"
                (Gonzalo: "semana 28 tenes que sacarlo, solo tiene que ir dos semanas para adelante"). Quedan solo la semana
                en curso y la siguiente. El codigo del control queda apagado con un $false por si vuelve.
+  07/10/2026 -> Gonzalo agrega Gilson miercoles 14/10 a la semana 12-17/10 (BR pasa de 10 a 11 dictados). Sab 17/10:
+               24.305 -> falta 1 camion (14 camiones, venta 17.000); sab 24/10 17.223 -> faltan 8 (sin dictar).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
