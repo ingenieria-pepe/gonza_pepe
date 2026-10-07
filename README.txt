@@ -902,6 +902,16 @@ LOG DE CAMBIOS:
                mar, DF mar 06 liberado; Bolivia en frontera): sab 10/10 27.391 ok (20 camiones: el MS del miercoles
                llega el domingo y pasa al 17), sab 17/10 23.297 -> faltan 2 (13 camiones, venta 17.000), sab 24/10 16.215
                -> faltan 9 (solo las cargas del vie 16 y sab 17 mas supuestos).
+  07/10/2026 -> RESUMEN WHATSAPP con el formato que pego Gonzalo ("asi quiero el mensaje"): Cepea "*Cepea* BR R$/kg sem
+               dd/MM" (bandera, sin "al productor"); Carape pasa a ir DESPUES de Cepea con la bandera adelante del nombre;
+               Almar con el titulo solo en el primer renglon y "sem dd/MM, N cargas, R$/caja" en el segundo; Clima sin la
+               leyenda de siglas; y el bloque "Plan de compras" SALE del resumen (su cuenta va en los mensajes "Descargas
+               semana" del martes). Orden: Cepea, Carape, Almar, Clima, Plan de Cargas, Lectura.
+  07/10/2026 -> Mensaje "Descargas semana": bandera del origen en vez de numero delante de cada camion (Gonzalo: "en vez de
+               poner numeros pone otra cosa"); y dia mostrado con feriado de frontera (Gonzalo: "las descargas no son
+               martes porque recien van a cruzar martes, asi que son miercoles en adelante"): domingo -> lunes -> martes,
+               y si el dia de cruce es feriado BR (12/10, 02/11, 15/11, 20/11, 25/12, 01/01) un dia mas. Las fechas reales
+               de descarga (Descargado) no se corren.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

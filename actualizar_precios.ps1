@@ -4399,7 +4399,7 @@ $nuevoEstado | ConvertTo-Json -Depth 5 | Out-File $statePath -Encoding UTF8
 function Get-DescargasSemanaTexto {
     # Mensaje "Descargas semana dd-dd/MM" por dia, numerado de corrido [06/10/2026]. Gonzalo: "las descargas por dia las
     # quiero tipo orden numerico 1 xxx 2 xxx", "yo pondria la semana entera, a pesar de lo que se pudo haber descargado",
-    # y el pie "Objetivo: 25.000 de stock al cierre de los sabados". Misma cuenta que Get-PlanComprasLineas y el simulador:
+    # y el pie "Objetivo: 25.000 de stock al cierre de los sabados"; 07/10: bandera del origen en vez de numero. Misma cuenta que Get-PlanComprasLineas y el simulador:
     # arranque = conteo + descargas de las semanas anteriores - ventas; descarga = fecha real o carga + lag del origen; lo
     # que llega domingo cuenta para la semana que arranca. Dia mostrado: lo que cae domingo o lunes se muestra el MARTES
     # (Gonzalo 06/10: "lunes no se descarga nada: la banana que se carga viernes y sabado cruza recien el lunes, se
@@ -4419,7 +4419,7 @@ function Get-DescargasSemanaTexto {
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
         if ($desc -le $fCon) { continue }
         $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
-        $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto') }
+        $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto'); real = [bool]$c.descarga }
     }
     # arranque de la semana pedida
     $saldo = [int]$J.conteo.TODO
@@ -4434,23 +4434,32 @@ function Get-DescargasSemanaTexto {
     $cierre = $arranque + $tot - $venta
     $min = 25000; if ($J.minimos -and $J.minimos.TODO) { $min = [int]$J.minimos.TODO }
     $cxc = 1000; if ($J.cajas_camion -and $J.cajas_camion.TODO) { $cxc = [int]$J.cajas_camion.TODO }
-    $diaDe = { param($d) if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(2) } elseif ($d.DayOfWeek -eq [DayOfWeek]::Monday) { $d.AddDays(1) } else { $d } }
+    # [07/10/2026] Gonzalo: "las descargas no son martes porque recien van a cruzar martes, asi que son miercoles en adelante"
+    # (lunes 12 feriado en Brasil, frontera cerrada). Regla: domingo -> lunes; lunes -> martes (lo del viernes/sabado cruza el
+    # lunes y descarga el martes); si el dia de cruce es feriado, un dia mas. Las fechas REALES de descarga no se tocan.
+    $feriadosBR = @('2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25', '2027-01-01')
+    $diaDe = { param($d) $x = $d
+        if ($x.DayOfWeek -eq [DayOfWeek]::Sunday) { $x = $x.AddDays(1) }
+        if ($x.DayOfWeek -eq [DayOfWeek]::Monday) { $x = $x.AddDays(1) }
+        if ($feriadosBR -contains $x.AddDays(-1).ToString('yyyy-MM-dd')) { $x = $x.AddDays(1) }
+        while ($feriadosBR -contains $x.ToString('yyyy-MM-dd') -or $x.DayOfWeek -eq [DayOfWeek]::Sunday) { $x = $x.AddDays(1) }
+        $x }
     $DOW = @{ 1 = 'Lun'; 2 = 'Mar'; 3 = 'Mié'; 4 = 'Jue'; 5 = 'Vie'; 6 = 'Sáb'; 0 = 'Dom' }
     $ordenO = @{ BR = 0; PY = 1; BO = 2 }
     $L = @()
     $L += "*🚚 Descargas semana $($Lunes.ToString('dd'))–$($sab.ToString('dd/MM'))*"
     $L += "_(arranque $($arranque.ToString('N0')) cajas)_"
     $n = 0
-    $conDia = @($ll | ForEach-Object { [PSCustomObject]@{ dia = (& $diaDe $_.desc); o = $ordenO[$_.origen]; nombre = $_.nombre; origen = $_.origen; sup = $_.sup } } | Sort-Object dia, o, nombre)
+    $conDia = @($ll | ForEach-Object { [PSCustomObject]@{ dia = $(if ($_.real) { $_.desc } else { & $diaDe $_.desc }); o = $ordenO[$_.origen]; nombre = $_.nombre; origen = $_.origen; sup = $_.sup } } | Sort-Object dia, o, nombre)
     foreach ($g in @($conDia | Group-Object { $_.dia.ToString('yyyy-MM-dd') })) {
         $d = [DateTime]$g.Name
         $L += ''; $L += "*$($DOW[[int]$d.DayOfWeek]) $($d.ToString('dd'))*"
         foreach ($x in $g.Group) {
             $n++
-            $tag = ''
-            if ($x.origen -eq 'BR') { $tag = ' (BR)' } elseif ($x.origen -eq 'BO' -and $x.nombre -notmatch '(?i)^bolivia') { $tag = ' (BO)' }
+            # [07/10/2026] Gonzalo: "en vez de poner numeros antes de las cargas pone otra cosa": bandera del origen.
+            $bandera = switch ($x.origen) { 'BR' { '🇧🇷' } 'PY' { '🇵🇾' } 'BO' { '🇧🇴' } 'EC' { '🇪🇨' } default { '•' } }
             $sup = if ($x.sup -and $x.nombre -notmatch '(?i)supuesto') { ' (supuesto)' } else { '' }
-            $L += "$n $($x.nombre)$tag$sup"
+            $L += "$bandera $($x.nombre)$sup"
         }
     }
     $L += ''
@@ -4992,7 +5001,7 @@ if ($waSoloDescargas) {
             #     Ribeira, region 52 del paso 2b), cada uno con su variacion semanal. Almar: caja y kilo na roca, y con
             #     servicios. Sin caja Cepea, sin historico (eso queda en la Lectura) y sin comparaciones cruzadas.
             function Get-VarSemTxt { param($serie) $s = @($serie); if ($s.Count -lt 2 -or [double]$s[-2].precio -le 0) { return "" }; $d = (([double]$s[-1].precio - [double]$s[-2].precio) / [double]$s[-2].precio) * 100; $dR = [math]::Round($d, 1); if ($dR -gt 0) { return " · subió $($dR.ToString('0.#'))% en la semana" }; if ($dR -lt 0) { return " · bajó $([math]::Abs($dR).ToString('0.#'))% en la semana" }; return " · igual que la semana pasada" }
-            $msg += "*💰 Cepea* — R$/kg al productor, sem $(Get-FechaCorta $nanica[-1].fecha)`n"
+            $msg += "*💰 Cepea* 🇧🇷 R$/kg sem $(Get-FechaCorta $nanica[-1].fecha)`n"   # [07/10/2026] formato de Gonzalo
             $msg += "SC: *$($oppLast.ToString('F2'))*$(Get-VarSemTxt $nanica)`n"
             $spReg = $null; try { if ($regiones) { $spReg = @($regiones | Where-Object { [int]$_.id -eq 52 }) | Select-Object -First 1 } } catch {}
             if ($spReg -and $spReg.serie -and @($spReg.serie).Count -gt 0) {
@@ -5001,6 +5010,31 @@ if ($waSoloDescargas) {
                 $msg += "SP: *$(([double]$spUlt.precio).ToString('F2'))*$(Get-VarSemTxt $spS)$spTag`n"
             }
             $msg += "`n"
+            # [07/10/2026] Carape va DESPUES de Cepea (Gonzalo pego el orden que quiere: Cepea, Carape, Almar, Clima, Plan de Cargas, Lectura)
+            # --- Paraguay: fecha del dato SIMA, variacion vs medicion anterior y el
+            #     tipo de cambio que se usa (fijo en el script) declarado en el texto.
+            if ($null -ne $pyData -and $pyData.precio_caja_pyg -gt 0) {
+                $pyKg = if ($pyData.kg_caja_aprox) { [double]$pyData.kg_caja_aprox } else { 24 }
+                $PYG_USD = 7500.0
+                $pyUsdKg = ([double]$pyData.precio_caja_pyg / $PYG_USD) / $pyKg
+                $brUsdKg = ($oppLast + $SERVICIOS_CAJA / $KG_CAJA_NETO) / 5.2   # servicios por kg (antes 0,73 fijo = 16/22), TC 5,2
+                $diffPct = (($pyUsdKg - $brUsdKg) / $brUsdKg) * 100
+                $pyFecha = ''; $pyVar = ''
+                if ($pyData.serie -and @($pyData.serie).Count -ge 1) {
+                    $pyOrd = @($pyData.serie | Sort-Object fecha)
+                    $pyFecha = " (SIMA $(Get-FechaCorta $pyOrd[-1].fecha))"
+                    if ($pyOrd.Count -ge 2 -and [double]$pyOrd[-2].precio_caja_pyg -gt 0) {
+                        $pyD = (([double]$pyOrd[-1].precio_caja_pyg - [double]$pyOrd[-2].precio_caja_pyg) / [double]$pyOrd[-2].precio_caja_pyg) * 100
+                        $pyR = [math]::Round($pyD, 1)
+                        $pyVar = " · " + $(if ($pyR -gt 0) { "subió $($pyR.ToString('0.#'))%" } elseif ($pyR -lt 0) { "bajó $([math]::Abs($pyR).ToString('0.#'))%" } else { "igual que" }) + " $(if ($pyR -ne 0) { 'vs ' })el $(Get-FechaCorta $pyOrd[-2].fecha)"
+                    }
+                }
+                # [03/10/2026] tres renglones: fuente, caja en guaranies con su variacion, y el kilo en dolares contra Brasil
+                $dR = [math]::Round($diffPct)
+                $msg += "🇵🇾 *Carapé*$($pyFecha)`n"   # [07/10/2026] bandera adelante (formato de Gonzalo)
+                $msg += "Caja: PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))$pyVar`n"
+                $msg += "USD $($pyUsdKg.ToString('F2'))/kg · $([math]::Abs($dR))% $(if ($dR -lt 0) { 'más barato' } elseif ($dR -gt 0) { 'más caro' } else { 'igual' }) que Brasil`n`n"
+            }
             # [03/10/2026] Gonzalo: "na roca esta mal: yo pague 20 reales y algunos 25, mas los 18 de servicios". El precio de la
             #     planilla cargas 2026.xlsx (36, 43, 40...) YA incluye los servicios: na roca = precio - 18. Se muestra derivado.
             if ($almarSemanas.Count -gt 0) {
@@ -5008,7 +5042,7 @@ if ($waSoloDescargas) {
                 $semSin = [math]::Floor(((Get-Date) - [DateTime]::Parse($alU.fecha)).TotalDays / 7)
                 $alRoca = $alCaja - $SERVICIOS_CAJA; $alKg = $alCaja / $KG_CAJA_NETO; $alRocaKg = $alRoca / $KG_CAJA_NETO
                 # [03/10/2026] renglones de <= 38 caracteres para que no se partan en el celular (captura de Gonzalo)
-                $msg += "*🚚 Almar* — sem $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas, R$/caja"
+                $msg += "*🚚 Almar* —`nsem $(Get-FechaCorta $alU.fecha), $($alU.cargas) cargas, R$/caja"   # [07/10/2026] titulo solo en el primer renglon (formato de Gonzalo)
                 if ($semSin -ge 2) { $msg += "`n_(hace $semSin sem sin cargas nuevas en la planilla)_" }
                 $msg += "`n"
                 $msg += "Na roça: $($alRoca.ToString('F2')) = $($alRocaKg.ToString('F2'))/kg`n"
@@ -5039,7 +5073,7 @@ if ($waSoloDescargas) {
             $leyenda = @(); foreach ($r in $climaData) { $nz = Get-ZonaCorta $r.ciudad; $leyenda += "$(Get-SiglaZona $nz) $nz" }
             # [03/10/2026] formato compacto para el celular (<= 38 caracteres por renglon): "🇧🇷 LA 30/14 🥶 69mm → 26/16 60mm 🌧️"
             #     = semana pasada max/min y lluvia, flecha, proximos 7 dias max/min y lluvia; los avisos van como emoji al final.
-            $msg += "*🌡️ Clima* máx/mín °C y lluvia · pasada → próx 7d`n_$($leyenda -join ' · ')_`n"
+            $msg += "*🌡️ Clima* máx/mín °C y lluvia · pasada → próx 7d`n"   # [07/10/2026] sin la leyenda de siglas (formato de Gonzalo)
             foreach ($r in $climaData) {
                 $flag = if ($banderaEmoji.ContainsKey([string]$r.bandera)) { $banderaEmoji[[string]$r.bandera] } else { [string]$r.bandera }
                 $linea = "$flag $(Get-SiglaZona (Get-ZonaCorta $r.ciudad)) "
@@ -5076,30 +5110,6 @@ if ($waSoloDescargas) {
 
             # --- (27/09/2026: el bloque "Modelo 4 sem" salio del resumen, era casi todo calendario; sigue en index_proyeccion)
 
-            # --- Paraguay: fecha del dato SIMA, variacion vs medicion anterior y el
-            #     tipo de cambio que se usa (fijo en el script) declarado en el texto.
-            if ($null -ne $pyData -and $pyData.precio_caja_pyg -gt 0) {
-                $pyKg = if ($pyData.kg_caja_aprox) { [double]$pyData.kg_caja_aprox } else { 24 }
-                $PYG_USD = 7500.0
-                $pyUsdKg = ([double]$pyData.precio_caja_pyg / $PYG_USD) / $pyKg
-                $brUsdKg = ($oppLast + $SERVICIOS_CAJA / $KG_CAJA_NETO) / 5.2   # servicios por kg (antes 0,73 fijo = 16/22), TC 5,2
-                $diffPct = (($pyUsdKg - $brUsdKg) / $brUsdKg) * 100
-                $pyFecha = ''; $pyVar = ''
-                if ($pyData.serie -and @($pyData.serie).Count -ge 1) {
-                    $pyOrd = @($pyData.serie | Sort-Object fecha)
-                    $pyFecha = " (SIMA $(Get-FechaCorta $pyOrd[-1].fecha))"
-                    if ($pyOrd.Count -ge 2 -and [double]$pyOrd[-2].precio_caja_pyg -gt 0) {
-                        $pyD = (([double]$pyOrd[-1].precio_caja_pyg - [double]$pyOrd[-2].precio_caja_pyg) / [double]$pyOrd[-2].precio_caja_pyg) * 100
-                        $pyR = [math]::Round($pyD, 1)
-                        $pyVar = " · " + $(if ($pyR -gt 0) { "subió $($pyR.ToString('0.#'))%" } elseif ($pyR -lt 0) { "bajó $([math]::Abs($pyR).ToString('0.#'))%" } else { "igual que" }) + " $(if ($pyR -ne 0) { 'vs ' })el $(Get-FechaCorta $pyOrd[-2].fecha)"
-                    }
-                }
-                # [03/10/2026] tres renglones: fuente, caja en guaranies con su variacion, y el kilo en dolares contra Brasil
-                $dR = [math]::Round($diffPct)
-                $msg += "*🇵🇾 Carapé*$($pyFecha)`n"
-                $msg += "Caja: PYG $(([double]$pyData.precio_caja_pyg).ToString('N0'))$pyVar`n"
-                $msg += "USD $($pyUsdKg.ToString('F2'))/kg · $([math]::Abs($dR))% $(if ($dR -lt 0) { 'más barato' } elseif ($dR -gt 0) { 'más caro' } else { 'igual' }) que Brasil`n`n"
-            }
 
             # --- (27/09/2026: Ecuador fuera del resumen, va por otro canal de ventas; sigue en index_ecuador)
 
@@ -5163,21 +5173,9 @@ if ($waSoloDescargas) {
                 $msg += "`n"
             }
 
-            # --- Plan de compras [27/09/2026]: cierre proyectado al sabado de esta semana y de la
-            #     siguiente, y cuantos camiones faltan (mismo calculo que el simulador, paso 5j).
-            #     Gonzalo pide el numero antes del miercoles/jueves, que es cuando cierra los pedidos.
-            $pcJsonPath = Join-Path $base "plan_compras\plan_compras.json"
-            if (Test-Path $pcJsonPath) {
-                try {
-                    $pcLineas = @(Get-PlanComprasLineas -Path $pcJsonPath)
-                    if ($pcLineas.Count -gt 0) {
-                        $pcConteoF = (Get-Content $pcJsonPath -Raw -Encoding UTF8 | ConvertFrom-Json).conteo.fecha
-                        $msg += "*🧮 Plan de compras* — cajas al cierre, mín 25.000`n_(conteo $(Get-FechaCorta $pcConteoF))_`n"
-                        $msg += ($pcLineas -join "`n") + "`n"
-                        $msg += "_Pedidos: Paraguay miércoles, Brasil jueves_`n`n"
-                    }
-                } catch { Add-Falla -Paso 'Plan de compras (resumen)' -Detalle $_.Exception.Message }
-            }
+            # --- [07/10/2026] El bloque "Plan de compras" (cierre del sabado, faltan N camiones) SALIO del resumen: Gonzalo pego el
+            #     formato que quiere y no lo trae. Esa cuenta va en los dos mensajes "Descargas semana" del martes
+            #     (PORONGA_WA_DESCARGAS=1, Get-DescargasSemanaTexto). Get-PlanComprasLineas queda definida por si vuelve.
 
             # --- (27/09/2026: el bloque "Almar" se junto con el de Cepea, arriba: mismo precio en dos lugares)
 
