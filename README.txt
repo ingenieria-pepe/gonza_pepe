@@ -912,6 +912,9 @@ LOG DE CAMBIOS:
                martes porque recien van a cruzar martes, asi que son miercoles en adelante"): domingo -> lunes -> martes,
                y si el dia de cruce es feriado BR (12/10, 02/11, 15/11, 20/11, 25/12, 01/01) un dia mas. Las fechas reales
                de descarga (Descargado) no se corren.
+  07/10/2026 -> Bloque Plan de Cargas del resumen: fuera el renglon "Sem dd/MM en Aloha: N camiones, cajas (dictados: N)"
+               (Gonzalo: "semana 28 tenes que sacarlo, solo tiene que ir dos semanas para adelante"). Quedan solo la semana
+               en curso y la siguiente. El codigo del control queda apagado con un $false por si vuelve.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

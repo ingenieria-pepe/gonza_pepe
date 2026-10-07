@@ -5157,8 +5157,9 @@ if ($waSoloDescargas) {
                         $msg += "Sem $(Get-FechaCorta $kSem): $(Get-CamTxt $d.n) ($($porO -join ', '))`n"
                     } else { $msg += "Sem $(Get-FechaCorta $kSem): sin cargas dictadas`n" }
                 }
-                # control de la semana pasada contra Aloha (que recien se actualiza el lunes)
-                if ($null -ne $planResumen) {
+                # control de la semana pasada contra Aloha: APAGADO el 07/10/2026 (Gonzalo: "semana 28 tenes que sacarlo, solo tiene
+                # que ir dos semanas para adelante"). El codigo queda por si vuelve; para reactivarlo sacar el $false.
+                if ($false -and $null -ne $planResumen) {
                     $kAnt = $lunesPc.AddDays(-7).ToString('yyyy-MM-dd')
                     $sw = @($planResumen.semanas | Where-Object { $_.semana_lunes -eq $kAnt }) | Select-Object -First 1
                     if ($sw) {
