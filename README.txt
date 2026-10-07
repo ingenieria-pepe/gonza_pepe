@@ -936,6 +936,10 @@ LOG DE CAMBIOS:
   07/10/2026 -> Gonzalo: "agro pasa para cuarta entonces": Agrocurupa del vie 16/10 al mie 14/10 (semana 12-17), para
                cerrar el sabado 17 arriba del objetivo. Sab 17/10: 25.313 ok (15 camiones, venta 17.000); sab 24/10 queda
                en 17.223 (10 camiones, 6 supuestos; la semana del 19 se dicta el fin de semana).
+  07/10/2026 -> Carga PARCIAL dictada: "martes 13 tenemos 12 palet de banana que va a cargar con exoticos", "de Furlani".
+               Fila Furlani mar 13/10 con 432 cajas (12 pallets x 36) en cargas_programadas. Ojo: si Aloha registra ese
+               camion como Varios/Exoticos, el plan no lo cuenta (regla del 5h) y la fila dictada queda; si lo registra
+               como Furlani Solicitado, el dictado la reemplaza con las 432 cajas. Sab 17/10: 25.745 ok (16 camiones).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
