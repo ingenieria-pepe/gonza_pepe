@@ -261,5 +261,56 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   render();
 })();
 </script>
+<!-- SELLO_ACTUALIZADO: fecha y hora de actualización arriba a la derecha de cada sección (pedido de Gonzalo 07/10/2026).
+     Bloque común a inicio.html y a todos los index_*.html: si se cambia, cambiarlo en todos. Toma el "generado" que el
+     script embebe en la página (o document.lastModified si no hay) y, en las secciones de plan de cargas y de
+     competencia/mercado, agrega la fecha del dato (Aloha / Penta). No toca los marcadores JSON. -->
+<style>
+.sello-act{float:right;font-size:11px;font-weight:500;line-height:1.3;color:inherit;opacity:.72;background:rgba(127,127,127,.12);border:1px solid rgba(127,127,127,.28);border-radius:10px;padding:2px 8px;margin:2px 0 0 10px;white-space:nowrap;letter-spacing:0;text-transform:none;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+h2 .sello-act,h1 .sello-act{vertical-align:middle}
+@media print{.sello-act{border-color:#999}}
+</style>
+<script>
+(function(){
+  var fmtFH = function(s){ var m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/); return m ? (m[3] + '/' + m[2] + '/' + m[1] + (m[4] ? ' ' + m[4] + ':' + m[5] : '')) : null; };
+  var fmtF = function(s){ var m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? (m[3] + '/' + m[2] + '/' + m[1]) : null; };
+  var scripts = function(){ return Array.prototype.slice.call(document.querySelectorAll('script')).map(function(s){ return s.textContent || ''; }); };
+  function buscar(clave, conHora){
+    var re = new RegExp('"' + clave + '":"(\\d{4}-\\d{2}-\\d{2}' + (conHora ? '[ T]\\d{2}:\\d{2}' : '') + ')'), best = null;
+    scripts().forEach(function(t){ var m = t.match(re); if (m && (!best || m[1] > best)) best = m[1]; });
+    return best;
+  }
+  function generado(){
+    var g = buscar('generado', true) || buscar('actualizado', true);
+    if (g) return fmtFH(g);
+    var lm = String(document.lastModified || '').match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);   // Chrome/Edge: MM/DD/YYYY HH:MM:SS
+    return lm ? (lm[2] + '/' + lm[1] + '/' + lm[3] + ' ' + lm[4] + ':' + lm[5]) : null;
+  }
+  var pagina = (location.pathname.split('/').pop() || '').toLowerCase();
+  var D = window.CARGAS_DATA, M = window.MERCADO_BR || window.MERCADO_PYBO || null;
+  var aloha = (D && D.archivoFecha) ? fmtFH(D.archivoFecha) : null;
+  var penta = (M && M.corte) ? fmtF(M.corte) : fmtF(buscar('corte', false));
+  function extra(h){
+    var id = (h.id || '').toLowerCase(), tx = (h.textContent || '').toLowerCase();
+    if (aloha && (id === 'cargas' || tx.indexOf('plan de cargas') >= 0)) return ' · Aloha ' + aloha;
+    if (penta && (id === 'competencia' || tx.indexOf('competencia') >= 0 || tx.indexOf('aduana') >= 0 || pagina === 'index_mercado.html')) return ' · Penta al ' + penta;
+    return '';
+  }
+  var base = generado();
+  function sellar(){
+    if (!base) return;
+    var hs = Array.prototype.slice.call(document.querySelectorAll('h2'));
+    if (!hs.length) { var h1 = document.querySelector('header h1') || document.querySelector('h1'); if (h1) hs = [h1]; }
+    hs.forEach(function(h){
+      if (h.querySelector('.sello-act')) return;
+      var s = document.createElement('span'); s.className = 'sello-act'; s.title = 'Última corrida del script que armó esta sección';
+      s.textContent = 'Actualizado ' + base + extra(h);
+      h.appendChild(s);
+    });
+  }
+  sellar(); setTimeout(sellar, 1500); setTimeout(sellar, 5000);   // los títulos que se reescriben por JS pierden el sello: se vuelve a poner
+})();
+</script>
+
 </body>
 </html>

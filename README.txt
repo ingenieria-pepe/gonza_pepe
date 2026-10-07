@@ -925,6 +925,14 @@ LOG DE CAMBIOS:
                anio anterior va al mismo dia del anio. Transito, faltantes, serie semanal, fronteras y transportistas siguen
                sobre descargados. HTML: el KPI "Camiones 2026" dice cuantos son en camino y la nota del ranking PY explica
                que cuenta. Hoy: PY 151 (148 + 3 en camino), BR 453 (452 + 1); titulo PY "(1/1 al 07/10/2026)".
+  07/10/2026 -> SELLO "Actualizado dd/mm/yyyy hh:mm" arriba a la derecha de cada seccion en los 10 paneles (hecho por la otra
+               sesion a pedido de Gonzalo: "cada ventana tenga en un costado el dia que se actualizo y la hora"). Bloque comun
+               <!-- SELLO_ACTUALIZADO --> (estilo .sello-act + JS) antes de </body> en inicio.html y los 9 index_*.html: toma
+               el "generado" mas nuevo de la pagina y lo pone en cada h2; en plan de cargas agrega "· Aloha dd/mm hh:mm"
+               (CARGAS_DATA.archivoFecha), en competencia/aduana/mercado "· Penta al dd/mm/yyyy" (corte); index_recepcion usa
+               document.lastModified. Se re-aplica a 1,5 y 5 s por si un titulo se reescribe. En paginas nuevas copiar el
+               bloque igual que NAV_PANELES. Ademas, titulo del ranking BR alineado con PY: "(1/1 al dd/mm/yyyy)".
+               Probado: corrida completa OK (marcadores JSON intactos, 0 skips) y sellos visibles tras regenerar.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
