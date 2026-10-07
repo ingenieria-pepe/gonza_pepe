@@ -933,6 +933,9 @@ LOG DE CAMBIOS:
                document.lastModified. Se re-aplica a 1,5 y 5 s por si un titulo se reescribe. En paginas nuevas copiar el
                bloque igual que NAV_PANELES. Ademas, titulo del ranking BR alineado con PY: "(1/1 al dd/mm/yyyy)".
                Probado: corrida completa OK (marcadores JSON intactos, 0 skips) y sellos visibles tras regenerar.
+  07/10/2026 -> Gonzalo: "agro pasa para cuarta entonces": Agrocurupa del vie 16/10 al mie 14/10 (semana 12-17), para
+               cerrar el sabado 17 arriba del objetivo. Sab 17/10: 25.313 ok (15 camiones, venta 17.000); sab 24/10 queda
+               en 17.223 (10 camiones, 6 supuestos; la semana del 19 se dicta el fin de semana).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
