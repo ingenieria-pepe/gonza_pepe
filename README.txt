@@ -895,6 +895,13 @@ LOG DE CAMBIOS:
                Paraguay Almar 46,6 %, Bolivia 46,4 %; Almar 49,4 % del mercado total 2026). OJO formato: estos .xlsx los lee
                bien el .NET ZipFile del script (Read-XlsxHoja) pero NO EPPlus/ImportExcel ("Bad signature 0x000004A5"):
                para inspeccionarlos a mano hay que abrir el zip y parsear sheet1.xml (strings inline), no Import-Excel.
+  07/10/2026 -> Dictado nuevo de Gonzalo para la semana 12-17/10 ("tenia pensado cargas asi"), reemplaza al del 06/10:
+               BR 10 (Fisher mar y sab, Stein mie y vie, Agro vie, Cassio mar y vie, Ivo mie, Marconi vie, Josemar mie)
+               + PY 5 (Alvarito lun, Diego lun, Milciades lun, Guido mar, Hugo domingo 11 = Paraguay HF). Celso sale de
+               esa semana. Con el Aloha del miercoles (Ivo mar 06 liberado; PY MS cargo mar 06 y mie 07 en vez de lun y
+               mar, DF mar 06 liberado; Bolivia en frontera): sab 10/10 27.391 ok (20 camiones: el MS del miercoles
+               llega el domingo y pasa al 17), sab 17/10 23.297 -> faltan 2 (13 camiones, venta 17.000), sab 24/10 16.215
+               -> faltan 9 (solo las cargas del vie 16 y sab 17 mas supuestos).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
