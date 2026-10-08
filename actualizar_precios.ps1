@@ -4519,7 +4519,7 @@ if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con enca
 # (semana en curso y la siguiente), armados desde plan_compras.json (paso 5j) con Get-DescargasSemanaTexto, a todos los
 # telefonos, y NO manda el resumen ni evalua alertas ni toca el state. Con PORONGA_WA_PRUEBA=dry se imprimen y no se
 # mandan; con PORONGA_WA_PRUEBA=1 se mandan aunque config tenga enabled=false (prueba desde la laptop). Pensado para
-# una tarea aparte en el servidor, el martes a la manana, cuando Aloha ya cargo las fechas reales del lunes.
+# una tarea aparte en el servidor: VIERNES 12:00 (Gonzalo 08/10/2026: "la hora es el viernes mediodia"; antes se penso martes).
 $waSoloDescargas = ($env:PORONGA_WA_DESCARGAS -eq '1')
 if ($waSoloDescargas) {
     Write-Host "    MODO DESCARGAS: solo los mensajes de descargas por dia (semana en curso y siguiente)$(if ($waDry) { ' (dry: se imprimen, no se mandan)' })" -ForegroundColor Magenta

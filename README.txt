@@ -954,6 +954,10 @@ LOG DE CAMBIOS:
                pero con 0 no agrega nada: solo cuentan las cargas de Aloha y las dictadas. Resultado: sab 17/10 23.743 ->
                faltan 2 (14 camiones, sin la Bolivia supuesta); sab 24/10 9.703 con solo las 4 de Brasil del vie 16 y sab 17
                (semana sin dictar). Las ventas previstas (ventas_plan) siguen igual.
+  08/10/2026 -> CORRECCION: el horario que pidio Gonzalo ("la hora es el viernes mediodia") es para los mensajes de
+               DESCARGAS SEMANA, no para el resumen. Se revirtio el commit 33fd07e (el resumen sigue viernes 19:00 y
+               miercoles 12:00) y la tarea aparte del servidor para PORONGA_WA_DESCARGAS=1 pasa a ser VIERNES 12:00
+               (antes se habia pensado martes 08:00). Textos en actualizar_precios.ps1 y plan_compras\LEEME.txt.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

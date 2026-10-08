@@ -59,7 +59,7 @@ COMO SE ACTUALIZA (cada vez que cambie algo)
   6. Mensaje de WhatsApp "Descargas semana dd-dd/MM" (por dia, numerado, semana en curso y siguiente): lo arma
      Get-DescargasSemanaTexto en actualizar_precios.ps1 desde plan_compras.json. Para mandarlo solo (sin resumen ni
      alertas): variable de entorno PORONGA_WA_DESCARGAS=1 al correr el script; con PORONGA_WA_PRUEBA=dry solo se
-     imprime. En el servidor va como tarea aparte los martes a la manana (Aloha carga las fechas reales el lunes).
+     imprime. En el servidor va como tarea aparte los VIERNES 12:00 (Gonzalo 08/10/2026; antes se penso martes).
 
 LA CUENTA (desde el 27/09/2026 Brasil y Paraguay van JUNTOS: un solo stock y una sola venta; Bolivia aparte)
   stock al sabado = stock anterior + camiones que DESCARGAN esa semana - venta semanal
