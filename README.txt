@@ -940,6 +940,8 @@ LOG DE CAMBIOS:
                Fila Furlani mar 13/10 con 432 cajas (12 pallets x 36) en cargas_programadas. Ojo: si Aloha registra ese
                camion como Varios/Exoticos, el plan no lo cuenta (regla del 5h) y la fila dictada queda; si lo registra
                como Furlani Solicitado, el dictado la reemplaza con las 432 cajas. Sab 17/10: 25.745 ok (16 camiones).
+  07/10/2026 -> Gonzalo agrega Shapo viernes 16/10 a la semana 12-17 ("asi va quedando"): BR dictados 12 + la parcial de
+               Furlani. Shapo descarga el martes 20 y va al sab 24/10: 18.663 (11 camiones, 6 supuestos) -> faltan 7.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
