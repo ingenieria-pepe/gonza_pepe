@@ -42,7 +42,7 @@ $LAG_DESC = @{ BR = 3; PY = 4; BO = 6 }   # PY 3 -> 4 el 28/09/2026 (Gonzalo: "p
 
 # ---- plan_compras.xlsx
 $pcx = Join-Path $aqui 'plan_compras.xlsx'
-$prog = @(Tabla $pcx 'cargas_programadas' | ForEach-Object { $d = Fecha $_.fecha; [PSCustomObject]@{ origen = $_.origen; productor = $_.productor; carga = (Ymd $d); semana_carga = (Ymd $d.AddDays(-[int]$d.DayOfWeek)); cajas = [int]$_.cajas; transportista = $_.transportista; nota = $_.nota } })
+$prog = @(Tabla $pcx 'cargas_programadas' | ForEach-Object { $d = Fecha $_.fecha; [PSCustomObject]@{ origen = $_.origen; productor = $_.productor; carga = (Ymd $d); semana_carga = (Ymd $d.AddDays(-[int]$d.DayOfWeek)); cajas = [int]$_.cajas; transportista = $_.transportista; nota = $_.nota; parcial = ([int]$_.cajas -lt 600) } })   # [08/10/2026] < 600 cajas = carga parcial (p. ej. 12 pallets en camion mixto): suma cajas, no cuenta como camion
 $ventas = @(Tabla $pcx 'ventas_plan' | ForEach-Object { [PSCustomObject]@{ semana_lunes = (Ymd (Fecha $_.semana_lunes)); BR = [int]$_.br; PY = [int]$_.py; BO = [int]$_.bo; fuente = $_.fuente } })
 # venta REAL por semana y origen (hoja ventas_semanales, transcrita del reporte semanal del ERP; 29/09/2026). Opcional.
 $ventasReales = @()
@@ -139,7 +139,7 @@ foreach ($p in ($prog | Sort-Object carga)) {
         $idx = [int]$pend[$k][0]; $pend[$k].RemoveAt(0); $quitar[$idx] = $true; $reemplazadas++
         $nota = "manda el dictado: reemplaza a Aloha ($($camiones[$idx].productor) $($camiones[$idx].carga), Solicitado)" + $(if ($nota) { ' · ' + $nota } else { '' })
     }
-    $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = $nota }
+    $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = $nota; parcial = [bool]$p.parcial }
     $usadas++
 }
 # Solicitadas de Aloha sin dictada, en una semana/origen que SI tiene dictado: se descartan (el dictado es el plan de esa semana).
@@ -263,7 +263,8 @@ $out = [ordered]@{
             try { $d = [DateTime]$p.carga } catch { continue }
             $lun = $(if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) })
             $k = Ymd $lun
-            if (-not $h.Contains($k)) { $h[$k] = [ordered]@{ BR = 0; PY = 0; BO = 0; n = 0 } }
+            if (-not $h.Contains($k)) { $h[$k] = [ordered]@{ BR = 0; PY = 0; BO = 0; n = 0; parciales = 0 } }
+            if ($p.parcial) { $h[$k].parciales++; continue }   # [08/10/2026] la parcial no es un camion
             $o = [string]$p.origen; if ($h[$k].Contains($o)) { $h[$k][$o]++ }; $h[$k].n++
         }
         $h

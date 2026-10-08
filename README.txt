@@ -958,6 +958,10 @@ LOG DE CAMBIOS:
                DESCARGAS SEMANA, no para el resumen. Se revirtio el commit 33fd07e (el resumen sigue viernes 19:00 y
                miercoles 12:00) y la tarea aparte del servidor para PORONGA_WA_DESCARGAS=1 pasa a ser VIERNES 12:00
                (antes se habia pensado martes 08:00). Textos en actualizar_precios.ps1 y plan_compras\LEEME.txt.
+  08/10/2026 -> CARGA PARCIAL no cuenta como camion (Gonzalo: "ajustalo si son 12 palet"): en generar_datos.ps1 una dictada
+               con menos de 600 cajas lleva parcial=true; suma sus cajas pero no entra en "lo dictado" del resumen (Sem 12/10:
+               15 camiones (BR 12, PY 3), parciales 1) ni en el total del mensaje de descargas, que dice "14 camiones + 1
+               parcial · 14.332 cajas" y lista "Furlani (parcial, 432 cajas)".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

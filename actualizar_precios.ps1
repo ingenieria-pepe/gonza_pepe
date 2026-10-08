@@ -4430,7 +4430,7 @@ function Get-DescargasSemanaTexto {
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
         if ($desc -le $fCon) { continue }
         $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
-        $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto'); real = [bool]$c.descarga }
+        $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto'); real = [bool]$c.descarga; parcial = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial) }
     }
     # arranque de la semana pedida
     $saldo = [int]$J.conteo.TODO
@@ -4461,7 +4461,7 @@ function Get-DescargasSemanaTexto {
     $L += "*🚚 Descargas semana $($Lunes.ToString('dd'))–$($sab.ToString('dd/MM'))*"
     $L += "_(arranque $($arranque.ToString('N0')) cajas)_"
     $n = 0
-    $conDia = @($ll | ForEach-Object { [PSCustomObject]@{ dia = $(if ($_.real) { $_.desc } else { & $diaDe $_.desc }); o = $ordenO[$_.origen]; nombre = $_.nombre; origen = $_.origen; sup = $_.sup } } | Sort-Object dia, o, nombre)
+    $conDia = @($ll | ForEach-Object { [PSCustomObject]@{ dia = $(if ($_.real) { $_.desc } else { & $diaDe $_.desc }); o = $ordenO[$_.origen]; nombre = $_.nombre; origen = $_.origen; sup = $_.sup; parcial = $_.parcial; cajas = $_.cajas } } | Sort-Object dia, o, nombre)
     foreach ($g in @($conDia | Group-Object { $_.dia.ToString('yyyy-MM-dd') })) {
         $d = [DateTime]$g.Name
         $L += ''; $L += "*$($DOW[[int]$d.DayOfWeek]) $($d.ToString('dd'))*"
@@ -4470,11 +4470,13 @@ function Get-DescargasSemanaTexto {
             # [07/10/2026] Gonzalo: "en vez de poner numeros antes de las cargas pone otra cosa": bandera del origen.
             $bandera = switch ($x.origen) { 'BR' { '🇧🇷' } 'PY' { '🇵🇾' } 'BO' { '🇧🇴' } 'EC' { '🇪🇨' } default { '•' } }
             $sup = if ($x.sup -and $x.nombre -notmatch '(?i)supuesto') { ' (supuesto)' } else { '' }
-            $L += "$bandera $($x.nombre)$sup"
+            $parc = if ($x.parcial) { " (parcial, $($x.cajas) cajas)" } else { '' }   # [08/10/2026] 12 pallets en camion mixto: no es un camion
+            $L += "$bandera $($x.nombre)$sup$parc"
         }
     }
     $L += ''
-    $L += "*Total:* $($ll.Count) camiones · $($tot.ToString('N0')) cajas"
+    $nParc = @($ll | Where-Object { $_.parcial }).Count
+    $L += "*Total:* $($ll.Count - $nParc) camiones" + $(if ($nParc -gt 0) { " + $nParc parcial" } else { '' }) + " · $($tot.ToString('N0')) cajas"
     $L += "*Venta prevista:* $($venta.ToString('N0'))"
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
