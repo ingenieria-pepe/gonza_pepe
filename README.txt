@@ -962,6 +962,9 @@ LOG DE CAMBIOS:
                con menos de 600 cajas lleva parcial=true; suma sus cajas pero no entra en "lo dictado" del resumen (Sem 12/10:
                15 camiones (BR 12, PY 3), parciales 1) ni en el total del mensaje de descargas, que dice "14 camiones + 1
                parcial · 14.332 cajas" y lista "Furlani (parcial, 432 cajas)".
+  08/10/2026 -> Mensaje de descargas: UNO solo, la semana que arranca el lunes siguiente (Gonzalo: "tiene que salir solo la
+               semana del 12 al 17, asi no se entreveran"). PORONGA_WA_DESCARGAS=1 (la tarea del viernes 12:00) manda solo la
+               semana siguiente; =0 la semana en curso; =2 las dos. Probado en seco: un mensaje, semana 12-17/10.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

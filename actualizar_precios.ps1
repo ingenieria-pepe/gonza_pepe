@@ -4522,14 +4522,17 @@ if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con enca
 # telefonos, y NO manda el resumen ni evalua alertas ni toca el state. Con PORONGA_WA_PRUEBA=dry se imprimen y no se
 # mandan; con PORONGA_WA_PRUEBA=1 se mandan aunque config tenga enabled=false (prueba desde la laptop). Pensado para
 # una tarea aparte en el servidor: VIERNES 12:00 (Gonzalo 08/10/2026: "la hora es el viernes mediodia"; antes se penso martes).
-$waSoloDescargas = ($env:PORONGA_WA_DESCARGAS -eq '1')
+$waSoloDescargas = ($env:PORONGA_WA_DESCARGAS -in '0', '1', '2')
 if ($waSoloDescargas) {
-    Write-Host "    MODO DESCARGAS: solo los mensajes de descargas por dia (semana en curso y siguiente)$(if ($waDry) { ' (dry: se imprimen, no se mandan)' })" -ForegroundColor Magenta
+    Write-Host "    MODO DESCARGAS: solo el mensaje de descargas por dia (PORONGA_WA_DESCARGAS=$($env:PORONGA_WA_DESCARGAS): 1 = semana siguiente, 0 = en curso, 2 = ambas)$(if ($waDry) { ' (dry: se imprimen, no se mandan)' })" -ForegroundColor Magenta
     $pcjDesc = Join-Path $base 'plan_compras\plan_compras.json'
     $hoyDesc = (Get-Date).Date; if ($hoyDesc.DayOfWeek -eq [DayOfWeek]::Sunday) { $hoyDesc = $hoyDesc.AddDays(1) }
     $lunDesc = $hoyDesc.AddDays(-((([int]$hoyDesc.DayOfWeek) + 6) % 7))
     $msgsDesc = @()
-    foreach ($wD in 0, 1) {
+    # [08/10/2026] Gonzalo: "tiene que salir solo la semana del 12 al 17, asi no se entreveran": UN mensaje, la semana que
+    # arranca el lunes siguiente (=1, el del viernes 12:00). PORONGA_WA_DESCARGAS=0 manda la semana en curso; =2 las dos.
+    $semDesc = switch ($env:PORONGA_WA_DESCARGAS) { '0' { @(0) } '2' { @(0, 1) } default { @(1) } }
+    foreach ($wD in $semDesc) {
         try { $txtD = Get-DescargasSemanaTexto -Path $pcjDesc -Lunes $lunDesc.AddDays(7 * $wD) -Hoy $hoyDesc; if ($txtD) { $msgsDesc += $txtD } }
         catch { Add-Falla -Paso 'WhatsApp descargas' -Detalle $_.Exception.Message; Write-Host "    descargas semana +$wD FALLO: $($_.Exception.Message)" -ForegroundColor Red }
     }
