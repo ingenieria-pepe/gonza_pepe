@@ -164,8 +164,13 @@ if ($pyPorSemana -gt 0) {
     for ($w = 1; $w -le 3; $w++) {
         $dom = $dom0.AddDays(7 * $w); $kSem = Ymd $dom
         $hayPY = @($camiones | Where-Object { $_.origen -eq 'PY' -and $_.semana_carga -eq $kSem }).Count
-        # [01/10/2026] si ya hay cargas PY dictadas pero menos que el ritmo habitual, se completan con supuestos
-        # (Gonzalo dicto solo a Guido para el martes 13 y los otros 4 de la semana se dictan despues)
+        # [01/10/2026] si ya habia cargas PY dictadas pero menos que el ritmo habitual, se completaban con supuestos
+        # (Gonzalo dicto solo a Guido para el martes 13 y los otros 4 se dictaban despues).
+        # [08/10/2026] YA NO: manda el dictado. Si la semana tiene al menos una carga PY dictada, ese numero es el plan
+        # (Gonzalo bajo Paraguay a 3 porque piden USD 8/caja y la regla vieja le sumaba 2 supuestos). Los supuestos
+        # quedan solo para semanas sin NINGUNA carga PY dictada ni en el Plan de Aloha.
+        $hayPYdict = @($camiones | Where-Object { $_.origen -eq 'PY' -and $_.semana_carga -eq $kSem -and $_.fuente -eq 'plan_compras' }).Count
+        if ($hayPYdict -gt 0) { continue }
         $faltanPY = $pyPorSemana - $hayPY
         if ($faltanPY -le 0) { continue }
         $lun = $dom.AddDays(1)

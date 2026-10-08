@@ -942,6 +942,13 @@ LOG DE CAMBIOS:
                como Furlani Solicitado, el dictado la reemplaza con las 432 cajas. Sab 17/10: 25.745 ok (16 camiones).
   07/10/2026 -> Gonzalo agrega Shapo viernes 16/10 a la semana 12-17 ("asi va quedando"): BR dictados 12 + la parcial de
                Furlani. Shapo descarga el martes 20 y va al sab 24/10: 18.663 (11 camiones, 6 supuestos) -> faltan 7.
+  08/10/2026 -> PARAGUAY PIDE USD 8/CAJA (era 7): Gonzalo redicta la semana 12-17 ("cambiaron las cosas"): Paraguay baja a 3
+               (Alvarito lun, Milciades lun, Guido mar; salen Diego y Hugo) y Brasil queda en 12 con OCHO el miercoles 14
+               (Fisher, Stein, Agro, Cassio, Ivo, Marconi, Josemar, Gilson) + Stein, Cassio y Shapo vie 16 + Fisher sab 17;
+               la parcial de Furlani (432, mar 13) se mantiene. generar_datos.ps1: los SUPUESTOS de Paraguay ya no completan
+               una semana dictada de menos (regla del 01/10): si la semana tiene al menos una carga PY dictada, manda el
+               dictado; los supuestos (py_camiones_semana) quedan solo para semanas sin ninguna PY dictada. Resultado: sab
+               17/10 24.793 -> falta 1 camion (15 camiones); sab 24/10 16.703 -> faltan 9 (con 5 PY supuestos a USD 8, a revisar).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
