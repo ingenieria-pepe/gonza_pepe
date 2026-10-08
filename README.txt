@@ -949,6 +949,11 @@ LOG DE CAMBIOS:
                una semana dictada de menos (regla del 01/10): si la semana tiene al menos una carga PY dictada, manda el
                dictado; los supuestos (py_camiones_semana) quedan solo para semanas sin ninguna PY dictada. Resultado: sab
                17/10 24.793 -> falta 1 camion (15 camiones); sab 24/10 16.703 -> faltan 9 (con 5 PY supuestos a USD 8, a revisar).
+  08/10/2026 -> SIN SUPUESTOS (Gonzalo: "NO HABLES DE SUPUESTOS, SI NO TE PASE CARGAS NO CUENTA"): plan_compras.xlsx >
+               supuestos: py_camiones_semana = 0 (era 5) y bo_camiones_semana = 0 (era 1). El generador conserva el mecanismo
+               pero con 0 no agrega nada: solo cuentan las cargas de Aloha y las dictadas. Resultado: sab 17/10 23.743 ->
+               faltan 2 (14 camiones, sin la Bolivia supuesta); sab 24/10 9.703 con solo las 4 de Brasil del vie 16 y sab 17
+               (semana sin dictar). Las ventas previstas (ventas_plan) siguen igual.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
