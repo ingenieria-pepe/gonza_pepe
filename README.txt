@@ -965,6 +965,14 @@ LOG DE CAMBIOS:
   08/10/2026 -> Mensaje de descargas: UNO solo, la semana que arranca el lunes siguiente (Gonzalo: "tiene que salir solo la
                semana del 12 al 17, asi no se entreveran"). PORONGA_WA_DESCARGAS=1 (la tarea del viernes 12:00) manda solo la
                semana siguiente; =0 la semana en curso; =2 las dos. Probado en seco: un mensaje, semana 12-17/10.
+  08/10/2026 -> SELLOS DE DATOS, paso [5k] (Gonzalo: "tenes que poner que actualizo cuando hay cambios en cada planilla, no
+               porque se genere la pagina"). Update-SellosDatos recorre los bloques JSON embebidos de inicio, los 9 index y
+               plan_compras\simulador.html, calcula un hash del contenido sin los metadatos de corrida (claves generado,
+               generado_en, hoy, archivoFecha, archivoDias, actualizado, datos_actualizado, y las fechas con hora dentro de
+               textos) y lo compara con fuentes\sellos.json: si cambio, escribe "datos_actualizado" = ahora como primera clave
+               del bloque; si no, conserva la fecha anterior. Probado: corrida 1 = 15 bloques nuevos, corrida 2 = 0 cambios.
+               La otra sesion cambia el JS del sello para mostrar datos_actualizado del bloque de cada seccion (no generado).
+               Primera vez: todos los bloques arrancan con la fecha de hoy; de ahi en mas solo se mueven con datos nuevos.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

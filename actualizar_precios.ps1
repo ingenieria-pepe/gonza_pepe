@@ -4144,6 +4144,70 @@ if ($ecParsed.error) {
 # ==========================================================================
 # 5) Sistema de alertas - zona estacional + movimientos fuertes
 # ==========================================================================
+# ==========================================================================
+# 5k) Sellos de datos  [08/10/2026]
+#
+# Gonzalo: "tenes que poner que actualizo cuando hay cambios en cada planilla, no porque se genere la pagina". El sello
+# "Actualizado" de cada seccion (bloque SELLO_ACTUALIZADO de los paneles) no puede salir de "generado", que cambia en
+# cada corrida. Este paso recorre los bloques JSON embebidos (/*__X_JSON__*/ ... /*__END...__*/) de todos los paneles,
+# calcula un hash del contenido SIN los campos volatiles (generado, generado_en, hoy, archivoFecha, archivoDias,
+# datos_actualizado) y lo compara con fuentes\sellos.json. Si cambio (o es nuevo) escribe "datos_actualizado" = ahora
+# dentro del bloque; si no, conserva la fecha anterior. El JS del sello lee datos_actualizado del bloque de su seccion.
+# Se inserta como texto (no se reserializa el JSON: ConvertTo-Json cambiaria numeros y acentos).
+# ==========================================================================
+function Update-SellosDatos {
+    param([string[]]$Paginas, [string]$Registro)
+    # volatiles: claves que cambian en cada corrida sin que cambien los datos (vistas comparando dos corridas seguidas el 08/10)
+    $volatiles = @('generado', 'generado_en', 'hoy', 'archivoFecha', 'archivoDias', 'datos_actualizado', 'actualizado')
+    function Podar($o) {
+        if ($null -eq $o) { return $null }
+        if ($o -is [System.Collections.IList]) { return @($o | ForEach-Object { Podar $_ }) }
+        if ($o -is [PSCustomObject]) {
+            $h = [ordered]@{}
+            foreach ($pr in $o.PSObject.Properties) { if ($volatiles -contains $pr.Name) { continue }; $h[$pr.Name] = Podar $pr.Value }
+            return $h
+        }
+        # fechas con hora dentro de textos (p. ej. "fuentes.plan: ... 2026-10-08 17:38", "plan_cargas.fecha") son metadatos de corrida
+        if ($o -is [string]) { return [regex]::Replace($o, '\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?', '') }
+        return $o
+    }
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    $reg = @{}
+    if (Test-Path $Registro) { try { $rj = Get-Content $Registro -Raw -Encoding UTF8 | ConvertFrom-Json; foreach ($pr in $rj.PSObject.Properties) { $reg[$pr.Name] = @{ hash = [string]$pr.Value.hash; datos_actualizado = [string]$pr.Value.datos_actualizado } } } catch {} }
+    $ahoraTxt = (Get-Date).ToString('yyyy-MM-dd HH:mm')
+    $nCambios = 0; $nIgual = 0
+    foreach ($pg in $Paginas) {
+        if (-not (Test-Path $pg)) { continue }
+        $html = Get-Content $pg -Raw -Encoding UTF8
+        $orig = $html
+        $ms = [regex]::Matches($html, '/\*__([A-Z0-9_]+)__\*/(.*?)/\*__END[A-Z0-9_]*__\*/', 'Singleline')
+        foreach ($m in $ms) {
+            $bloque = $m.Groups[1].Value; $json = $m.Groups[2].Value.Trim()
+            if (-not $json.StartsWith('{')) { continue }
+            $obj = $null; try { $obj = $json | ConvertFrom-Json } catch { continue }
+            $canon = (Podar $obj) | ConvertTo-Json -Depth 60 -Compress
+            $hash = ([System.BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($canon)))) -replace '-', ''
+            $key = (Split-Path $pg -Leaf) + '|' + $bloque
+            if ($reg.ContainsKey($key) -and $reg[$key].hash -eq $hash -and $reg[$key].datos_actualizado) { $fecha = $reg[$key].datos_actualizado; $nIgual++ }
+            else { $fecha = $ahoraTxt; $reg[$key] = @{ hash = $hash; datos_actualizado = $fecha }; $nCambios++ }
+            # escribir/actualizar "datos_actualizado" en el bloque, como texto
+            if ($json -match '"datos_actualizado"\s*:\s*"[^"]*"') { $jsonNuevo = [regex]::Replace($json, '"datos_actualizado"\s*:\s*"[^"]*"', ('"datos_actualizado":"' + $fecha + '"'), 1) }
+            else { $jsonNuevo = '{"datos_actualizado":"' + $fecha + '",' + $json.Substring(1) }
+            if ($jsonNuevo -eq '{"datos_actualizado":"' + $fecha + '",}') { $jsonNuevo = '{"datos_actualizado":"' + $fecha + '"}' }
+            $html = $html.Replace($m.Groups[2].Value, $jsonNuevo)
+        }
+        if ($html -ne $orig) { Set-Content -Path $pg -Value $html -Encoding UTF8 -NoNewline }
+    }
+    $out = [ordered]@{}; foreach ($k in ($reg.Keys | Sort-Object)) { $out[$k] = [ordered]@{ hash = $reg[$k].hash; datos_actualizado = $reg[$k].datos_actualizado } }
+    $out | ConvertTo-Json -Depth 4 | Set-Content -Path $Registro -Encoding UTF8
+    return @{ cambios = $nCambios; igual = $nIgual }
+}
+Write-Host "[5k] Sellos de datos (datos_actualizado por bloque)..." -ForegroundColor Cyan
+try {
+    $pagSellos = @((Join-Path $base 'inicio.html'), (Join-Path $base 'plan_compras\simulador.html')) + @(Get-ChildItem $base -Filter 'index_*.html' | ForEach-Object { $_.FullName })
+    $resSellos = Update-SellosDatos -Paginas $pagSellos -Registro (Join-Path $fuentes 'sellos.json')
+    Write-Host "    bloques con datos nuevos: $($resSellos.cambios) · sin cambios: $($resSellos.igual) (registro fuentes\sellos.json)" -ForegroundColor Green
+} catch { Add-Falla -Paso 'Sellos de datos' -Detalle $_.Exception.Message; Write-Host "    sellos FALLO: $($_.Exception.Message)" -ForegroundColor Red }
 Write-Host "[6/6] Evaluando alertas..." -ForegroundColor Cyan
 
 $statePath = Join-Path $fuentes "state_alertas.json"
