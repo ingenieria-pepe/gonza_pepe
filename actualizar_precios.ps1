@@ -5246,11 +5246,11 @@ if ($waSoloDescargas) {
     }
 
     # ---- Deteccion de corrida atrasada ----
-    # Slots del Task Scheduler: viernes 12:00 y miercoles 12:00 (Gonzalo 08/10/2026: "la hora es el viernes mediodia"; era 19:00). Si la PC estuvo
+    # Slots del Task Scheduler: viernes 19:00 y miercoles 12:00. Si la PC estuvo
     # apagada el trigger de logon dispara la corrida horas (o dias) despues, y el
     # mensaje llega fuera de hora sin que se note. Lo marcamos en el propio mensaje.
     $slotsProgramados = @(
-        @{ dow = [DayOfWeek]::Friday;    hora = 12; min = 0 },
+        @{ dow = [DayOfWeek]::Friday;    hora = 19; min = 0 },
         @{ dow = [DayOfWeek]::Wednesday; hora = 12; min = 0 }
     )
     $ahora = Get-Date

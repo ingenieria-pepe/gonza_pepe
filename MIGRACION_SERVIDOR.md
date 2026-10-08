@@ -8,7 +8,7 @@ de la laptop personal.
 > 1. La carpeta del servidor (`poronga_servidor`) **ya es un clon git**: hacé `git pull`
 >    siguiendo §13.2 (respaldá `config\whatsapp.json` antes, el primer pull lo borra).
 > 2. Abrí PowerShell **como Administrador** y corré `setup_servidor.ps1`.
-> 3. Listo: corre solo **miércoles 12:00 y viernes 12:00**, haciendo `git pull` antes de cada
+> 3. Listo: corre solo **miércoles 12:00 y viernes 19:00**, haciendo `git pull` antes de cada
 >    corrida — lo que pushees desde la laptop se toma solo. La laptop no corre nada.
 > 4. 🚨 **Rotá el token de Whapi y pasá el repo a privado** (§13.4).
 >
@@ -24,7 +24,7 @@ de la laptop personal.
 |---|---|
 | Equipo | `DESKTOP-NVE8NNB` |
 | Carpeta | `C:\Users\User\Desktop\poronga_servidor` |
-| Tarea programada | `Cepea_ActualizarPrecios_Almar` — Mié 12:00 + Vie 12:00 |
+| Tarea programada | `Cepea_ActualizarPrecios_Almar` — Mié 12:00 + Vie 19:00 |
 | Corre como | `DESKTOP-NVE8NNB\User`, **LogonType S4U** (con o sin sesión iniciada) |
 | Lector de `.xlsx` | **ImportExcel 7.8.10** (EPPlus) — sin Excel instalado |
 | WhatsApp | `enabled: true`, 3 números, canal Whapi `DAREDL-9FA6E` (remitente `5989…`, ver `config\whatsapp.json` del servidor) |
@@ -92,7 +92,7 @@ El instalador:
 - Verifica PowerShell, **ImportExcel** (lo instala si falta), internet y la config de WhatsApp.
 - Copia `ImportExcel` a los paths de módulos de **PS 5.1** y **AllUsers**, así lo ve
   el PowerShell que ejecuta la tarea sin importar el perfil.
-- Registra la tarea programada **`Cepea_ActualizarPrecios_Almar`** (Mié 12:00 + Vie 12:00),
+- Registra la tarea programada **`Cepea_ActualizarPrecios_Almar`** (Mié 12:00 + Vie 19:00),
   con **LogonType S4U** (corre con o sin sesión iniciada). Si S4U falla, cae a Interactive.
 - Es **idempotente**: podés correrlo las veces que quieras.
 
