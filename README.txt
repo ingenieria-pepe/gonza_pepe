@@ -954,6 +954,10 @@ LOG DE CAMBIOS:
                pero con 0 no agrega nada: solo cuentan las cargas de Aloha y las dictadas. Resultado: sab 17/10 23.743 ->
                faltan 2 (14 camiones, sin la Bolivia supuesta); sab 24/10 9.703 con solo las 4 de Brasil del vie 16 y sab 17
                (semana sin dictar). Las ventas previstas (ventas_plan) siguen igual.
+  08/10/2026 -> HORARIO DEL VIERNES: Gonzalo "la hora es el viernes mediodia": el resumen de los viernes pasa de 19:00 a
+               12:00. En el repo: slot del viernes en actualizar_precios.ps1 (banner de atraso) a 12:00, setup_servidor.ps1
+               (trigger viernes 12:00PM y textos) y MIGRACION_SERVIDOR.md. La tarea YA REGISTRADA en el servidor hay que
+               cambiarla alla (Set-ScheduledTask, trigger viernes 12:00): se le pidio al Claude del servidor.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

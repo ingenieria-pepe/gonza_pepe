@@ -4,7 +4,7 @@
 #  Que hace:
 #    1. Verifica requisitos (PowerShell, modulo ImportExcel, internet).
 #    2. Registra la tarea programada "Cepea_ActualizarPrecios_Almar"
-#       (miercoles 12:00 + viernes 19:00), con los mismos settings que la laptop.
+#       (miercoles 12:00 + viernes 12:00), con los mismos settings que la laptop.
 #    3. Deja todo listo para que corra solo.
 #
 #  Como se usa (EN EL SERVIDOR, una sola vez):
@@ -132,7 +132,7 @@ try {
         -Argument ("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"{0}`"" -f $cmd) `
         -WorkingDirectory $base
 
-    $trigFri = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '7:00PM'
+    $trigFri = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '12:00PM'
     $trigWed = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At '12:00PM'
 
     $settings = New-ScheduledTaskSettingsSet `
@@ -154,7 +154,7 @@ try {
         Register-ScheduledTask -TaskName $TASK_NAME `
             -Action $action -Trigger @($trigFri, $trigWed) `
             -Settings $settings -Principal $principal `
-            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 19:00.' `
+            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 12:00.' `
             -Force | Out-Null
     } catch {
         $modo = 'Interactive (solo con el usuario logueado)'
@@ -162,12 +162,12 @@ try {
         Register-ScheduledTask -TaskName $TASK_NAME `
             -Action $action -Trigger @($trigFri, $trigWed) `
             -Settings $settings -Principal $principal `
-            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 19:00.' `
+            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 12:00.' `
             -Force | Out-Null
     }
 
     Write-Host "  Tarea registrada OK." -ForegroundColor Green
-    Write-Host "  Disparos: Miercoles 12:00  y  Viernes 19:00" -ForegroundColor Green
+    Write-Host "  Disparos: Miercoles 12:00  y  Viernes 12:00" -ForegroundColor Green
     Write-Host "  Corre como: $userId - $modo" -ForegroundColor Green
 } catch {
     Write-Host "  ERROR registrando la tarea: $($_.Exception.Message)" -ForegroundColor Red
