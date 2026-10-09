@@ -980,6 +980,10 @@ LOG DE CAMBIOS:
                en cursiva. Tambien en plan_compras\simulador.html. index_recepcion (bloque PRODUCTORES, que es una lista y no
                un objeto) cae al fallback. Verificado: aduana PY sigue "08/10 17:44 · Penta al 30/09" tras la corrida del 09/10
                09:34, mientras Cepea/clima/plan de cargas muestran 09/10 09:34 (datos nuevos de verdad).
+  09/10/2026 -> MENSAJE DE CARGAS A SU PROPIA LISTA (Gonzalo: "son mas numeros, ojo con eso, es otro mensaje"): el modo
+               PORONGA_WA_DESCARGAS manda a la clave "phones_descargas" de config\whatsapp.json (lista aparte de "phones",
+               que sigue siendo la del resumen). Si la clave no existe o esta vacia, el mensaje de cargas NO se manda a nadie.
+               config\whatsapp.json no viaja por git: la lista hay que cargarla en el servidor (y en la laptop para pruebas).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

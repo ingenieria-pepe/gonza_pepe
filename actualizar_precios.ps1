@@ -4583,7 +4583,7 @@ $waDry    = ($env:PORONGA_WA_PRUEBA -eq 'dry')
 if ($waPrueba) { Write-Host "    MODO PRUEBA WhatsApp: solo el resumen, con encabezado PRUEBA, sin tocar el state$(if ($waDry) { ' (dry: se imprime, no se manda)' })" -ForegroundColor Magenta }
 # MODO DESCARGAS [06/10/2026]: con PORONGA_WA_DESCARGAS=1 la corrida manda SOLO los dos mensajes "Descargas semana"
 # (semana en curso y la siguiente), armados desde plan_compras.json (paso 5j) con Get-DescargasSemanaTexto, a todos los
-# telefonos, y NO manda el resumen ni evalua alertas ni toca el state. Con PORONGA_WA_PRUEBA=dry se imprimen y no se
+# telefonos de la lista phones_descargas (NO la del resumen), y NO manda el resumen ni evalua alertas ni toca el state. Con PORONGA_WA_PRUEBA=dry se imprimen y no se
 # mandan; con PORONGA_WA_PRUEBA=1 se mandan aunque config tenga enabled=false (prueba desde la laptop). Pensado para
 # una tarea aparte en el servidor: VIERNES 12:00 (Gonzalo 08/10/2026: "la hora es el viernes mediodia"; antes se penso martes).
 $waSoloDescargas = ($env:PORONGA_WA_DESCARGAS -in '0', '1', '2')
@@ -4603,11 +4603,16 @@ if ($waSoloDescargas) {
     foreach ($mD in $msgsDesc) { Write-Host "    ----- DESCARGAS$(if ($waDry) { ' (dry: no se manda)' }) -----"; Write-Host $mD; Write-Host "    ----- fin ($($mD.Length) caracteres) -----" }
     if ($waDry) { }
     elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) { Write-Host "    WhatsApp deshabilitado (config/whatsapp.json): no se mandan" -ForegroundColor DarkYellow }
-    elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) { Write-Host "    Falta phones o token en config/whatsapp.json" -ForegroundColor DarkYellow }
+    elseif ([string]::IsNullOrWhiteSpace($waConfig.token)) { Write-Host "    Falta token en config/whatsapp.json" -ForegroundColor DarkYellow }
     else {
+        # [09/10/2026] Gonzalo: "es otro mensaje, son mas numeros": el mensaje de cargas va a su PROPIA lista, clave
+        # "phones_descargas" de config\whatsapp.json (no viaja por git: cargarla en el servidor y en la laptop). Si la clave
+        # no existe o esta vacia, NO se manda a nadie (para no mandarselo por error a la lista del resumen).
+        $waPhonesDesc = @(); if ($waConfig.PSObject.Properties.Name -contains 'phones_descargas' -and $waConfig.phones_descargas) { $waPhonesDesc = @($waConfig.phones_descargas) }
+        if ($waPhonesDesc.Count -eq 0) { Write-Host "    Falta phones_descargas en config/whatsapp.json: el mensaje de cargas NO se manda" -ForegroundColor DarkYellow }
         $hdrD = @{ 'Authorization' = "Bearer $($waConfig.token)" }
         foreach ($mD in $msgsDesc) {
-            foreach ($pD in $waPhones) {
+            foreach ($pD in $waPhonesDesc) {
                 $phD = ([string]$pD) -replace '[^\d]', ''; if (-not $phD) { continue }
                 $bD = [System.Text.Encoding]::UTF8.GetBytes((@{ to = $phD; body = $mD } | ConvertTo-Json -Compress))
                 $okD = $false
