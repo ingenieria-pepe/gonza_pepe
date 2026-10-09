@@ -984,6 +984,9 @@ LOG DE CAMBIOS:
                PORONGA_WA_DESCARGAS manda a la clave "phones_descargas" de config\whatsapp.json (lista aparte de "phones",
                que sigue siendo la del resumen). Si la clave no existe o esta vacia, el mensaje de cargas NO se manda a nadie.
                config\whatsapp.json no viaja por git: la lista hay que cargarla en el servidor (y en la laptop para pruebas).
+  09/10/2026 -> Correccion inmediata: el servidor ya mando una prueba del mensaje de cargas con la lista "phones" y la tarea
+               del viernes 12:00 existe. Si phones_descargas no esta en config\whatsapp.json, el mensaje de cargas va a
+               "phones" (con aviso en el log) en vez de no salir. Cuando Gonzalo quiera la lista aparte, se agrega la clave.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

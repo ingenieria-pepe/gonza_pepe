@@ -4607,9 +4607,11 @@ if ($waSoloDescargas) {
     else {
         # [09/10/2026] Gonzalo: "es otro mensaje, son mas numeros": el mensaje de cargas va a su PROPIA lista, clave
         # "phones_descargas" de config\whatsapp.json (no viaja por git: cargarla en el servidor y en la laptop). Si la clave
-        # no existe o esta vacia, NO se manda a nadie (para no mandarselo por error a la lista del resumen).
+        # no existe o esta vacia, va a la lista phones (como la prueba que hizo el servidor el 09/10) y queda avisado en el log.
         $waPhonesDesc = @(); if ($waConfig.PSObject.Properties.Name -contains 'phones_descargas' -and $waConfig.phones_descargas) { $waPhonesDesc = @($waConfig.phones_descargas) }
-        if ($waPhonesDesc.Count -eq 0) { Write-Host "    Falta phones_descargas en config/whatsapp.json: el mensaje de cargas NO se manda" -ForegroundColor DarkYellow }
+        # [09/10/2026, mas tarde] el servidor ya mando una prueba con la lista "phones" y la tarea del viernes 12:00 existe:
+        # si phones_descargas no esta, se usa phones (y se avisa en el log) para que el envio no se pierda.
+        if ($waPhonesDesc.Count -eq 0) { $waPhonesDesc = $waPhones; Write-Host "    (aviso) sin phones_descargas en config/whatsapp.json: el mensaje de cargas va a la lista phones" -ForegroundColor DarkYellow }
         $hdrD = @{ 'Authorization' = "Bearer $($waConfig.token)" }
         foreach ($mD in $msgsDesc) {
             foreach ($pD in $waPhonesDesc) {
