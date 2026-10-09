@@ -989,6 +989,12 @@ LOG DE CAMBIOS:
                "phones" (con aviso en el log) en vez de no salir. Cuando Gonzalo quiera la lista aparte, se agrega la clave.
   09/10/2026 -> Mensaje de cargas, formato de la parcial (Gonzalo): "Furlani (1/2 carga)" en el dia, y abajo "*Total:* 13
                camiones + 1/2 carga · 13.352 cajas" seguido de "(carga exóticos con Furlani)". Antes decia "+ 1 parcial".
+  09/10/2026 -> SOLO EL DICTADO (Gonzalo: "con Aloha nada, las cargas son las que te doy yo, ya lo hablamos"). generar_datos.ps1:
+               en cada (origen, semana de carga) con al menos una carga dictada se descartan TODAS las filas de Aloha de ese
+               origen y semana (solicitadas, cargadas y descargadas) y valen las dictadas con sus fechas. Aloha queda solo
+               para lo que no se dicta (Bolivia, semanas viejas). Se saco la excepcion del 06/10 (lo ya cargado mandaba).
+               Hoy: 54 filas de Aloha descartadas; sab 10/10 26.427 (19 camiones), sab 17/10 21.799 -> faltan 4 (12 + 1/2),
+               sab 24/10 7.759 (solo vie 16 y sab 17, sin dictar).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
