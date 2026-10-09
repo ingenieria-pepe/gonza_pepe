@@ -1,11 +1,11 @@
 ﻿{
     "index_brasil.html|CARGAS_JSON":  {
-                                          "hash":  "2D6D80EF3FCFDA7639DB12CCAEDA7D11BBE14828D27D52FC3CE2C79EB11D5660",
-                                          "datos_actualizado":  "2026-10-09 10:01"
+                                          "hash":  "72C217A6A21A548C23FC765C67BCE447D22563B9429A7987CB95B0522D492FD9",
+                                          "datos_actualizado":  "2026-10-09 10:18"
                                       },
     "index_brasil.html|CEPEA_JSON":  {
-                                         "hash":  "85212322B856DA5EBF025FD8C31824909350A6926AC7A382FB62DB8B3D1C80CA",
-                                         "datos_actualizado":  "2026-10-09 10:06"
+                                         "hash":  "374ACE9F2AA14F2220DA7F1C232ABAD31B3D7BFD3D4488B9FEE2C38935F9E5BD",
+                                         "datos_actualizado":  "2026-10-09 10:18"
                                      },
     "index_brasil.html|MERCADO_BR_JSON":  {
                                               "hash":  "F1B75C7663307B52222F2A8A4A6F0E1A98055DD723E6F4EF01588C87E80382CC",
@@ -36,27 +36,27 @@
                                             "datos_actualizado":  "2026-10-08 17:44"
                                         },
     "index_paraguay_bolivia.html|CARGAS_JSON":  {
-                                                    "hash":  "2D6D80EF3FCFDA7639DB12CCAEDA7D11BBE14828D27D52FC3CE2C79EB11D5660",
-                                                    "datos_actualizado":  "2026-10-09 10:01"
+                                                    "hash":  "72C217A6A21A548C23FC765C67BCE447D22563B9429A7987CB95B0522D492FD9",
+                                                    "datos_actualizado":  "2026-10-09 10:18"
                                                 },
     "index_paraguay_bolivia.html|CEPEA_JSON":  {
-                                                   "hash":  "85212322B856DA5EBF025FD8C31824909350A6926AC7A382FB62DB8B3D1C80CA",
-                                                   "datos_actualizado":  "2026-10-09 10:06"
+                                                   "hash":  "374ACE9F2AA14F2220DA7F1C232ABAD31B3D7BFD3D4488B9FEE2C38935F9E5BD",
+                                                   "datos_actualizado":  "2026-10-09 10:18"
                                                },
     "index_paraguay_bolivia.html|MERCADO_PYBO_JSON":  {
                                                           "hash":  "2E7F43E0BF271C49C58D5A6A5A4DE2BB28A7EA944BBCFA0E2F20F38BA57672EE",
                                                           "datos_actualizado":  "2026-10-08 17:44"
                                                       },
     "index_proyeccion.html|PROYECCION_JSON":  {
-                                                  "hash":  "546A44F823561655312CEC3B9C0758A47A0941D1EAC54300E32378CB90756535",
-                                                  "datos_actualizado":  "2026-10-09 09:52"
+                                                  "hash":  "9ADC1EDC1A5EF669E773CC730C7BA8DFCC8906512E0A8BEB82B5FCCFFB324E26",
+                                                  "datos_actualizado":  "2026-10-09 10:18"
                                               },
     "inicio.html|PORTADA_JSON":  {
                                      "hash":  "90CE09C6C507CB1D50ECE49F10FE096ABC492230B1188E5260D0973112D3AFBF",
                                      "datos_actualizado":  "2026-10-09 09:52"
                                  },
     "simulador.html|COMPRAS_JSON":  {
-                                        "hash":  "D543D712E1A150A02007968E24CE836F915A6DF72881C56B5C9180CB188F9A4C",
-                                        "datos_actualizado":  "2026-10-09 10:01"
+                                        "hash":  "30E77933E1C01149EDB679BB4B658B1C305BF2612944118C2EB040FC3EBAA5FE",
+                                        "datos_actualizado":  "2026-10-09 10:13"
                                     }
 }

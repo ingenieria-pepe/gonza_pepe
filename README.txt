@@ -995,6 +995,13 @@ LOG DE CAMBIOS:
                para lo que no se dicta (Bolivia, semanas viejas). Se saco la excepcion del 06/10 (lo ya cargado mandaba).
                Hoy: 54 filas de Aloha descartadas; sab 10/10 26.427 (19 camiones), sab 17/10 21.799 -> faltan 4 (12 + 1/2),
                sab 24/10 7.759 (solo vie 16 y sab 17, sin dictar).
+  09/10/2026 -> PRECIOS dictados por Gonzalo ("actualiza los precios en mi planilla de Excel") en fuentes\cargas 2026.xlsx,
+               hoja Setiembre. Semana 40 (28/09-03/10): Fisher 36 -> 35 (x2), Gilson 40 -> 38; el resto igual (12 cargas,
+               promedio R$ 38,00). Semana 41 (05-10/10) en el bloque que ya estaba armado (filas 83-97): Fisher 35 x2 Amaro,
+               Cassio 36 Axt/Alianza, Ivo 43 x2 Chabat, Stein 38 Nilton, Agro 36 Nilton, Celso 43 Nilton (8 cargas, R$ 38,62;
+               Total con SUMPRODUCT como la 40). Paraguay a USD 7/caja: filas "Paraguay (USD/caja)" debajo del Total de cada
+               semana con el precio como texto "7 USD" (fuera del rango de las formulas; el paso 3 las saltea porque el precio
+               no es numerico, asi no contaminan el promedio en R$). 477 operaciones parseadas; resumen "sem 10/10, 8 cargas".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
