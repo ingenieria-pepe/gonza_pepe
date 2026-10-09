@@ -1,11 +1,11 @@
 ﻿{
     "index_brasil.html|CARGAS_JSON":  {
-                                          "hash":  "A7A9766C657DA920DD312EEE292608CB280F9AD3C6067388A4E6750418120E53",
-                                          "datos_actualizado":  "2026-10-09 09:34"
+                                          "hash":  "2D6D80EF3FCFDA7639DB12CCAEDA7D11BBE14828D27D52FC3CE2C79EB11D5660",
+                                          "datos_actualizado":  "2026-10-09 10:01"
                                       },
     "index_brasil.html|CEPEA_JSON":  {
-                                         "hash":  "1CC002785AB76C20A96387072D8D0004300E689E9D56F5EFA4F9C714C80AD9A8",
-                                         "datos_actualizado":  "2026-10-09 09:34"
+                                         "hash":  "8721CBFF31BF87767B2D78B573AAACD151AA80B44639C979641C1028B8F66FD0",
+                                         "datos_actualizado":  "2026-10-09 10:01"
                                      },
     "index_brasil.html|MERCADO_BR_JSON":  {
                                               "hash":  "F1B75C7663307B52222F2A8A4A6F0E1A98055DD723E6F4EF01588C87E80382CC",
@@ -16,8 +16,8 @@
                                             "datos_actualizado":  "2026-10-08 17:44"
                                         },
     "index_cargas.html|PLAN_JSON":  {
-                                        "hash":  "85A7AEDAC99764BADBB056BAF72D4E3C469A0AB2826F739FD2E09C97FC5E1486",
-                                        "datos_actualizado":  "2026-10-09 09:34"
+                                        "hash":  "0CCCC63F9B2C45E2FEF64FD5EAB7B3F42DF2B3BB7542A897C974BBAEB2670DD7",
+                                        "datos_actualizado":  "2026-10-09 10:01"
                                     },
     "index_comparativo_anual.html|COMPARATIVO_JSON":  {
                                                           "hash":  "DF99669DDF36D35471E29E951CEB1C2D9BA0EB22CBC666D4F1EB2BED24AE40C6",
@@ -36,27 +36,27 @@
                                             "datos_actualizado":  "2026-10-08 17:44"
                                         },
     "index_paraguay_bolivia.html|CARGAS_JSON":  {
-                                                    "hash":  "A7A9766C657DA920DD312EEE292608CB280F9AD3C6067388A4E6750418120E53",
-                                                    "datos_actualizado":  "2026-10-09 09:34"
+                                                    "hash":  "2D6D80EF3FCFDA7639DB12CCAEDA7D11BBE14828D27D52FC3CE2C79EB11D5660",
+                                                    "datos_actualizado":  "2026-10-09 10:01"
                                                 },
     "index_paraguay_bolivia.html|CEPEA_JSON":  {
-                                                   "hash":  "1CC002785AB76C20A96387072D8D0004300E689E9D56F5EFA4F9C714C80AD9A8",
-                                                   "datos_actualizado":  "2026-10-09 09:34"
+                                                   "hash":  "8721CBFF31BF87767B2D78B573AAACD151AA80B44639C979641C1028B8F66FD0",
+                                                   "datos_actualizado":  "2026-10-09 10:01"
                                                },
     "index_paraguay_bolivia.html|MERCADO_PYBO_JSON":  {
                                                           "hash":  "2E7F43E0BF271C49C58D5A6A5A4DE2BB28A7EA944BBCFA0E2F20F38BA57672EE",
                                                           "datos_actualizado":  "2026-10-08 17:44"
                                                       },
     "index_proyeccion.html|PROYECCION_JSON":  {
-                                                  "hash":  "414D1CA0275645C3852AF926A88D4221780807A752C8FEF5A29FCEC1E6FB6608",
-                                                  "datos_actualizado":  "2026-10-08 17:44"
+                                                  "hash":  "546A44F823561655312CEC3B9C0758A47A0941D1EAC54300E32378CB90756535",
+                                                  "datos_actualizado":  "2026-10-09 09:52"
                                               },
     "inicio.html|PORTADA_JSON":  {
-                                     "hash":  "5E10A576A2D43D366368B2F511634BB54BD0CCBAF04D05CD45E5C62C77B76E0A",
-                                     "datos_actualizado":  "2026-10-09 09:34"
+                                     "hash":  "90CE09C6C507CB1D50ECE49F10FE096ABC492230B1188E5260D0973112D3AFBF",
+                                     "datos_actualizado":  "2026-10-09 09:52"
                                  },
     "simulador.html|COMPRAS_JSON":  {
-                                        "hash":  "E5FACC560D24F2905F2132690B7CB3F4C2BF855F0DD1F53E5C84F7AF745E1F08",
-                                        "datos_actualizado":  "2026-10-09 09:34"
+                                        "hash":  "D543D712E1A150A02007968E24CE836F915A6DF72881C56B5C9180CB188F9A4C",
+                                        "datos_actualizado":  "2026-10-09 10:01"
                                     }
 }

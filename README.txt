@@ -987,6 +987,8 @@ LOG DE CAMBIOS:
   09/10/2026 -> Correccion inmediata: el servidor ya mando una prueba del mensaje de cargas con la lista "phones" y la tarea
                del viernes 12:00 existe. Si phones_descargas no esta en config\whatsapp.json, el mensaje de cargas va a
                "phones" (con aviso en el log) en vez de no salir. Cuando Gonzalo quiera la lista aparte, se agrega la clave.
+  09/10/2026 -> Mensaje de cargas, formato de la parcial (Gonzalo): "Furlani (1/2 carga)" en el dia, y abajo "*Total:* 13
+               camiones + 1/2 carga · 13.352 cajas" seguido de "(carga exóticos con Furlani)". Antes decia "+ 1 parcial".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

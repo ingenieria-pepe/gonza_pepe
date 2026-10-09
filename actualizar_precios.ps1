@@ -4534,13 +4534,14 @@ function Get-DescargasSemanaTexto {
             # [07/10/2026] Gonzalo: "en vez de poner numeros antes de las cargas pone otra cosa": bandera del origen.
             $bandera = switch ($x.origen) { 'BR' { '🇧🇷' } 'PY' { '🇵🇾' } 'BO' { '🇧🇴' } 'EC' { '🇪🇨' } default { '•' } }
             $sup = if ($x.sup -and $x.nombre -notmatch '(?i)supuesto') { ' (supuesto)' } else { '' }
-            $parc = if ($x.parcial) { " (parcial, $($x.cajas) cajas)" } else { '' }   # [08/10/2026] 12 pallets en camion mixto: no es un camion
+            $parc = if ($x.parcial) { ' (1/2 carga)' } else { '' }   # [09/10/2026] Gonzalo: "13 camiones + 1/2 carga"; 12 pallets en camion de exoticos
             $L += "$bandera $($x.nombre)$sup$parc"
         }
     }
     $L += ''
     $nParc = @($ll | Where-Object { $_.parcial }).Count
-    $L += "*Total:* $($ll.Count - $nParc) camiones" + $(if ($nParc -gt 0) { " + $nParc parcial" } else { '' }) + " · $($tot.ToString('N0')) cajas"
+    $L += "*Total:* $($ll.Count - $nParc) camiones" + $(if ($nParc -eq 1) { ' + 1/2 carga' } elseif ($nParc -gt 1) { " + $nParc medias cargas" } else { '' }) + " · $($tot.ToString('N0')) cajas"
+    if ($nParc -gt 0) { $L += '(carga exóticos con ' + (($ll | Where-Object { $_.parcial } | ForEach-Object { $_.nombre }) -join ', ') + ')' }   # [09/10/2026] formato de Gonzalo
     $L += "*Venta prevista:* $($venta.ToString('N0'))"
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
