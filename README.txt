@@ -973,6 +973,13 @@ LOG DE CAMBIOS:
                del bloque; si no, conserva la fecha anterior. Probado: corrida 1 = 15 bloques nuevos, corrida 2 = 0 cambios.
                La otra sesion cambia el JS del sello para mostrar datos_actualizado del bloque de cada seccion (no generado).
                Primera vez: todos los bloques arrancan con la fecha de hoy; de ahi en mas solo se mueven con datos nuevos.
+  09/10/2026 -> SELLO v2 (otra sesion): "Datos actualizados dd/mm/yyyy hh:mm" por seccion, tomado del datos_actualizado del
+               bloque que alimenta esa seccion (plan de cargas -> CARGAS; competencia/aduana/mercado -> MERCADO_* y
+               EC_RANKING; Cepea/clima/precio -> CEPEA; el resto -> el bloque mas nuevo de la pagina), con los sufijos "Aloha
+               dd/mm hh:mm" y "Penta al dd/mm/yyyy" donde aplica; si el bloque no trae datos_actualizado dice "Pagina generada"
+               en cursiva. Tambien en plan_compras\simulador.html. index_recepcion (bloque PRODUCTORES, que es una lista y no
+               un objeto) cae al fallback. Verificado: aduana PY sigue "08/10 17:44 · Penta al 30/09" tras la corrida del 09/10
+               09:34, mientras Cepea/clima/plan de cargas muestran 09/10 09:34 (datos nuevos de verdad).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
