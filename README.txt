@@ -1051,6 +1051,10 @@ LOG DE CAMBIOS:
                tarea nueva en el servidor: va en la corrida del miercoles 12:00. Paneles regenerados en la misma corrida.
   11/10/2026 -> aviso de compras: Gonzalo pregunto "que es ese por 2?": la nota pasa a su propio renglon y explicada,
                "(lun-mar-mie x2)". Sidecars de Aloha regenerados por la otra ventana (prueba en PowerShell 5.1, OK).
+  11/10/2026 -> aviso de compras: Gonzalo "tiene que ir solo una semana para adelante, ya te lo habia pedido": se saca el
+               bloque de la semana en curso (semana estimada x2 y cierre del sabado). Queda: venta lun-mar-mie real vs
+               prevista, "Se vendio N camiones mas/menos en 3 dias", y la semana siguiente (dictado hasta hoy, cierre
+               estimado del sabado, faltan N, objetivo). La estimacion x2 sigue por dentro (cierre y faltantes).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

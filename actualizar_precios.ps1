@@ -4639,13 +4639,10 @@ function Get-AvisoComprasTexto {
         if ($difCam -gt 0) { $L += "Se vendió $difCam $(if ($difCam -eq 1) { 'camión' } else { 'camiones' }) más en $nd días" }
         elseif ($difCam -lt 0) { $L += "Se vendió $(-$difCam) $(if ($difCam -eq -1) { 'camión' } else { 'camiones' }) menos en $nd días" }
         else { $L += 'Venta en línea con lo previsto' }
-        $L += "*Semana estimada:* $($s0.venta.ToString('N0'))"
-        if ($f0.regla_x2) { $L += "($($f0.dias_usados) ×2)" }   # [11/10/2026] Gonzalo: 'que es ese por 2?' -> explicado, en su renglon
-    } else {
-        $L += "*Venta prevista esta semana:* $($s0.venta.ToString('N0'))"
+        $L += ''
     }
-    $L += "*Sáb $($lun0.AddDays(5).ToString('dd')):* cierre estimado $($s0.cierre.ToString('N0'))"
-    $L += ''
+    # [11/10/2026] Gonzalo: "tiene que ir solo una semana para adelante" (como el mensaje de cargas): nada de la semana en
+    # curso (ni "semana estimada" ni cierre del sabado); la venta de los dias es el aviso y la semana siguiente, la consecuencia.
     $L += "*Semana del $($lun1.ToString('dd')) al $($lun1.AddDays(5).ToString('dd/MM'))*"
     $L += "dictado hasta hoy: $($s1.camiones) $(if ($s1.camiones -eq 1) { 'camión' } else { 'camiones' })" + $(if ($s1.parciales -eq 1) { ' + 1/2 carga' } elseif ($s1.parciales -gt 1) { " + $($s1.parciales) medias cargas" } else { '' })
     $L += "cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
