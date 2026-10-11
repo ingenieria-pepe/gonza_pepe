@@ -47,7 +47,9 @@ COMO SE ACTUALIZA (cada vez que cambie algo)
      fuentes\plan_cargas\Plan - Cargas (Aloha API).xlsx y fuentes\plan_cargas\otros\Plan - Cargas OTROS
      (Aloha API).xlsx. A mano sigue valiendo: exportar desde Aloha (Plan de cargas > exportar, sin
      filtro / con fuente OTROS) y dejar el .xlsx en esas carpetas (el script toma el mas nuevo).
-  2. Conteo por camara nuevo: una fila por origen en la hoja conteo (fecha, origen, cajas).
+  2. Conteo por camara: desde el 11/10/2026 sale solo de Aloha (plan_compras\aloha_datos.ps1 -> fuentes\aloha_camaras.json,
+     mapa de camaras ZAC+CR por origen; paso 5j0 del pipeline). La hoja conteo queda como respaldo manual: solo manda si
+     su fecha es mas nueva que el conteo de Aloha. La venta real por semana tambien sale de Aloha (aloha_ventas.json).
   3. Cargas dictadas: filas en cargas_programadas. MANDA EL DICTADO (Gonzalo 06/10/2026: "manda mi dictado,
      siempre es asi"): si Aloha tiene una carga 'Solicitado' del mismo productor (nombre o alias de
      productores.xlsx) en esa misma semana, la fila de Aloha se reemplaza por la dictada (fecha, cajas,

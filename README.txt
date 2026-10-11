@@ -1002,6 +1002,22 @@ LOG DE CAMBIOS:
                Total con SUMPRODUCT como la 40). Paraguay a USD 7/caja: filas "Paraguay (USD/caja)" debajo del Total de cada
                semana con el precio como texto "7 USD" (fuera del rango de las formulas; el paso 3 las saltea porque el precio
                no es numerico, asi no contaminan el promedio en R$). 477 operaciones parseadas; resumen "sem 10/10, 8 cargas".
+  11/10/2026 -> ALOHA, LA API COMPLETA. Gonzalo: "mi cuenta llega a todos, asi que podes ver ventas y los cortes de banana".
+               Con el login de config\aloha.json se leyo el OpenAPI (656 rutas). Lo util, verificado en solo lectura: stock
+               ventas-presentacion por rango de fechas (ventas por agrupacion = el reporte semanal del ERP que llegaba en foto),
+               stock dashboard actual (stock por producto = la captura diaria), stock mapa-camaras por sede ZAC y CR (cajas por
+               camara y pais = el conteo de camaras), pizarron por ubicacion (lotes por camara con productor, color y dias de
+               frio), pie-camion y sus cortes. No sirven: integraciones charlie ventas-banana (401) ni stock actual (410).
+               La otra sesion hizo plan_compras\aloha_datos.ps1 (solo GET, misma config que 3b; sin config sale sin tocar
+               nada) que escribe fuentes\aloha_ventas.json (16 semanas lun-sab por origen; BR = Banana Brasil + Fibra, PY =
+               Banana Paraguaya, BO = "Banana Boliva Generico" (sic), EC = Banana Ecuador), aloha_stock.json,
+               aloha_camaras.json (ZAC+CR por origen; madera BR+PY, carton BO+EC) y aloha_pizarron.json (152 lotes; la
+               cantidad es lo que ingreso, no el remanente). ENGANCHE: paso 5j0 del pipeline lo corre antes de 5j;
+               generar_datos.ps1 toma el CONTEO desde aloha_camaras.json cuando es mas nuevo que la hoja conteo (fecha =
+               contado_hasta; la hoja queda de respaldo) y la VENTA REAL por semana desde aloha_ventas.json en vez de
+               ventas_semanales. Hoy: conteo Aloha del sab 10/10 10:36 = BR 20.417 + PY 5.470 + BO 1.601 = 27.488 (la
+               proyeccion decia 26.427); venta real sem 05-10/10 = 15.697 madera+BO (prevista 16.000). Sab 17/10: 22.860
+               -> faltan 3 (12 camiones + 1/2 carga). Los 4 sidecars van al repo como los demas de fuentes\.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

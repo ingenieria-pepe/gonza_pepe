@@ -3899,6 +3899,27 @@ if (-not (Test-Path $psXlsx)) {
 #     desde Aloha, o los subidos por git) y plan_compras\plan_compras.xlsx
 #     (conteo, cargas dictadas, ventas: eso sigue viajando por git).
 # ==========================================================================
+# ==========================================================================
+# 5j0) Aloha datos: ventas, stock, camaras y pizarron  [11/10/2026]
+#     Gonzalo: "mi cuenta llega a todos, asi que podes ver ventas y los cortes". Lector de SOLO LECTURA hecho por la
+#     otra sesion (plan_compras\aloha_datos.ps1, misma config\aloha.json del paso 3b): escribe fuentes\aloha_ventas.json
+#     (venta por semana lun-sab y origen), aloha_stock.json (stock actual), aloha_camaras.json (mapa de camaras ZAC+CR
+#     por origen) y aloha_pizarron.json (lotes). Sin config sale sin tocar nada. generar_datos (5j) los usa: conteo de
+#     camaras automatico y venta real por semana, en vez de las fotos del ERP.
+# ==========================================================================
+Write-Host "[5j0] Aloha datos (ventas, stock, camaras, pizarron)..." -ForegroundColor Cyan
+$alohaDatos = Join-Path $base "plan_compras\aloha_datos.ps1"
+if (-not (Test-Path $alohaDatos)) {
+    Write-Host "    (skip) no hay plan_compras\aloha_datos.ps1" -ForegroundColor DarkYellow
+} else {
+    try {
+        & $alohaDatos
+        if (-not $?) { throw "aloha_datos.ps1 termino con error" }
+    } catch {
+        Add-Falla -Paso 'Aloha datos (ventas/stock/camaras)' -Detalle "$($_.Exception.Message)"
+        Write-Host "    FALLO: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
 Write-Host "[5j] Plan de compras (plan_compras\generar_datos.ps1)..." -ForegroundColor Cyan
 $genPC = Join-Path $base "plan_compras\generar_datos.ps1"
 if (-not (Test-Path $genPC)) {

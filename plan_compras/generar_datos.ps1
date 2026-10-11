@@ -51,7 +51,35 @@ $conteoRows = @(Tabla $pcx 'conteo' | ForEach-Object { [PSCustomObject]@{ fecha 
 $fechaConteo = ($conteoRows | ForEach-Object { $_.fecha } | Sort-Object | Select-Object -Last 1)
 $conteo = [ordered]@{ fecha = $fechaConteo }; foreach ($c in ($conteoRows | Where-Object { $_.fecha -eq $fechaConteo })) { $conteo[$c.origen] = $c.cajas }
 $conteo.fuente = ($conteoRows | Where-Object { $_.fecha -eq $fechaConteo } | Select-Object -First 1).fuente
-
+# [11/10/2026] CONTEO AUTOMATICO desde Aloha (fuentes\aloha_camaras.json, lector plan_compras\aloha_datos.ps1, paso 5j0):
+#     si el mapa de camaras de Aloha es mas nuevo que la hoja conteo, manda. fecha = dia del ultimo conteo (contado_hasta
+#     de ZAC/CR). La hoja conteo queda como respaldo manual (fotos de las planillas de camaras).
+$alohaCam = Join-Path $repo 'fuentes\aloha_camaras.json'
+if (Test-Path $alohaCam) {
+    try {
+        $ac = Get-Content $alohaCam -Raw -Encoding UTF8 | ConvertFrom-Json
+        $fechasC = @(); foreach ($s in $ac.sedes.PSObject.Properties) { if ($s.Value.contado_hasta) { $fechasC += [DateTime]$s.Value.contado_hasta } }
+        if ($fechasC.Count -gt 0 -and $ac.porOrigen) {
+            $fAc = ($fechasC | Sort-Object | Select-Object -Last 1)
+            if ((Ymd $fAc) -gt $fechaConteo) {
+                $conteo = [ordered]@{ fecha = (Ymd $fAc) }
+                foreach ($o in 'BR', 'PY', 'BO', 'EC') { $conteo[$o] = [int]$ac.porOrigen.$o }
+                $conteo.fuente = "Aloha mapa-camaras (contado hasta $($fAc.ToString('dd/MM HH:mm')))"
+                $fechaConteo = $conteo.fecha
+            }
+        }
+    } catch { Write-Host "  (aviso) aloha_camaras.json ilegible: $($_.Exception.Message)" }
+}
+# [11/10/2026] VENTA REAL desde Aloha (fuentes\aloha_ventas.json, /stock/ventas-presentacion por semana lun-sab):
+#     reemplaza a la hoja ventas_semanales (transcripcion de fotos) cuando existe. Semanas parciales no cuentan.
+$alohaVen = Join-Path $repo 'fuentes\aloha_ventas.json'
+if (Test-Path $alohaVen) {
+    try {
+        $av = Get-Content $alohaVen -Raw -Encoding UTF8 | ConvertFrom-Json
+        $vr = @($av.semanas | Where-Object { -not $_.parcial } | ForEach-Object { [PSCustomObject]@{ semana_lunes = [string]$_.semana_lunes; BR = [int]$_.venta_cajas.BR; PY = [int]$_.venta_cajas.PY; BO = [int]$_.venta_cajas.BO; EC = [int]$_.venta_cajas.EC; TODO = ([int]$_.venta_cajas.BR + [int]$_.venta_cajas.PY + [int]$_.venta_cajas.BO); fuente = 'Aloha ventas-presentacion' } })
+        if ($vr.Count -gt 0) { $ventasReales = $vr }
+    } catch { Write-Host "  (aviso) aloha_ventas.json ilegible: $($_.Exception.Message)" }
+}
 # ---- plan Brasil/Paraguay (master o export Aloha)
 function Leer-Plan($path, $hojas) { foreach ($h in $hojas) { $r = Read-XlsxHoja -Path $path -Hoja $h; if ($r.Count -ge 2) { return $r } }; return @() }
 $camiones = @()
