@@ -1063,6 +1063,8 @@ LOG DE CAMBIOS:
                jue 15/10). Gonzalo: "semana que viene descargamos 1 camion de Bol como siempre". Sigue sin supuestos: cada
                semana de Bolivia se carga cuando el la dicta. Semana 12-17/10: 13 camiones + 1/2 carga, 13.422 cajas, cierre
                sab 17 25.310 ok. Semana 19-24: 4 camiones, faltan 12.
+  11/10/2026 -> cargas_programadas: camion de Bolivia de la semana 19-24 (Banexfrut, 1.050, carga vie 16/10, descarga jue 22).
+               Gonzalo: "semana 19 se descarga jueves el Bol". Semana 19-24: 5 camiones (5.010), cierre sab 24 14.720, faltan 11.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
