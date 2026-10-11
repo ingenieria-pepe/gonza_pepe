@@ -4599,13 +4599,13 @@ function Get-PlanSemanaCuenta {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
         if ($desc -le $fCon) { continue }
-        $cam += [PSCustomObject]@{ sem = (& $lunesDe $desc); cajas = [int]$c.cajas; parcial = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial) }
+        $cam += [PSCustomObject]@{ sem = (& $lunesDe $desc); cajas = [int]$c.cajas; carga = ([DateTime]$c.carga).Date; parcial = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial) }
     }
     $saldo = [int]$J.conteo.TODO
     for ($w = (& $lunesDe $fCon); $w -lt $Lunes; $w = $w.AddDays(7)) { $cw = 0; foreach ($x in @($cam | Where-Object { $_.sem -eq $w })) { $cw += $x.cajas }; $saldo += $cw - (& $prorrateo $w (& $ventaDe $w)) }
     $ll = @($cam | Where-Object { $_.sem -eq $Lunes }); $tot = 0; foreach ($x in $ll) { $tot += $x.cajas }
     $venta = & $prorrateo $Lunes (& $ventaDe $Lunes)
-    return [PSCustomObject]@{ lunes = $Lunes; arranque = $saldo; camiones = @($ll | Where-Object { -not $_.parcial }).Count; parciales = @($ll | Where-Object { $_.parcial }).Count; cajas = $tot; venta = $venta; fila = (& $filaDe $Lunes); cierre = ($saldo + $tot - $venta) }
+    return [PSCustomObject]@{ lunes = $Lunes; arranque = $saldo; camiones = @($ll | Where-Object { -not $_.parcial }).Count; parciales = @($ll | Where-Object { $_.parcial }).Count; cajas = $tot; venta = $venta; fila = (& $filaDe $Lunes); cargas = @($ll | ForEach-Object { $_.carga } | Sort-Object -Unique); cierre = ($saldo + $tot - $venta) }
 }
 function Get-AvisoComprasTexto {
     # "Aviso de compras" del MIERCOLES 12:00 [11/10/2026]. Gonzalo: "sumas la venta de lunes, martes, miercoles, la multiplicas
@@ -4644,8 +4644,17 @@ function Get-AvisoComprasTexto {
     # [11/10/2026] Gonzalo: "tiene que ir solo una semana para adelante" (como el mensaje de cargas): nada de la semana en
     # curso (ni "semana estimada" ni cierre del sabado); la venta de los dias es el aviso y la semana siguiente, la consecuencia.
     $L += "*Semana del $($lun1.ToString('dd')) al $($lun1.AddDays(5).ToString('dd/MM'))*"
-    $L += "dictado hasta hoy: $($s1.camiones) $(if ($s1.camiones -eq 1) { 'camión' } else { 'camiones' })" + $(if ($s1.parciales -eq 1) { ' + 1/2 carga' } elseif ($s1.parciales -gt 1) { " + $($s1.parciales) medias cargas" } else { '' })
-    $L += "cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
+    # [11/10/2026] Gonzalo: "eso que dice dictado 4 cargas entrevera, busca algo mejor escrito": que descarga y de que cargas viene.
+    $fc = { param($d) "$($DOWc[[int]$d.DayOfWeek]) $($d.ToString('dd'))" }
+    if (($s1.camiones + $s1.parciales) -eq 0) { $L += 'Sin cargas dictadas todavía' }
+    else {
+        $L += "Descargan $($s1.camiones) $(if ($s1.camiones -eq 1) { 'camión' } else { 'camiones' })" + $(if ($s1.parciales -eq 1) { ' + 1/2 carga' } elseif ($s1.parciales -gt 1) { " + $($s1.parciales) medias cargas" } else { '' })
+        $cg = @($s1.cargas)
+        if ($cg.Count -eq 1) { $L += "(cargados el $(& $fc $cg[0]))" }
+        elseif ($cg.Count -eq 2) { $L += "(cargados $(& $fc $cg[0]) y $(& $fc $cg[1]))" }
+        elseif ($cg.Count -gt 2) { $L += "(cargados entre $(& $fc $cg[0]) y $(& $fc $cg[-1]))" }
+    }
+    $L += "Cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
     if ($faltan -gt 0) {
         $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
         $L += "entre lun $($lun1.ToString('dd')) y mié $($lun1.AddDays(2).ToString('dd'))"

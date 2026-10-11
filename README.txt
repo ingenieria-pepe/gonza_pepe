@@ -1055,6 +1055,10 @@ LOG DE CAMBIOS:
                bloque de la semana en curso (semana estimada x2 y cierre del sabado). Queda: venta lun-mar-mie real vs
                prevista, "Se vendio N camiones mas/menos en 3 dias", y la semana siguiente (dictado hasta hoy, cierre
                estimado del sabado, faltan N, objetivo). La estimacion x2 sigue por dentro (cierre y faltantes).
+  11/10/2026 -> aviso de compras: Gonzalo "eso que dice dictado 4 cargas entrevera, busca algo mejor escrito": el bloque de
+               la semana siguiente pasa a "Descargan N camiones" + "(cargados vie 16 y sab 17)" (fechas de carga de esos
+               camiones; "entre ... y ..." si son mas de dos; "Sin cargas dictadas todavia" si no hay) + "Cierre estimado
+               sab dd: N". Get-PlanSemanaCuenta devuelve ademas las fechas de carga (cargas).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
