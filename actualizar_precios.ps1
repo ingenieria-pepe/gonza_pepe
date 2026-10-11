@@ -4639,7 +4639,8 @@ function Get-AvisoComprasTexto {
         if ($difCam -gt 0) { $L += "Se vendió $difCam $(if ($difCam -eq 1) { 'camión' } else { 'camiones' }) más en $nd días" }
         elseif ($difCam -lt 0) { $L += "Se vendió $(-$difCam) $(if ($difCam -eq -1) { 'camión' } else { 'camiones' }) menos en $nd días" }
         else { $L += 'Venta en línea con lo previsto' }
-        $L += "*Semana estimada:* $($s0.venta.ToString('N0'))" + $(if ($f0.regla_x2) { ' (×2)' } else { '' })
+        $L += "*Semana estimada:* $($s0.venta.ToString('N0'))"
+        if ($f0.regla_x2) { $L += "($($f0.dias_usados) ×2)" }   # [11/10/2026] Gonzalo: 'que es ese por 2?' -> explicado, en su renglon
     } else {
         $L += "*Venta prevista esta semana:* $($s0.venta.ToString('N0'))"
     }

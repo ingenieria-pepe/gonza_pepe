@@ -1049,6 +1049,8 @@ LOG DE CAMBIOS:
                Probado con una semana simulada (mie 14/10 12:00): lun-mar 5.373 vs 5.476 -> en linea, 15.300; venta fuerte
                9.700 vs 7.894 -> "Se vendio 2 camiones mas en 3 dias", 19.400 (x2), faltan 17 para el sab 24. No hace falta
                tarea nueva en el servidor: va en la corrida del miercoles 12:00. Paneles regenerados en la misma corrida.
+  11/10/2026 -> aviso de compras: Gonzalo pregunto "que es ese por 2?": la nota pasa a su propio renglon y explicada,
+               "(lun-mar-mie x2)". Sidecars de Aloha regenerados por la otra ventana (prueba en PowerShell 5.1, OK).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
