@@ -98,7 +98,52 @@ if ($ultV.Count -ge 4) {
     }
     $ventas = @($ventas | Sort-Object semana_lunes)
     Write-Host "  venta prevista automatica: $promV/sem (mix BR $aBR / PY $aPY / BO $aBO) para las semanas AUTO"
-}# ---- plan Brasil/Paraguay (master o export Aloha)
+}
+# [11/10/2026] VENTA DE LA SEMANA EN CURSO con los dias reales (regla del miercoles de Gonzalo: "lunes, martes y miercoles,
+#     se suma la venta de esos 3 dias y se multiplica por dos"; verificada en 16 semanas: jue-sab vende 0,99 x lun-mie,
+#     error medio 5,5 %). Con los "dias" de aloha_ventas.json (semana en curso, madera+BO): si los dias vendidos son
+#     justo lun-mar-mie, venta estimada = x2 (la regla de Gonzalo); si no, suma / participacion de esos dias (reparto
+#     promedio de 16 semanas, 15/06-28/09/2026). Redondeada a 100. Un dia pasado con menos del 20 % de lo esperado
+#     (feriado/cerrado) no cuenta; el dia de hoy cuenta solo si ya tiene la mitad de lo esperado (la corrida del
+#     miercoles es a las 12:00). Hace falta por lo menos 2 dias (o sea, desde el miercoles). Pisa la fila de la semana en
+#     curso (AUTO o dictada; la venta dictada es un pronostico y esto es la venta real) y guarda lo previsto en 'base',
+#     para que el aviso de compras diga "se vendio N camiones mas/menos en 3 dias".
+$sharesDia = @{ 1 = 0.239; 2 = 0.112; 3 = 0.155; 4 = 0.189; 5 = 0.215; 6 = 0.089 }
+$nomDia = @('lun', 'mar', 'mié', 'jue', 'vie', 'sáb')
+if ($av -and $av.semanas) {
+    $hoyV = (Get-Date).Date
+    $lunHoyV = $(if ($hoyV.DayOfWeek -eq [DayOfWeek]::Sunday) { $hoyV.AddDays(1) } else { $hoyV.AddDays(-((([int]$hoyV.DayOfWeek) + 6) % 7)) })
+    $kHoyV = Ymd $lunHoyV
+    $semAct = @($av.semanas | Where-Object { [string]$_.semana_lunes -eq $kHoyV }) | Select-Object -First 1
+    if ($semAct -and ($semAct.PSObject.Properties.Name -contains 'dias') -and $semAct.dias) {
+        $filaV = @($ventas | Where-Object { $_.semana_lunes -eq $kHoyV }) | Select-Object -First 1
+        $baseV = 0; if ($filaV) { $baseV = [int]$filaV.BR + [int]$filaV.PY + [int]$filaV.BO }
+        $sumV = 0.0; $sumS = 0.0; $usados = @(); $saltados = @()
+        foreach ($dd in @($semAct.dias)) {
+            $fd = ([DateTime]$dd.fecha).Date; $dow = [int]$dd.dow
+            if ($fd -gt $hoyV -or -not $sharesDia.ContainsKey($dow)) { continue }
+            $vd = [double]$dd.BR + [double]$dd.PY + [double]$dd.BO
+            $umbral = $(if ($fd -eq $hoyV) { 0.5 } else { 0.2 })
+            if ($baseV -gt 0 -and $vd -lt $umbral * $sharesDia[$dow] * $baseV) { $saltados += $nomDia[$dow - 1]; continue }
+            $sumV += $vd; $sumS += $sharesDia[$dow]; $usados += $nomDia[$dow - 1]
+        }
+        if ($filaV -and $usados.Count -ge 2 -and $sumS -gt 0) {
+            $regla = (($usados -join '-') -eq 'lun-mar-mié')
+            $estV = $(if ($regla) { [int]([math]::Round((2 * $sumV) / 100) * 100) } else { [int]([math]::Round(($sumV / $sumS) / 100) * 100) })
+            $prevDias = [int][math]::Round($baseV * $sumS)
+            $mBR = [int]$filaV.BR; $mPY = [int]$filaV.PY; $mBO = [int]$filaV.BO; $mT = $mBR + $mPY + $mBO
+            if ($mT -le 0) { $mBR = 6; $mPY = 3; $mBO = 1; $mT = 10 }
+            $fuenteBase = [string]$filaV.fuente
+            $filaV.BR = [int][math]::Round($estV * $mBR / $mT); $filaV.PY = [int][math]::Round($estV * $mPY / $mT); $filaV.BO = $estV - $filaV.BR - $filaV.PY
+            $filaV.fuente = "AUTO-dia: estimada con $($usados.Count) dias reales ($($usados -join '-')$(if ($regla) { ' x2' } else { ', reparto por dia' })) = $estV; prevista $baseV"
+            foreach ($kv in @(@('base', $baseV), @('base_fuente', $fuenteBase), @('dias_usados', ($usados -join '-')), @('dias_saltados', ($saltados -join '-')), @('real_dias', [int][math]::Round($sumV)), @('prevista_dias', $prevDias), @('regla_x2', $regla))) {
+                Add-Member -InputObject $filaV -NotePropertyName $kv[0] -NotePropertyValue $kv[1] -Force
+            }
+            Write-Host "  venta semana en curso ($kHoyV) estimada con $($usados.Count) dias reales ($($usados -join '-')): $estV (prevista $baseV; dias $([int][math]::Round($sumV)) vs $prevDias)$(if ($saltados.Count) { "; sin contar: $($saltados -join '-')" })"
+        }
+    }
+}
+# ---- plan Brasil/Paraguay (master o export Aloha)
 function Leer-Plan($path, $hojas) { foreach ($h in $hojas) { $r = Read-XlsxHoja -Path $path -Hoja $h; if ($r.Count -ge 2) { return $r } }; return @() }
 $camiones = @()
 $pc = Get-ChildItem "$repo\fuentes\plan_cargas\*.xlsx" | Where-Object { $_.Name -notlike '~$*' } | Sort-Object LastWriteTime -Descending | Select-Object -First 1

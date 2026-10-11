@@ -4566,6 +4566,7 @@ function Get-DescargasSemanaTexto {
     if ($nParc -gt 0) { $L += '(carga exóticos con ' + (($ll | Where-Object { $_.parcial } | ForEach-Object { $_.nombre }) -join ', ') + ')' }   # [09/10/2026] formato de Gonzalo
     $L += "*Venta prevista:* $($venta.ToString('N0'))"
     $fv = & $fuenteDe $Lunes; if ($fv -match '^AUTO: promedio real de las ultimas (\d+) semanas') { $L += "(promedio real de $($Matches[1]) semanas)" }   # [11/10/2026] venta automatica
+    elseif ($fv -match '^AUTO-dia: estimada con \d+ dias reales \(([^,) ]+)( x2)?') { $L += "($($Matches[1]) real$(if ($Matches[2]) { ' ×2' }))" }   # [11/10/2026] semana en curso con los dias vendidos
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
     } else {
@@ -4576,6 +4577,80 @@ function Get-DescargasSemanaTexto {
             $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
             $L += "entre lun $($Lunes.ToString('dd')) y mié $($Lunes.AddDays(2).ToString('dd'))"
         } else { $L += 'Bajo el objetivo, ya cerrado' }
+    }
+    $L += "Objetivo: $($min.ToString('N0')) de stock al cierre"
+    $L += 'de los sábados'
+    return ($L -join "`n")
+}
+function Get-PlanSemanaCuenta {
+    # Cuenta de UNA semana del plan [11/10/2026]: la misma de Get-DescargasSemanaTexto y el simulador (arranque = conteo +
+    # descargas de las semanas anteriores - ventas; descarga = fecha real o carga + lag; lo que llega domingo cuenta para la
+    # semana que arranca). Devuelve arranque, camiones (sin los parciales), cajas que descargan, venta prevista (y la fila
+    # de ventas_plan, con los campos de la estimacion por dias si los hay) y cierre del sabado.
+    param($J, [DateTime]$Lunes)
+    $fCon = [DateTime]$J.conteo.fecha
+    $lunesDe = { param($d) if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) } }
+    $plan = @($J.ventas_plan | Sort-Object semana_lunes)
+    $filaDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; $fila }
+    $ventaDe = { param($w) $f = & $filaDe $w; $v = 0; if ($f) { foreach ($o in 'BR', 'PY', 'BO') { $v += [int]$f.$o } }; $v }
+    $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); [math]::Round($v * $dias / 6) } else { $v } }
+    $cam = @()
+    foreach ($c in $J.camiones) {
+        $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
+        $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
+        if ($desc -le $fCon) { continue }
+        $cam += [PSCustomObject]@{ sem = (& $lunesDe $desc); cajas = [int]$c.cajas; parcial = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial) }
+    }
+    $saldo = [int]$J.conteo.TODO
+    for ($w = (& $lunesDe $fCon); $w -lt $Lunes; $w = $w.AddDays(7)) { $cw = 0; foreach ($x in @($cam | Where-Object { $_.sem -eq $w })) { $cw += $x.cajas }; $saldo += $cw - (& $prorrateo $w (& $ventaDe $w)) }
+    $ll = @($cam | Where-Object { $_.sem -eq $Lunes }); $tot = 0; foreach ($x in $ll) { $tot += $x.cajas }
+    $venta = & $prorrateo $Lunes (& $ventaDe $Lunes)
+    return [PSCustomObject]@{ lunes = $Lunes; arranque = $saldo; camiones = @($ll | Where-Object { -not $_.parcial }).Count; parciales = @($ll | Where-Object { $_.parcial }).Count; cajas = $tot; venta = $venta; fila = (& $filaDe $Lunes); cierre = ($saldo + $tot - $venta) }
+}
+function Get-AvisoComprasTexto {
+    # "Aviso de compras" del MIERCOLES 12:00 [11/10/2026]. Gonzalo: "sumas la venta de lunes, martes, miercoles, la multiplicas
+    # por dos, y si la venta fue buena me mandas un mensaje el miercoles al mediodia avisando: la venta fue superior, se
+    # vendio un camion mas en tres dias, asi que la siguiente semana tenes que descargar un camion mas". La venta de la
+    # semana en curso la estima generar_datos con los dias reales (fila AUTO-dia: base = lo previsto, real_dias vs
+    # prevista_dias). Todo en cajas y camiones (1 camion = cajas_camion.TODO). Devuelve $null si no hay nada que avisar
+    # (venta en linea, menos de un camion de diferencia, y el sabado de la semana siguiente sobre el objetivo), salvo -Siempre.
+    param([string]$Path, [DateTime]$Hoy, [switch]$Siempre)
+    $J = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json
+    if (-not $J.camiones -or -not $J.conteo) { return $null }
+    $lun0 = $(if ($Hoy.DayOfWeek -eq [DayOfWeek]::Sunday) { $Hoy.AddDays(1) } else { $Hoy.AddDays(-((([int]$Hoy.DayOfWeek) + 6) % 7)) })
+    $lun1 = $lun0.AddDays(7)
+    $s0 = Get-PlanSemanaCuenta -J $J -Lunes $lun0; $s1 = Get-PlanSemanaCuenta -J $J -Lunes $lun1
+    $min = 25000; if ($J.minimos -and $J.minimos.TODO) { $min = [int]$J.minimos.TODO }
+    $cxc = 1000; if ($J.cajas_camion -and $J.cajas_camion.TODO) { $cxc = [int]$J.cajas_camion.TODO }
+    $f0 = $s0.fila
+    $porDias = ($f0 -and ($f0.PSObject.Properties.Name -contains 'real_dias') -and ([string]$f0.fuente -like 'AUTO-dia:*') -and [string]$f0.semana_lunes -eq $lun0.ToString('yyyy-MM-dd'))
+    $difCam = 0
+    if ($porDias) { $difCam = [int][math]::Round(([int]$f0.real_dias - [int]$f0.prevista_dias) / $cxc) }
+    $faltan = [int][math]::Ceiling([math]::Max(0, $min - $s1.cierre) / $cxc)
+    if ($difCam -eq 0 -and $faltan -le 0 -and -not $Siempre) { return $null }
+    $DOWc = @('dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb')
+    $L = @()
+    $L += "*📣 Aviso de compras · $($DOWc[[int]$Hoy.DayOfWeek]) $($Hoy.ToString('dd/MM'))*"
+    $L += ''
+    if ($porDias) {
+        $nd = @(([string]$f0.dias_usados) -split '-').Count
+        $L += "*Venta $($f0.dias_usados):* $(([int]$f0.real_dias).ToString('N0'))"
+        $L += "(prevista $(([int]$f0.prevista_dias).ToString('N0')))"
+        if ($difCam -gt 0) { $L += "Se vendió $difCam $(if ($difCam -eq 1) { 'camión' } else { 'camiones' }) más en $nd días" }
+        elseif ($difCam -lt 0) { $L += "Se vendió $(-$difCam) $(if ($difCam -eq -1) { 'camión' } else { 'camiones' }) menos en $nd días" }
+        else { $L += 'Venta en línea con lo previsto' }
+        $L += "*Semana estimada:* $($s0.venta.ToString('N0'))" + $(if ($f0.regla_x2) { ' (×2)' } else { '' })
+    } else {
+        $L += "*Venta prevista esta semana:* $($s0.venta.ToString('N0'))"
+    }
+    $L += "*Sáb $($lun0.AddDays(5).ToString('dd')):* cierre estimado $($s0.cierre.ToString('N0'))"
+    $L += ''
+    $L += "*Semana del $($lun1.ToString('dd')) al $($lun1.AddDays(5).ToString('dd/MM'))*"
+    $L += "dictado hasta hoy: $($s1.camiones) $(if ($s1.camiones -eq 1) { 'camión' } else { 'camiones' })" + $(if ($s1.parciales -eq 1) { ' + 1/2 carga' } elseif ($s1.parciales -gt 1) { " + $($s1.parciales) medias cargas" } else { '' })
+    $L += "cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
+    if ($faltan -gt 0) {
+        $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
+        $L += "entre lun $($lun1.ToString('dd')) y mié $($lun1.AddDays(2).ToString('dd'))"
     }
     $L += "Objetivo: $($min.ToString('N0')) de stock al cierre"
     $L += 'de los sábados'
@@ -4651,7 +4726,43 @@ if ($waSoloDescargas) {
         }
     }
 }
-if ($waSoloDescargas) {
+# AVISO DE COMPRAS del miercoles [11/10/2026] (Gonzalo: "la 7 me encanto", "mandas el mensaje a las 12 mediodia"): en la corrida
+# normal de los MIERCOLES (la misma del resumen, servidor 12:00), si la venta de lun-mar-mie se desvio por lo menos un camion
+# de lo previsto o el sabado de la semana siguiente queda bajo el objetivo, se manda un mensaje corto a la lista de cargas
+# (phones_descargas, o phones si no esta). PORONGA_WA_AVISO=1 lo fuerza cualquier dia (con PORONGA_WA_PRUEBA=dry solo se
+# imprime; sin dry se manda aunque config tenga enabled=false, como la prueba de descargas); PORONGA_WA_AVISO=siempre lo
+# arma aunque no haya nada que avisar. No toca el state ni el resumen.
+$avisoForzado = ($env:PORONGA_WA_AVISO -in '1', 'siempre')
+$esMiercoles = ((Get-Date).DayOfWeek -eq [DayOfWeek]::Wednesday)
+if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPrueba))) {
+    try {
+        $pcjAv = Join-Path $base 'plan_compras\plan_compras.json'
+        $txtAv = $null
+        if (Test-Path $pcjAv) { $txtAv = Get-AvisoComprasTexto -Path $pcjAv -Hoy (Get-Date).Date -Siempre:($env:PORONGA_WA_AVISO -eq 'siempre') }
+        if (-not $txtAv) { Write-Host "    aviso de compras: venta en linea y semana siguiente sobre el objetivo, no se manda" -ForegroundColor DarkGray }
+        else {
+            Write-Host "    ----- AVISO DE COMPRAS$(if ($waDry) { ' (dry: no se manda)' }) -----"; Write-Host $txtAv; Write-Host "    ----- fin ($($txtAv.Length) caracteres) -----"
+            if ($waDry) { }
+            elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $avisoForzado)) { Write-Host "    WhatsApp deshabilitado (config/whatsapp.json): el aviso no se manda" -ForegroundColor DarkYellow }
+            elseif ([string]::IsNullOrWhiteSpace($waConfig.token)) { Write-Host "    Falta token en config/whatsapp.json" -ForegroundColor DarkYellow }
+            else {
+                $phAv = @(); if ($waConfig.PSObject.Properties.Name -contains 'phones_descargas' -and $waConfig.phones_descargas) { $phAv = @($waConfig.phones_descargas) }
+                if ($phAv.Count -eq 0) { $phAv = $waPhones; Write-Host "    (aviso) sin phones_descargas en config/whatsapp.json: el aviso va a la lista phones" -ForegroundColor DarkYellow }
+                $hdrAv = @{ 'Authorization' = "Bearer $($waConfig.token)" }
+                foreach ($pA in $phAv) {
+                    $phA = ([string]$pA) -replace '[^\d]', ''; if (-not $phA) { continue }
+                    $bA = [System.Text.Encoding]::UTF8.GetBytes((@{ to = $phA; body = $txtAv } | ConvertTo-Json -Compress))
+                    $okA = $false
+                    for ($iA = 1; $iA -le 3 -and -not $okA; $iA++) {
+                        try { $rA = Invoke-RestMethod -Uri 'https://gate.whapi.cloud/messages/text' -Method Post -Headers $hdrAv -Body $bA -ContentType 'application/json; charset=utf-8' -TimeoutSec 90; $okA = $true; Write-Host ("      OK    ...{0} {1}" -f $phA.Substring([math]::Max(0, $phA.Length - 4)), $(if ($rA.message.id) { [string]$rA.message.id } else { '(sin id)' })) -ForegroundColor Green }
+                        catch { Write-Host ("      retry ...{0} {1}/3: {2}" -f $phA.Substring([math]::Max(0, $phA.Length - 4)), $iA, $_.Exception.Message) -ForegroundColor DarkYellow; if ($iA -lt 3) { Start-Sleep -Seconds 3 } }
+                    }
+                    if (-not $okA) { Add-Falla -Paso 'WhatsApp aviso de compras' -Detalle "sin envio a ...$($phA.Substring([math]::Max(0, $phA.Length - 4)))" }
+                }
+            }
+        }
+    } catch { Add-Falla -Paso 'WhatsApp aviso de compras' -Detalle $_.Exception.Message; Write-Host "    aviso de compras FALLO: $($_.Exception.Message)" -ForegroundColor Red }
+}if ($waSoloDescargas) {
     Write-Host "    modo descargas: el resumen y las alertas no corren en esta corrida" -ForegroundColor Magenta
 } elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) {
     Write-Host "    WhatsApp deshabilitado (config/whatsapp.json)" -ForegroundColor DarkYellow} elseif ($waPhones.Count -eq 0 -or [string]::IsNullOrWhiteSpace($waConfig.token)) {

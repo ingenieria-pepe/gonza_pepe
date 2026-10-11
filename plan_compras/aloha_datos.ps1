@@ -21,6 +21,7 @@
 # ==========================================================================
 param(
     [int]$Semanas = 16,          # semanas de venta hacia atras (lunes a sabado), incluida la actual
+    [int]$DiasSemanas = 3,       # en las ultimas N semanas, ademas, la venta POR DIA (lun a sab; una llamada por dia)
     [string]$Salida = ''         # carpeta de salida; vacio = fuentes\ del repo
 )
 $ErrorActionPreference = 'Stop'
@@ -110,7 +111,7 @@ try {
         }
         $fila = [ordered]@{
             semana_lunes = $lunes.ToString('yyyy-MM-dd'); hasta = $hasta.ToString('yyyy-MM-dd')
-            dias = [int](($hasta - $lunes).TotalDays + 1); parcial = ($sabado -gt $hoy)
+            dias_contados = [int](($hasta - $lunes).TotalDays + 1); parcial = ($sabado -gt $hoy)   # 'dias' (array por dia) solo en las ultimas $DiasSemanas semanas
             venta_cajas = [ordered]@{ BR = (R0 $porO.BR.present); PY = (R0 $porO.PY.present); BO = (R0 $porO.BO.present); EC = (R0 $porO.EC.present) }
         }
         $fila.venta_cajas.total = $fila.venta_cajas.BR + $fila.venta_cajas.PY + $fila.venta_cajas.BO + $fila.venta_cajas.EC
@@ -122,6 +123,26 @@ try {
         }
         $fila.total_todo_present = (R0 $v.totales.present)
         $fila.stock_al = [string]$v.stock_al
+        # Venta por dia en las ultimas $DiasSemanas semanas (regla de Gonzalo: lun+mar+mie x2 ~ semana; el plan
+        # estima la semana en curso con los dias ya vendidos). Lunes a sabado, dia sin venta = 0; en la semana en
+        # curso solo hasta hoy. Mismo endpoint con desde = hasta = el dia.
+        if ($i -lt $DiasSemanas) {
+            $dias = @()
+            for ($d = $lunes; $d -le $hasta -and $d -le $sabado; $d = $d.AddDays(1)) {
+                $vd = Get-Aloha '/stock/ventas-presentacion' @{ desde = $d.ToString('yyyy-MM-dd'); hasta = $d.ToString('yyyy-MM-dd'); incluir_sin_ventas = 'true' }
+                $dO = @{ BR = 0.0; PY = 0.0; BO = 0.0; EC = 0.0 }
+                foreach ($f in @($vd.filas)) {
+                    $ag = [string]$f.agrupacion
+                    if (-not ($ag -match '(?i)^banana')) { continue }
+                    $o = Origen-De $ag; if (-not $o) { continue }
+                    $dO[$o] += Num $f.present
+                }
+                $dias += [ordered]@{ fecha = $d.ToString('yyyy-MM-dd'); dow = ((([int]$d.DayOfWeek + 6) % 7) + 1)
+                                     BR = (R0 $dO.BR); PY = (R0 $dO.PY); BO = (R0 $dO.BO); EC = (R0 $dO.EC)
+                                     madera_bo = (R0 ($dO.BR + $dO.PY + $dO.BO)); total = (R0 ($dO.BR + $dO.PY + $dO.BO + $dO.EC)) }
+            }
+            $fila.dias = $dias
+        }
         $listaSemanas += $fila
         Log ("  sem {0} a {1}{2}: BR {3} · PY {4} · BO {5} · EC {6} cajas" -f $fila.semana_lunes, $fila.hasta, $(if ($fila.parcial) { ' (parcial)' } else { '' }), $fila.venta_cajas.BR, $fila.venta_cajas.PY, $fila.venta_cajas.BO, $fila.venta_cajas.EC)
     }

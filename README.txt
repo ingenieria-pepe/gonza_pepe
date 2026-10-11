@@ -1025,6 +1025,30 @@ LOG DE CAMBIOS:
                12/10 (que decia 17.000) y la del 19/10 pasan a AUTO. El mensaje de cargas agrega "(promedio real de N
                semanas)" debajo de la venta prevista cuando es automatica. Gonzalo: "la banana de PY o BR para nosotros es
                lo mismo, vendemos una u otra": NO se muestra cobertura por origen. Sab 17/10: 24.260 -> falta 1.
+  11/10/2026 -> VENTA DE LA SEMANA EN CURSO CON LOS DIAS REALES + AVISO DE COMPRAS DEL MIERCOLES (Gonzalo: "vamos a la 1",
+               "la 7 me encanto", "mandas el mensaje a las 12 mediodia"; su regla: "sumas la venta de lunes, martes y
+               miercoles, la multiplicas por dos, y si la venta fue buena me mandas un mensaje el miercoles avisando: se
+               vendio un camion mas en tres dias, la siguiente semana tenes que descargar un camion mas").
+               - aloha_datos.ps1 (otra ventana): -DiasSemanas (3) agrega "dias" (lun-sab: fecha, dow, BR, PY, BO, EC,
+                 madera_bo, total) a las ultimas 3 semanas de aloha_ventas.json; la semana en curso solo hasta hoy. El
+                 campo numerico "dias" de antes pasa a "dias_contados".
+               - generar_datos.ps1: la venta de la semana en curso se estima con los dias ya vendidos (madera+BO): si son
+                 justo lun-mar-mie, x2 (regla de Gonzalo); si no, suma / participacion de esos dias (reparto de 16
+                 semanas: lun 23,9 %, mar 11,2, mie 15,5, jue 18,9, vie 21,5, sab 8,9). Un dia pasado con menos del 20 %
+                 de lo esperado (feriado) no cuenta; hoy cuenta solo si ya tiene la mitad (la corrida es a las 12:00).
+                 Desde el miercoles (2 dias). Pisa la fila de la semana en curso (AUTO o dictada) con fuente "AUTO-dia:
+                 ..." y guarda base, dias_usados, real_dias, prevista_dias, regla_x2.
+               - actualizar_precios.ps1: Get-PlanSemanaCuenta (misma cuenta del mensaje de cargas) y Get-AvisoComprasTexto:
+                 "Aviso de compras": venta lun-mar-mie real vs prevista, "Se vendio N camiones mas/menos en 3 dias", semana
+                 estimada (x2), cierre del sabado, y de la semana siguiente: dictado hasta hoy, cierre estimado, "Faltan N
+                 camiones, cargados entre lun y mie", objetivo. Solo cajas y camiones. Sale en la corrida normal de los
+                 MIERCOLES (servidor 12:00, la misma del resumen) a la lista de cargas (phones_descargas, o phones), solo si
+                 la venta se desvio al menos un camion o el sabado siguiente queda bajo el objetivo. PORONGA_WA_AVISO=1 lo
+                 fuerza cualquier dia (con PORONGA_WA_PRUEBA=dry solo se imprime); =siempre lo arma aunque no haya nada.
+                 El mensaje de cargas agrega "(lun-mar-mie real x2)" cuando la venta de la semana en curso viene de los dias.
+               Probado con una semana simulada (mie 14/10 12:00): lun-mar 5.373 vs 5.476 -> en linea, 15.300; venta fuerte
+               9.700 vs 7.894 -> "Se vendio 2 camiones mas en 3 dias", 19.400 (x2), faltan 17 para el sab 24. No hace falta
+               tarea nueva en el servidor: va en la corrida del miercoles 12:00. Paneles regenerados en la misma corrida.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
