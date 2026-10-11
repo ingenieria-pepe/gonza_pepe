@@ -4508,6 +4508,7 @@ function Get-DescargasSemanaTexto {
     $sab = $Lunes.AddDays(5)
     $plan = @($J.ventas_plan | Sort-Object semana_lunes)
     $ventaDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; $v = 0; if ($fila) { foreach ($o in 'BR', 'PY', 'BO') { $v += [int]$fila.$o } }; $v }
+    $fuenteDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; if ($fila) { [string]$fila.fuente } else { '' } }
     $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); [math]::Round($v * $dias / 6) } else { $v } }
     $cam = @()
     foreach ($c in $J.camiones) {
@@ -4564,6 +4565,7 @@ function Get-DescargasSemanaTexto {
     $L += "*Total:* $($ll.Count - $nParc) camiones" + $(if ($nParc -eq 1) { ' + 1/2 carga' } elseif ($nParc -gt 1) { " + $nParc medias cargas" } else { '' }) + " · $($tot.ToString('N0')) cajas"
     if ($nParc -gt 0) { $L += '(carga exóticos con ' + (($ll | Where-Object { $_.parcial } | ForEach-Object { $_.nombre }) -join ', ') + ')' }   # [09/10/2026] formato de Gonzalo
     $L += "*Venta prevista:* $($venta.ToString('N0'))"
+    $fv = & $fuenteDe $Lunes; if ($fv -match '^AUTO: promedio real de las ultimas (\d+) semanas') { $L += "(promedio real de $($Matches[1]) semanas)" }   # [11/10/2026] venta automatica
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
     } else {

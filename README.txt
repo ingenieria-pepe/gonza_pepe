@@ -1018,6 +1018,13 @@ LOG DE CAMBIOS:
                ventas_semanales. Hoy: conteo Aloha del sab 10/10 10:36 = BR 20.417 + PY 5.470 + BO 1.601 = 27.488 (la
                proyeccion decia 26.427); venta real sem 05-10/10 = 15.697 madera+BO (prevista 16.000). Sab 17/10: 22.860
                -> faltan 3 (12 camiones + 1/2 carga). Los 4 sidecars van al repo como los demas de fuentes\.
+  11/10/2026 -> VENTA PREVISTA AUTOMATICA (Gonzalo: "vamos por el 1"): para las semanas de ventas_plan con fuente AUTO (o
+               SUPUESTO) y para las futuras sin fila, la venta = promedio real de las ultimas 10 semanas completas de Aloha
+               (BR+PY+BO, redondeado a 100; hoy 15.600, mix BR 8.451, PY 6.115, BO 1.034), recalculado en cada corrida.
+               Las filas "Gonzalo ..." y "REAL ..." no se tocan: si Gonzalo dicta una semana, manda la suya. La semana del
+               12/10 (que decia 17.000) y la del 19/10 pasan a AUTO. El mensaje de cargas agrega "(promedio real de N
+               semanas)" debajo de la venta prevista cuando es automatica. Gonzalo: "la banana de PY o BR para nosotros es
+               lo mismo, vendemos una u otra": NO se muestra cobertura por origen. Sab 17/10: 24.260 -> falta 1.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

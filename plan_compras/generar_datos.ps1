@@ -80,7 +80,25 @@ if (Test-Path $alohaVen) {
         if ($vr.Count -gt 0) { $ventasReales = $vr }
     } catch { Write-Host "  (aviso) aloha_ventas.json ilegible: $($_.Exception.Message)" }
 }
-# ---- plan Brasil/Paraguay (master o export Aloha)
+# [11/10/2026] VENTA PREVISTA AUTOMATICA (Gonzalo: "vamos por el 1"): para las semanas de ventas_plan con fuente AUTO o
+#     SUPUESTO (y para las semanas futuras sin fila) la venta = promedio real de las ultimas 10 semanas completas de Aloha
+#     (BR+PY+BO, redondeado a 100), repartido con el mix real de esas semanas. Las filas con fuente "Gonzalo ..." o "REAL ..."
+#     no se tocan: si Gonzalo dicta una semana, manda la suya.
+$ultV = @($ventasReales | Where-Object { $_.TODO -gt 0 } | Sort-Object semana_lunes | Select-Object -Last 10)
+if ($ultV.Count -ge 4) {
+    $sBR = ($ultV | Measure-Object BR -Sum).Sum; $sPY = ($ultV | Measure-Object PY -Sum).Sum; $sBO = ($ultV | Measure-Object BO -Sum).Sum; $sT = $sBR + $sPY + $sBO
+    $promV = [int]([math]::Round(($sT / $ultV.Count) / 100) * 100)
+    $notaV = "AUTO: promedio real de las ultimas $($ultV.Count) semanas (Aloha, $($ultV[0].semana_lunes) a $($ultV[-1].semana_lunes)) = $promV"
+    $aBR = [int][math]::Round($promV * $sBR / $sT); $aPY = [int][math]::Round($promV * $sPY / $sT); $aBO = $promV - $aBR - $aPY
+    foreach ($v in $ventas) { if ([string]$v.fuente -match '^(AUTO|SUPUESTO)') { $v.BR = $aBR; $v.PY = $aPY; $v.BO = $aBO; $v.fuente = $notaV } }
+    $lunV0 = (Get-Date).Date; $lunV0 = $(if ($lunV0.DayOfWeek -eq [DayOfWeek]::Sunday) { $lunV0.AddDays(1) } else { $lunV0.AddDays(-((([int]$lunV0.DayOfWeek) + 6) % 7)) })
+    for ($w = 0; $w -le 9; $w++) {
+        $k = Ymd $lunV0.AddDays(7 * $w)
+        if (-not @($ventas | Where-Object { $_.semana_lunes -eq $k }).Count) { $ventas += [PSCustomObject]@{ semana_lunes = $k; BR = $aBR; PY = $aPY; BO = $aBO; fuente = $notaV } }
+    }
+    $ventas = @($ventas | Sort-Object semana_lunes)
+    Write-Host "  venta prevista automatica: $promV/sem (mix BR $aBR / PY $aPY / BO $aBO) para las semanas AUTO"
+}# ---- plan Brasil/Paraguay (master o export Aloha)
 function Leer-Plan($path, $hojas) { foreach ($h in $hojas) { $r = Read-XlsxHoja -Path $path -Hoja $h; if ($r.Count -ge 2) { return $r } }; return @() }
 $camiones = @()
 $pc = Get-ChildItem "$repo\fuentes\plan_cargas\*.xlsx" | Where-Object { $_.Name -notlike '~$*' } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
