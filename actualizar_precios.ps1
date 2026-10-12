@@ -4600,6 +4600,11 @@ function Get-DescargasSemanaTexto {
     $L = @()
     $L += "*🚚 Descargas semana $($Lunes.ToString('dd'))–$($sab.ToString('dd/MM'))*"
     $L += "_(arranque $($arranque.ToString('N0')) cajas)_"
+    # [12/10/2026] que conteo se uso (cambio 2 de la lista conjunta): fecha y hora del conteo de Aloha y si fue de cierre o parcial
+    if ($J.conteo.PSObject.Properties.Name -contains 'contado_hasta' -and $J.conteo.contado_hasta) {
+        $fCH = [DateTime]$J.conteo.contado_hasta; $DOWm = @('dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb')
+        $L += "_(conteo Aloha $($DOWm[[int]$fCH.DayOfWeek]) $($fCH.ToString('dd HH:mm'))$(if ([string]$J.conteo.tipo -eq 'parcial') { ', parcial' }))_"
+    }
     $n = 0
     $conDia = @($ll | ForEach-Object { [PSCustomObject]@{ dia = $(if ($_.real) { $_.desc } else { & $diaDe $_.desc }); o = $ordenO[$_.origen]; nombre = $_.nombre; origen = $_.origen; sup = $_.sup; parcial = $_.parcial; cajas = $_.cajas } } | Sort-Object dia, o, nombre)
     foreach ($g in @($conDia | Group-Object { $_.dia.ToString('yyyy-MM-dd') })) {
@@ -4618,6 +4623,10 @@ function Get-DescargasSemanaTexto {
     $nParc = @($ll | Where-Object { $_.parcial }).Count
     $L += "*Total:* $($ll.Count - $nParc) camiones" + $(if ($nParc -eq 1) { ' + 1/2 carga' } elseif ($nParc -gt 1) { " + $nParc medias cargas" } else { '' }) + " · $($tot.ToString('N0')) cajas"
     if ($nParc -gt 0) { $L += '(carga exóticos con ' + (($ll | Where-Object { $_.parcial } | ForEach-Object { $_.nombre }) -join ', ') + ')' }   # [09/10/2026] formato de Gonzalo
+    # [12/10/2026] cambio 1 de la lista conjunta: cuanto descarga al principio y al final de la semana (dias mostrados)
+    $nLM = @($conDia | Where-Object { -not $_.parcial -and [int]$_.dia.DayOfWeek -ge 1 -and [int]$_.dia.DayOfWeek -le 3 }).Count
+    $nJS = @($conDia | Where-Object { -not $_.parcial -and ([int]$_.dia.DayOfWeek -ge 4 -or [int]$_.dia.DayOfWeek -eq 0) }).Count
+    if (($nLM + $nJS) -gt 0) { $L += "Descargan lun-mié $nLM · jue-sáb $nJS" }
     # [12/10/2026] referencia historica de la misma semana del año y margen por cancelaciones (plan_compras.json, del historico 2019-2026)
     $kW = $Lunes.ToString('yyyy-MM-dd')
     if ($J.referencia_semanal -and ($J.referencia_semanal.PSObject.Properties.Name -contains $kW)) { $rs = $J.referencia_semanal.$kW; $L += "*Histórico sem $($rs.n):* $([math]::Round([double]$rs.prom)) camiones"; $L += "(promedio $($rs.anios), misma semana)" }

@@ -257,9 +257,33 @@ try {
                                 dias_frio_max = (($g.Group | ForEach-Object { Num $_.dias_frio } | Measure-Object -Maximum).Maximum)
                                 ingreso_min = $(if ($ing.Count) { $ing[0] } else { $null }); ingreso_max = $(if ($ing.Count) { $ing[-1] } else { $null }) }
     }
+    # FIFO (12/10/2026, Gonzalo: "dale hacemos todo eso"): lotes con mas de $fifoUmbral dias de frio. Los de mas de $fifoSinCerrar dias
+    # son casi seguro lotes que no se cerraron en el pizarron al venderse (p.ej. JP011 con 340 dias) y van aparte, como sospechosos.
+    # Los lotes cargados por foto vienen sin producto: el origen se infiere del codigo (PY..., ECUADOR/BONITA, BO...).
+    $fifoUmbral = 14; $fifoSinCerrar = 45
+    function Origen-Lote { param($l) if ($l.origen) { return $l.origen }; $cod = [string]$l.codigo
+        if ($cod -match '^(?i)PY') { return 'PY' }; if ($cod -match '(?i)ecuador|bonita') { return 'EC' }; if ($cod -match '^(?i)BO') { return 'BO' }; return $null }
+    $viejos = @($lotes | Where-Object { (Num $_.dias_frio) -gt $fifoUmbral } | Sort-Object { -(Num $_.dias_frio) })
+    $fifoLotes = @(); $fifoSosp = @()
+    foreach ($l in $viejos) {
+        $x = [ordered]@{ sede = $l.sede; camara = $l.camara; codigo = $l.codigo; productor = $l.productor; origen = (Origen-Lote $l); dias_frio = [int](Num $l.dias_frio)
+                         cantidad = $l.cantidad; fecha_ingreso = $l.fecha_ingreso; fuente = $l.fuente }
+        if ($x.dias_frio -gt $fifoSinCerrar) { $fifoSosp += $x } else { $fifoLotes += $x }
+    }
+    $fifoPO = [ordered]@{}
+    foreach ($o in 'BR', 'PY', 'BO', 'EC', 'sin origen') {
+        $g = @($fifoLotes | Where-Object { if ($o -eq 'sin origen') { -not $_.origen } else { $_.origen -eq $o } })
+        $fifoPO[$o] = [ordered]@{ lotes = $g.Count; cajas = (R0 (($g | ForEach-Object { $_.cantidad } | Measure-Object -Sum).Sum)) }
+    }
+    $fifo = [ordered]@{
+        umbral_dias = $fifoUmbral; sin_cerrar_dias = $fifoSinCerrar
+        nota = 'cantidad = cajas que ENTRARON con el lote, no las que quedan; dias_frio desde fecha_ingreso. Mas de sin_cerrar_dias dias: probablemente lote sin cerrar en el pizarron, no fruta.'
+        lotes = $fifoLotes; porOrigen = $fifoPO; sospechosos_sin_cerrar = $fifoSosp; sin_origen = @($lotes | Where-Object { -not (Origen-Lote $_) }).Count
+    }
+    Log ("  FIFO: {0} lotes con mas de {1} dias ({2}); {3} sospechosos sin cerrar (>{4} dias); {5} lotes sin origen" -f $fifoLotes.Count, $fifoUmbral, (($fifoPO.GetEnumerator() | ForEach-Object { "$($_.Key) $($_.Value.lotes)" }) -join ', '), $fifoSosp.Count, $fifoSinCerrar, $fifo.sin_origen)
     $pizarron = [ordered]@{
         generado = $ahora.ToString('yyyy-MM-dd HH:mm'); fuente = 'Aloha API GET /pizarron?ubicacion=ZAC|CR (lotes en camara por pie de camion)'
-        ubicaciones = $ubic; porOrigen = $pO; porProductor = ($porProd | Sort-Object { -$_.cajas }); lotes = $lotes
+        ubicaciones = $ubic; porOrigen = $pO; porProductor = ($porProd | Sort-Object { -$_.cajas }); fifo = $fifo; lotes = $lotes
     }
     Guardar 'aloha_pizarron.json' $pizarron
     $resumenFinal += "pizarron: $($lotes.Count) lotes"

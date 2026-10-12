@@ -65,6 +65,11 @@ if (Test-Path $alohaCam) {
                 $conteo = [ordered]@{ fecha = (Ymd $fAc) }
                 foreach ($o in 'BR', 'PY', 'BO', 'EC') { $conteo[$o] = [int]$ac.porOrigen.$o }
                 $conteo.fuente = "Aloha mapa-camaras (contado hasta $($fAc.ToString('dd/MM HH:mm')))"
+                $conteo.contado_hasta = $fAc.ToString('yyyy-MM-dd HH:mm')
+                # [12/10/2026] tipo de conteo: 'cierre' = sabado, domingo o lunes antes de las 08:00 (semana cerrada, sin venta
+                # encima); 'parcial' = tomado con la semana ya vendiendo (el plan prorratea la venta de esa semana). Los mensajes
+                # dicen cual se uso. Gonzalo: "dale hacemos todo eso" (cambio 2 de la lista conjunta).
+                $conteo.tipo = $(if ($fAc.DayOfWeek -eq [DayOfWeek]::Saturday -or $fAc.DayOfWeek -eq [DayOfWeek]::Sunday -or ($fAc.DayOfWeek -eq [DayOfWeek]::Monday -and $fAc.Hour -lt 8)) { 'cierre' } else { 'parcial' })
                 $fechaConteo = $conteo.fecha
             }
         }
@@ -227,7 +232,12 @@ $usadas = 0; $omitidas = 0; $reemplazadas = 0
 foreach ($p in ($prog | Sort-Object carga)) {
     $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = [string]$p.nota; parcial = [bool]$p.parcial }
     $usadas++
-}if ($quitar.Count -gt 0) { $camiones = @(for ($i = 0; $i -lt $camiones.Count; $i++) { if (-not $quitar.ContainsKey($i)) { $camiones[$i] } }) }
+}
+# [12/10/2026] PLAN VS REAL (cambio 3 de la lista conjunta; Gonzalo: "dale hacemos todo eso"): las filas de Aloha que se
+# descartan por "solo el dictado" se guardan aparte ($sombraAloha) para comparar, semana a semana, lo dictado con lo que
+# Aloha registro (llego esa semana / otra semana / no aparecio / cancelado). No cambia el plan: solo mide el acierto.
+$sombraAloha = @(for ($i = 0; $i -lt $camiones.Count; $i++) { if ($quitar.ContainsKey($i)) { $camiones[$i] } })
+if ($quitar.Count -gt 0) { $camiones = @(for ($i = 0; $i -lt $camiones.Count; $i++) { if (-not $quitar.ContainsKey($i)) { $camiones[$i] } }) }
 
 # ---- grupos [27/09/2026]: Gonzalo pidio unificar la compra Brasil + Paraguay ("para mi es lo mismo una u otra,
 #      de ahi despues yo veo que cargar"); Bolivia sigue aparte. El simulador proyecta por grupo; cada camion
@@ -350,7 +360,53 @@ if ($histJ) { Write-Host "  historico 2019-2026: lag por productor en $nLagP cam
     $conteo[$k] = 0; foreach ($o in $GRUPOS[$k]) { $conteo[$k] += [int]$conteo[$o] }
     foreach ($v in $ventas) { $s = 0; foreach ($o in $GRUPOS[$k]) { $s += [int]$v.$o }; $v | Add-Member -NotePropertyName $k -NotePropertyValue $s -Force }
 }
-$out = [ordered]@{
+# ---- plan vs real por semana de carga (clave = domingo de la semana de carga, como semana_carga), solo semanas cerradas
+$hoyP = (Get-Date).Date
+$pvrSem = [ordered]@{}
+$grupos = @{}
+foreach ($p in @($prog | Where-Object { -not $_.parcial })) { $k = [string]$p.semana_carga + '|' + [string]$p.origen + '|' + (Canon $p.productor); if (-not $grupos.ContainsKey($k)) { $grupos[$k] = 0 }; $grupos[$k]++ }
+$paso = '^(Descargado|Arribado|Frontera|Puerto|Cargado|Liberado)'
+function CntSombra($sem, $orig, $cn, $rx) { return @($sombraAloha | Where-Object { [string]$_.semana_carga -eq $sem -and [string]$_.origen -eq $orig -and (Canon $_.productor) -eq $cn -and ([string]$_.status) -match $rx }).Count }
+foreach ($k in ($grupos.Keys | Sort-Object)) {
+    $parts = $k -split '\|'; $sem = $parts[0]; $orig = $parts[1]; $cn = $parts[2]; $nd = $grupos[$k]
+    try { $dom = [DateTime]$sem } catch { continue }
+    if ($dom.AddDays(7) -gt $hoyP) { continue }   # semana de carga todavia abierta
+    $kM = Ymd $dom.AddDays(1)
+    if (-not $pvrSem.Contains($kM)) { $pvrSem[$kM] = [ordered]@{ dictados = 0; llegaron = 0; otra_semana = 0; no_aparecieron = 0; cancelados_aloha = 0; no_dictados_llegaron = 0; detalle = @() } }
+    $na = CntSombra $sem $orig $cn $paso
+    $lleg = [math]::Min($nd, $na); $resto = $nd - $lleg
+    $otra = 0
+    if ($resto -gt 0) {
+        foreach ($dd in -7, 7) {
+            $semA = Ymd $dom.AddDays($dd); $kA = $semA + '|' + $orig + '|' + $cn
+            $libres = (CntSombra $semA $orig $cn $paso) - $(if ($grupos.ContainsKey($kA)) { $grupos[$kA] } else { 0 })
+            if ($libres -gt 0) { $u = [math]::Min($resto - $otra, $libres); $otra += $u }
+            if ($otra -ge $resto) { break }
+        }
+    }
+    $noAp = $resto - $otra
+    $canc = CntSombra $sem $orig $cn '^(Cancelado|Destruida)'
+    $extra = [math]::Max(0, $na - $nd)
+    $x = $pvrSem[$kM]; $x.dictados += $nd; $x.llegaron += $lleg; $x.otra_semana += $otra; $x.no_aparecieron += $noAp; $x.cancelados_aloha += $canc; $x.no_dictados_llegaron += $extra
+    $x.detalle += [ordered]@{ origen = $orig; productor = $cn; dictados = $nd; aloha = $na; llegaron = $lleg; otra_semana = $otra; no_aparecieron = $noAp; cancelados = $canc }
+}
+$pvrTot = [ordered]@{ semanas = $pvrSem.Count; dictados = 0; llegaron = 0; otra_semana = 0; no_aparecieron = 0; cancelados_aloha = 0; no_dictados_llegaron = 0 }
+foreach ($kM in $pvrSem.Keys) { foreach ($f in 'dictados', 'llegaron', 'otra_semana', 'no_aparecieron', 'cancelados_aloha', 'no_dictados_llegaron') { $pvrTot[$f] += $pvrSem[$kM][$f] } }
+$pvrTot.acierto_pct = $(if ($pvrTot.dictados) { [math]::Round($pvrTot.llegaron * 100 / $pvrTot.dictados) } else { $null })
+$pvrTot.nota = 'Se compara lo dictado (cargas_programadas) con las filas de Aloha de la misma semana de carga, productor y origen, que el plan descarta por "solo el dictado". Llego = Aloha lo tiene cargado/descargado esa semana; otra semana = aparece la semana anterior o siguiente sin dictado propio; no aparecio = Aloha no lo registro; cancelado = Aloha lo marco Cancelado. Solo semanas de carga ya cerradas. Vale a partir de 4-6 semanas de dictado (rige desde el 09/10/2026).'
+if ($pvrSem.Count) { Write-Host "  plan vs real: $($pvrSem.Count) semanas cerradas, $($pvrTot.llegaron)/$($pvrTot.dictados) dictados llegaron ($($pvrTot.acierto_pct) %)" }
+# ---- (1) descargas por dia de la semana: lun-mie vs jue-sab, por semana de descarga (misma regla de la cuenta: fecha real
+#      o carga + lag; lo que cae domingo cuenta para la semana que arranca y se muestra lunes)
+$dpd = [ordered]@{}
+foreach ($c in $camiones) {
+    if ($c.parcial) { continue }
+    try { $d = $(if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays([int]$c.lag) }) } catch { continue }
+    $lun = LunesDeVenta $d; if ($lun -lt $hoyP.AddDays(-14)) { continue }
+    $k = Ymd $lun; if (-not $dpd.Contains($k)) { $dpd[$k] = [ordered]@{ lun_mie = [ordered]@{ camiones = 0; cajas = 0 }; jue_sab = [ordered]@{ camiones = 0; cajas = 0 } } }
+    $dia = $(if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { 1 } else { [int]$d.DayOfWeek })
+    $slot = $(if ($dia -le 3) { 'lun_mie' } else { 'jue_sab' })
+    $dpd[$k][$slot].camiones++; $dpd[$k][$slot].cajas += [int]$c.cajas
+}$out = [ordered]@{
     generado = (Get-Date).ToString('yyyy-MM-dd HH:mm')
     hoy = (Get-Date).ToString('yyyy-MM-dd')
     grupos = $GRUPOS
@@ -396,6 +452,8 @@ $out = [ordered]@{
         $h2
     )
     referencia_semanal = $refSem
+    plan_vs_real = [ordered]@{ semanas = $pvrSem; acumulado = $pvrTot }
+    descargas_por_dia = $dpd
     camiones = @($camiones | Sort-Object carga, origen)
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress

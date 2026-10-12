@@ -1140,6 +1140,21 @@ LOG DE CAMBIOS:
                semana siguiente"): "como todo PY" -> Paraguay siempre 4 dias; generar_datos aplica la mediana del productor
                (20+ viajes) solo a camiones BR. GM vuelve al sab 17/10: semana 12-17 = 12 camiones + 1/2 carga, cierre 22.334,
                faltan 3; semana 19-24 = 5 camiones, cierre 11.744, faltan 14 (conteo Aloha lun 12/10 11:56).
+  12/10/2026 -> LISTA CONJUNTA, cambios 1-3 (Gonzalo a la otra ventana: "dale hacemos todo eso"):
+               (1) DESCARGAN LUN-MIE / JUE-SAB: plan_compras.json suma descargas_por_dia por semana de descarga (camiones y
+                   cajas en lun-mie y jue-sab; lo que cae domingo cuenta lunes) y el mensaje de cargas dice "Descargan lun-mie
+                   N · jue-sab M" (dias mostrados, sin las parciales). Semana 12-17/10: 0 y 12.
+               (2) CONTEO DE REFERENCIA: el conteo de Aloha lleva contado_hasta y tipo ("cierre" = sabado, domingo o lunes
+                   antes de las 08:00; "parcial" = con la semana ya vendiendo, el plan prorratea la venta como antes) y el
+                   mensaje de cargas dice cual se uso: "_(conteo Aloha lun 12 11:56, parcial)_".
+               (3) PLAN VS REAL: las filas de Aloha que "solo el dictado" descarta se guardan en una lista sombra y
+                   generar_datos compara, por semana de carga cerrada, productor (canonico) y origen, lo dictado con lo que
+                   Aloha registro: llegaron / otra semana (anterior o siguiente sin dictado propio) / no aparecieron /
+                   cancelados en Aloha / llegaron sin dictar. plan_compras.json: plan_vs_real = { semanas, acumulado con
+                   acierto_pct }. Hoy: 4 semanas cerradas (14/09 a 05/10), 49 de 51 dictados llegaron (96 %). Vale de verdad
+                   a las 4-6 semanas de "solo el dictado" (09/10). Todavia no se muestra en el simulador ni en los paneles.
+               Los cambios 4-6 (estacionalidad desde la venta real, descartes semanales, FIFO del pizarron) esperan las
+               claves nuevas de la otra ventana en ventas_vs_descargas.json, aloha_ventas_historico.json y aloha_pizarron.json.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

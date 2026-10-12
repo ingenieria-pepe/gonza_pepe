@@ -128,7 +128,9 @@ foreach ($s in @($ventas.semanas | Sort-Object semana_lunes)) {
         BR = [int]$s.BR; PY = [int]$s.PY; BO = [int]$s.BO; EC = [int]$s.EC; otras = [int]$s.otras; madera_bo = [int]$s.madera_bo; total = [int]$s.total
         venta_madera = $vm; desc_cam_BR = [int]$dd.cam_BR; desc_cam_PY = [int]$dd.cam_PY; desc_cam = [int]($dd.cam_BR + $dd.cam_PY)
         desc_cajas_BR = [int][math]::Round($dd.cajas_BR); desc_cajas_PY = [int][math]::Round($dd.cajas_PY); desc_cajas = $dc
-        dif = ($vm - $dc); venta_supera = ($vm -gt $dc) }
+        dif = ($vm - $dc); venta_supera = ($vm -gt $dc)
+        descartes = $(if ($s.descartes) { [int]$s.descartes.total } else { $null })
+        descartes_pct = $(if ($s.descartes -and [int]$s.total -gt 0) { [math]::Round(100.0 * [int]$s.descartes.total / [int]$s.total, 1) } else { $null }) }
 }
 Write-Host "  ventas: $($semanas.Count) semanas ($($semanas[0].semana_lunes) a $($semanas[-1].semana_lunes))"
 
@@ -159,6 +161,24 @@ for ($n = 1; $n -le 53; $n++) {
         descarga_por_anio = $cajasY; camiones_por_anio = $camY }
 }
 
+# ---- 3b) estacionalidad de la venta (12/10/2026, Gonzalo: "dale hacemos todo eso"): media movil centrada de 3 semanas (n-1, n, n+1,
+#          todos los años con venta juntos) y factor = suavizado / promedio de todas las semanas con venta (1,00 = semana promedio).
+#          Uso en el plan: demanda(n) = base x factor(n) / factor(n_actual), o directamente venta_prom_madera_bo_suav(n).
+$porN = @{}; foreach ($s in $semanas) { if (-not $porN.ContainsKey($s.n)) { $porN[$s.n] = @() }; $porN[$s.n] += $s }
+$mediaTot = ($semanas | ForEach-Object { $_.total } | Measure-Object -Average).Average
+$mediaMad = ($semanas | ForEach-Object { $_.madera_bo } | Measure-Object -Average).Average
+foreach ($c in $calendario) {
+    $n = $c.n; $vecinos = @(); foreach ($k in ($n - 1), $n, ($n + 1)) { $kk = $k; if ($kk -lt 1) { $kk += 53 }; if ($kk -gt 53) { $kk -= 53 }; if ($porN.ContainsKey($kk)) { $vecinos += $porN[$kk] } }
+    if ($vecinos.Count) {
+        $st = [int][math]::Round(($vecinos | ForEach-Object { $_.total } | Measure-Object -Average).Average)
+        $sm = [int][math]::Round(($vecinos | ForEach-Object { $_.madera_bo } | Measure-Object -Average).Average)
+        $c['venta_prom_total_suav'] = $st; $c['venta_prom_madera_bo_suav'] = $sm; $c['semanas_suav'] = $vecinos.Count
+        $c['factor_total'] = [math]::Round($st / $mediaTot, 2); $c['factor_madera_bo'] = [math]::Round($sm / $mediaMad, 2)
+    } else { $c['venta_prom_total_suav'] = $null; $c['venta_prom_madera_bo_suav'] = $null; $c['semanas_suav'] = 0; $c['factor_total'] = $null; $c['factor_madera_bo'] = $null }
+}
+$conFactor = @($calendario | Where-Object { $null -ne $_.factor_total })
+Write-Host "  estacionalidad: factor en $($conFactor.Count) semanas del año (media total $([int][math]::Round($mediaTot)) / madera+BO $([int][math]::Round($mediaMad)) cajas/sem); max " + (($conFactor | Sort-Object { -$_.factor_madera_bo } | Select-Object -First 3 | ForEach-Object { "n$($_.n) $($_.factor_madera_bo)" }) -join ', ') + "; min " + (($conFactor | Sort-Object { $_.factor_madera_bo } | Select-Object -First 3 | ForEach-Object { "n$($_.n) $($_.factor_madera_bo)" }) -join ', ')
+
 # ---- 4) resumen
 $conDesc = @($semanas | Where-Object { $_.desc_cam -gt 0 })
 $sup = @($semanas | Where-Object { $_.venta_supera })
@@ -183,7 +203,8 @@ $doc = [ordered]@{
         'venta_madera = cajas vendidas de Banana Brasil (+Fibra, +San Pablo) + Banana Paraguaya; total = BR+PY+BO+EC; otras (Banana Colombia) fuera de total.',
         'descarga = cajas de camiones Descargado/Arribado de BR y PY en la semana lunes-sabado de la fecha de descarga (sin fecha: carga + 3 dias BR / 4 dias PY); cajas = Cajas desc. valida, si no MIC 300-1.500, si no la mediana del pais y año.',
         'Semana n = la n-esima del año contando desde el 1/1 (misma regla que historico_cargas.ps1). descarga_prom = promedio 2019-' + ($anioHoy - 1) + ' (ceros incluidos); venta_prom = promedio de los años con venta en esa semana (2025 desde la semana 27, 2026).',
-        'dif = venta_madera - desc_cajas (positivo: se vendio mas de lo que se descargo esa semana, se consumio stock). Solo cajas y camiones, sin precios.'
+        'dif = venta_madera - desc_cajas (positivo: se vendio mas de lo que se descargo esa semana, se consumio stock). Solo cajas y camiones, sin precios.',
+        'Estacionalidad: venta_prom_*_suav = media movil centrada de 3 semanas (n-1, n, n+1) sobre todos los años con venta; factor_* = suavizado / promedio de todas las semanas con venta (1,00 = semana promedio). descartes = cajas descartadas en la semana (todos los origenes), descartes_pct sobre la venta total.'
     )
     resumen = $resumen; semanas = $semanas; calendario = $calendario
 }
@@ -195,6 +216,7 @@ if ($Xlsx) {
     Import-Module ImportExcel -ErrorAction Stop
     $hojaCal = @(); foreach ($c in $calendario) {
         $f = [ordered]@{ semana = $c.n; 'venta prom BR+PY' = $c.venta_prom; 'descarga prom BR+PY' = $c.descarga_prom; dif = $c.dif; 'descarga prom camiones' = $c.descarga_prom_cam; 'venta prom total' = $c.venta_prom_total
+                         'venta total suavizada' = $c.venta_prom_total_suav; 'venta madera+BO suavizada' = $c.venta_prom_madera_bo_suav; 'factor total' = $c.factor_total; 'factor madera+BO' = $c.factor_madera_bo
                          'venta 2025' = $c.venta_2025; 'venta 2026' = $c.venta_2026; 'descarga 2025' = $c.descarga_2025; 'descarga 2026' = $c.descarga_2026; 'años venta' = $c.anios_venta; 'años descarga' = $c.anios_descarga }
         foreach ($p in $c.descarga_por_anio.Keys) { $f["desc $p"] = $c.descarga_por_anio[$p] }
         foreach ($p in $c.camiones_por_anio.Keys) { $f["cam $p"] = $c.camiones_por_anio[$p] }
@@ -202,7 +224,7 @@ if ($Xlsx) {
     }
     $hojaSem = @(); foreach ($s in $semanas) {
         $hojaSem += [pscustomobject]([ordered]@{ semana_lunes = $s.semana_lunes; anio = $s.anio; semana = $s.n; 'venta BR' = $s.BR; 'venta PY' = $s.PY; 'venta BO' = $s.BO; 'venta EC' = $s.EC; 'venta otras' = $s.otras; 'venta madera BR+PY' = $s.venta_madera; 'venta madera+BO' = $s.madera_bo; 'venta total' = $s.total
-                                                 'camiones BR' = $s.desc_cam_BR; 'camiones PY' = $s.desc_cam_PY; 'camiones' = $s.desc_cam; 'descarga cajas BR' = $s.desc_cajas_BR; 'descarga cajas PY' = $s.desc_cajas_PY; 'descarga cajas' = $s.desc_cajas; 'dif venta-descarga' = $s.dif; 'venta supera' = $(if ($s.venta_supera) { 'si' } else { 'no' }) })
+                                                 'camiones BR' = $s.desc_cam_BR; 'camiones PY' = $s.desc_cam_PY; 'camiones' = $s.desc_cam; 'descarga cajas BR' = $s.desc_cajas_BR; 'descarga cajas PY' = $s.desc_cajas_PY; 'descarga cajas' = $s.desc_cajas; 'dif venta-descarga' = $s.dif; 'venta supera' = $(if ($s.venta_supera) { 'si' } else { 'no' }); descartes = $s.descartes; 'descartes %' = $s.descartes_pct })
     }
     $hojaCal | Export-Excel -Path $Xlsx -WorksheetName 'ventas_vs_descargas' -ClearSheet -AutoSize -FreezeTopRow -BoldTopRow -AutoFilter
     $hojaSem | Export-Excel -Path $Xlsx -WorksheetName 'ventas_semanal' -ClearSheet -AutoSize -FreezeTopRow -BoldTopRow -AutoFilter

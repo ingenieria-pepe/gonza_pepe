@@ -7,7 +7,9 @@
 #
 #    fuentes\aloha_ventas_historico.json   { generado, desde, ultima_semana, mapeo, agrupaciones_otras,
 #                                            semanas: [ { semana_lunes, hasta, anio, iso_anio, iso_semana,
-#                                                         BR, PY, BO, EC, otras, madera_bo, total, leido } ] }
+#                                                         BR, PY, BO, EC, otras, madera_bo, total,
+#                                                         descartes: { BR, PY, BO, EC, total }, leido } ] }
+#  descartes = cajas descartadas en la semana por origen (movimientos.descartes del ERP, en positivo).
 #
 #  Solo cajas (present): sin importes ni kilos (Gonzalo: "eso dejalo para adm, vamos a las cajas en bruto").
 #  madera_bo = BR + PY + BO (lo que cuenta para el stock minimo); total = BR + PY + BO + EC; "otras" son agrupaciones
@@ -109,12 +111,15 @@ try {
         try {
             $v = Get-Aloha '/stock/ventas-presentacion' @{ desde = $lunes.ToString('yyyy-MM-dd'); hasta = $sabado.ToString('yyyy-MM-dd'); incluir_sin_ventas = 'true' }
         } catch { $errores++; Log "  sem $($lunes.ToString('yyyy-MM-dd')): ERROR $($_.Exception.Message)" 'Red'; continue }
-        $c = @{ BR = 0.0; PY = 0.0; BO = 0.0; EC = 0.0; otras = 0.0 }
+        $c = @{ BR = 0.0; PY = 0.0; BO = 0.0; EC = 0.0; otras = 0.0 }; $dsc = @{ BR = 0.0; PY = 0.0; BO = 0.0; EC = 0.0 }
         foreach ($f in @($v.filas)) {
             $ag = [string]$f.agrupacion
             if (-not ($ag -match '(?i)^banana')) { continue }
             $o = Origen-De $ag
-            if ($o) { $c[$o] += Num $f.present; $mapeo[$o][$ag] = 1 } else { $c.otras += Num $f.present; $otrasAg[$ag] = 1 }
+            if ($o) {
+                $c[$o] += Num $f.present; $mapeo[$o][$ag] = 1
+                if ($f.movimientos) { $dsc[$o] += -(Num $f.movimientos.descartes) }   # el ERP los trae negativos; aca cajas descartadas en positivo
+            } else { $c.otras += Num $f.present; $otrasAg[$ag] = 1 }
         }
         $iso = IsoSemana $lunes
         $fila = [ordered]@{
@@ -124,9 +129,11 @@ try {
         }
         $fila.madera_bo = $fila.BR + $fila.PY + $fila.BO
         $fila.total = $fila.BR + $fila.PY + $fila.BO + $fila.EC
+        $fila.descartes = [ordered]@{ BR = (R0 $dsc.BR); PY = (R0 $dsc.PY); BO = (R0 $dsc.BO); EC = (R0 $dsc.EC) }
+        $fila.descartes.total = $fila.descartes.BR + $fila.descartes.PY + $fila.descartes.BO + $fila.descartes.EC
         $fila.leido = $ahora.ToString('yyyy-MM-dd HH:mm')
         $nuevas[$fila.semana_lunes] = $fila
-        Log ("  sem {0} (ISO {1}-{2:00}): BR {3} · PY {4} · BO {5} · EC {6} · total {7}{8}" -f $fila.semana_lunes, $fila.iso_anio, $fila.iso_semana, $fila.BR, $fila.PY, $fila.BO, $fila.EC, $fila.total, $(if ($fila.otras) { " · otras $($fila.otras)" } else { '' }))
+        Log ("  sem {0} (ISO {1}-{2:00}): BR {3} · PY {4} · BO {5} · EC {6} · total {7}{8} · descartes {9}" -f $fila.semana_lunes, $fila.iso_anio, $fila.iso_semana, $fila.BR, $fila.PY, $fila.BO, $fila.EC, $fila.total, $(if ($fila.otras) { " · otras $($fila.otras)" } else { '' }), $fila.descartes.total)
     }
 } finally { try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent $UA | Out-Null } catch {} }
 
@@ -138,7 +145,7 @@ $lista = @($todas.Keys | Sort-Object | ForEach-Object { $todas[$_] })
 $doc = [ordered]@{
     generado = $ahora.ToString('yyyy-MM-dd HH:mm')
     fuente = 'Aloha API GET /stock/ventas-presentacion (present = cajas vendidas; semana lunes a sabado; solo semanas completas)'
-    nota = 'La API tiene ventas desde la semana del 30/06/2025 (antes devuelve 0). madera_bo = BR+PY+BO; total = BR+PY+BO+EC; otras = agrupaciones Banana sin origen (no entran en total).'
+    nota = 'La API tiene ventas desde la semana del 30/06/2025 (antes devuelve 0). madera_bo = BR+PY+BO; total = BR+PY+BO+EC; otras = agrupaciones Banana sin origen (no entran en total); descartes = cajas descartadas en la semana (positivo).'
     desde = $desdeD.ToString('yyyy-MM-dd'); ultima_semana = $ultimaCompleta.ToString('yyyy-MM-dd')
     semanas_total = $lista.Count; semanas_bajadas = $nuevas.Count; errores = $errores
     mapeo = [ordered]@{ BR = @($mapeo.BR.Keys | Sort-Object); PY = @($mapeo.PY.Keys | Sort-Object); BO = @($mapeo.BO.Keys | Sort-Object); EC = @($mapeo.EC.Keys | Sort-Object) }
