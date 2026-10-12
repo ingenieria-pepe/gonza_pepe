@@ -4,16 +4,20 @@
                                           "datos_actualizado":  "2026-10-12 17:18"
                                       },
     "index_brasil.html|CEPEA_JSON":  {
-                                         "hash":  "6044FD03A00FDFAB3CBE2DCC968FC27B5ECCF3A2A0505A96B3B1C16FB088A7E4",
-                                         "datos_actualizado":  "2026-10-12 17:18"
+                                         "hash":  "46CE89D815C281E8838C34B0F54B96550350FF28FE5216378B3487EFF2791E16",
+                                         "datos_actualizado":  "2026-10-12 17:37"
                                      },
     "index_brasil.html|MERCADO_BR_JSON":  {
                                               "hash":  "F1B75C7663307B52222F2A8A4A6F0E1A98055DD723E6F4EF01588C87E80382CC",
                                               "datos_actualizado":  "2026-10-08 17:44"
                                           },
     "index_brasil.html|PRODUCTORES_JSON":  {
-                                               "hash":  "6B6C689973171B3A856F13D4843C91D3211FBF96CE7D3B176D64CF4530CF9696",
-                                               "datos_actualizado":  "2026-10-12 17:18"
+                                               "hash":  "2029F62A400AE579521876F1BD6A38CB0FC62B50CB2D766E46E78D98E09DFD29",
+                                               "datos_actualizado":  "2026-10-12 17:37"
+                                           },
+    "index_brasil.html|VENTAS_DESC_JSON":  {
+                                               "hash":  "4468A6D13BE064B7D63B9E7B7595F15A856271C6261FAAFFCF475E71EC7260C2",
+                                               "datos_actualizado":  "2026-10-12 17:37"
                                            },
     "index_calidad.html|CALIDAD_JSON":  {
                                             "hash":  "4CD936B9BBE7A6F11BDC6276A49550E4FC798A9CCC1501CFFD07BE5653FC638F",
@@ -44,20 +48,20 @@
                                                     "datos_actualizado":  "2026-10-12 17:18"
                                                 },
     "index_paraguay_bolivia.html|CEPEA_JSON":  {
-                                                   "hash":  "6044FD03A00FDFAB3CBE2DCC968FC27B5ECCF3A2A0505A96B3B1C16FB088A7E4",
-                                                   "datos_actualizado":  "2026-10-12 17:18"
+                                                   "hash":  "46CE89D815C281E8838C34B0F54B96550350FF28FE5216378B3487EFF2791E16",
+                                                   "datos_actualizado":  "2026-10-12 17:37"
                                                },
     "index_paraguay_bolivia.html|MERCADO_PYBO_JSON":  {
                                                           "hash":  "2E7F43E0BF271C49C58D5A6A5A4DE2BB28A7EA944BBCFA0E2F20F38BA57672EE",
                                                           "datos_actualizado":  "2026-10-08 17:44"
                                                       },
     "index_proyeccion.html|PROYECCION_JSON":  {
-                                                  "hash":  "B4D432307407055F3F5D1CA7479E5EC5A0624A930D337D337584F90F78F7E0C7",
-                                                  "datos_actualizado":  "2026-10-11 10:54"
+                                                  "hash":  "231E94CDAD1175007DC1E5D2F35FDE8A653F7FAD580998846F44CCBCB5E3377A",
+                                                  "datos_actualizado":  "2026-10-12 17:37"
                                               },
     "inicio.html|PORTADA_JSON":  {
-                                     "hash":  "9B59F0D0FB2C5937CF2C5802CEA0A268A19AA46B1473D68A6764E60D7EA8EC2B",
-                                     "datos_actualizado":  "2026-10-12 17:18"
+                                     "hash":  "7388C7D5975C9620103D776C2A3D31C1EE8680E78CECF9803C21A80CCD145AE0",
+                                     "datos_actualizado":  "2026-10-12 17:37"
                                  },
     "simulador.html|COMPRAS_JSON":  {
                                         "hash":  "D756628680876A8B52A5D62472323BA3F0EAB2DE783C8794FE10D16E405DD4E0",

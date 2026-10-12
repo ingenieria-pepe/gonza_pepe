@@ -1122,6 +1122,20 @@ LOG DE CAMBIOS:
                historia multianual de ventas: plan_compras\aloha_ventas_historico.ps1 (incremental, solo GET) deja
                fuentes\aloha_ventas_historico.json con 67 semanas lun-sab por origen; el cruce ventas vs descargas por
                semana del año queda pendiente de esa ventana.
+  12/10/2026 -> (6) VENTAS VS DESCARGAS, cerrado (otra ventana + enganche): plan_compras\aloha_ventas_historico.ps1 (corregido:
+               la variable $salida pisaba el parametro; BR incluye "Banana San Pablo"; "Banana Colombia" va a "otras", fuera
+               de total) y plan_compras\ventas_vs_descargas.ps1 (nuevo): cruza las 67 semanas de venta (30/06/2025 ->) con
+               las cargas por semana de DESCARGA (misma lectura que historico_cargas.ps1; control: camiones por año/semana
+               identicos a semanas_ref) y deja fuentes\ventas_vs_descargas.json (calendario por semana del año: venta_prom,
+               descarga_prom, dif, por año; semanas; resumen). aloha_datos.ps1: Origen-De toma "san pablo" como BR. El xlsx
+               OTROS suma las hojas ventas_vs_descargas y ventas_semanal. actualizar_precios.ps1: paso 5j0b (despues de
+               aloha_datos) corre los dos scripts e inyecta el JSON en index_brasil entre /*__VENTAS_DESC_JSON__*/ y
+               /*__END_VENTAS_DESC__*/: tarjeta "Venta vs descarga por semana del año" (Chart.js: descarga promedio 2019-2025
+               en barras, venta promedio 2025-2026, descarga y venta del año en curso) con resumen, dentro de la seccion
+               Productores 2019-2026. Resumen 2026 a la semana 40: venta 14.744 cajas/sem vs descarga 15.131 (614 camiones,
+               986 cajas/camion); 2.º semestre 2025: 15.308 vs 14.990; la venta supero a la descarga en 30 de 67 semanas.
+               Gonzalo (a la otra ventana): "precios no quiero manejar por ahora": el precio de Bolivia deja de estar
+               pendiente; nada de funciones por precio en plan, simulador ni mensajes. Probado con run_dry (248 s) y Edge.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

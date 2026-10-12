@@ -47,7 +47,7 @@ if (-not (Test-Path $fuentes)) { New-Item -ItemType Directory -Path $fuentes | O
 # ---- origen a partir de un texto (agrupacion del ERP, pais de la camara, producto del pizarron)
 function Origen-De { param([string]$t)
     if ($null -eq $t) { return $null }
-    if ($t -match '(?i)bras')   { return 'BR' }
+    if ($t -match '(?i)bras|san pablo')   { return 'BR' }   # "Banana San Pablo" = Banana Brasil San Pablo (12/10/2026)
     if ($t -match '(?i)parag')  { return 'PY' }
     if ($t -match '(?i)boliv')  { return 'BO' }
     if ($t -match '(?i)ecuad')  { return 'EC' }

@@ -11,7 +11,8 @@
 #
 #  Solo cajas (present): sin importes ni kilos (Gonzalo: "eso dejalo para adm, vamos a las cajas en bruto").
 #  madera_bo = BR + PY + BO (lo que cuenta para el stock minimo); total = BR + PY + BO + EC; "otras" son agrupaciones
-#  que empiezan con "Banana" pero no caen en los 4 origenes (p.ej. Banana Colombia) y NO entran en total.
+#  que empiezan con "Banana" pero no caen en los 4 origenes (Banana Colombia) y NO entran en total. "Banana San Pablo"
+#  (Banana Brasil San Pablo, madera 22 kg / carton 20 kg, vendida jul-dic 2025) cuenta como BR.
 #
 #  Incremental: lee el JSON previo y solo pide a la API las semanas que faltan mas las ultimas -Refrescar (4) semanas
 #  completas, por si el ERP ajusta ventas hacia atras. Con -Todo baja todo de nuevo. La semana en curso no se incluye
@@ -47,7 +48,7 @@ if ([string]::IsNullOrWhiteSpace([string]$cfg.url)) { Log "config\aloha.json sin
 $apiBase = ([string]$cfg.url).TrimEnd('/')
 
 function Origen-De { param([string]$t)
-    if ($t -match '(?i)bras') { return 'BR' }; if ($t -match '(?i)parag') { return 'PY' }
+    if ($t -match '(?i)bras|san pablo') { return 'BR' }; if ($t -match '(?i)parag') { return 'PY' }
     if ($t -match '(?i)boliv') { return 'BO' }; if ($t -match '(?i)ecuad') { return 'EC' }; return $null }
 function Num { param($v) if ($null -eq $v -or "$v" -eq '') { return 0.0 }; return [double]$v }
 function R0 { param($v) return [int][math]::Round((Num $v), 0) }
@@ -134,7 +135,7 @@ $todas = @{}
 foreach ($k in $previas.Keys) { $todas[$k] = $previas[$k] }
 foreach ($k in $nuevas.Keys) { $todas[$k] = $nuevas[$k] }
 $lista = @($todas.Keys | Sort-Object | ForEach-Object { $todas[$_] })
-$salida = [ordered]@{
+$doc = [ordered]@{
     generado = $ahora.ToString('yyyy-MM-dd HH:mm')
     fuente = 'Aloha API GET /stock/ventas-presentacion (present = cajas vendidas; semana lunes a sabado; solo semanas completas)'
     nota = 'La API tiene ventas desde la semana del 30/06/2025 (antes devuelve 0). madera_bo = BR+PY+BO; total = BR+PY+BO+EC; otras = agrupaciones Banana sin origen (no entran en total).'
@@ -144,6 +145,6 @@ $salida = [ordered]@{
     agrupaciones_otras = @($otrasAg.Keys | Sort-Object)
     semanas = $lista
 }
-$json = $salida | ConvertTo-Json -Depth 6 -Compress
+$json = $doc | ConvertTo-Json -Depth 6 -Compress
 Set-Content -Path $outPath -Value $json -Encoding UTF8
 Log "OK aloha_ventas_historico.json: $($lista.Count) semanas ($($nuevas.Count) bajadas ahora, $errores errores), $([int]($json.Length / 1KB)) KB" 'Green'

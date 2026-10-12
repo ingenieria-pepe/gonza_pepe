@@ -3948,7 +3948,32 @@ if (-not (Test-Path $alohaDatos)) {
         Write-Host "    FALLO: $($_.Exception.Message)" -ForegroundColor Red
     }
 }
-Write-Host "[5j] Plan de compras (plan_compras\generar_datos.ps1)..." -ForegroundColor Cyan
+# [12/10/2026] 5j0b) Ventas historicas de Aloha (solo desde el 30/06/2025, antes la API devuelve 0) y cruce venta vs descarga
+#     por semana del año (otra ventana): plan_compras\aloha_ventas_historico.ps1 (incremental, solo GET, pide las semanas que
+#     faltan + las ultimas 4) deja fuentes\aloha_ventas_historico.json; plan_compras\ventas_vs_descargas.ps1 lo cruza con las
+#     cargas (misma lectura que historico_cargas.ps1) y deja fuentes\ventas_vs_descargas.json, que va a index_brasil entre
+#     /*__VENTAS_DESC_JSON__*/ y /*__END_VENTAS_DESC__*/ (grafico "Venta vs descarga" de la seccion Productores 2019-2026).
+Write-Host "[5j0b] Ventas historicas Aloha y cruce venta vs descarga..." -ForegroundColor Cyan
+try {
+    $vhScript = Join-Path $base 'plan_compras\aloha_ventas_historico.ps1'
+    $vdScript = Join-Path $base 'plan_compras\ventas_vs_descargas.ps1'
+    $vdJson = Join-Path $fuentes 'ventas_vs_descargas.json'
+    if (Test-Path $vhScript) { & $vhScript; if (-not $?) { throw 'aloha_ventas_historico.ps1 termino con error' } } else { Write-Host "    (skip) no hay plan_compras\aloha_ventas_historico.ps1" -ForegroundColor DarkYellow }
+    if (Test-Path $vdScript) { & $vdScript; if (-not $?) { throw 'ventas_vs_descargas.ps1 termino con error' } } else { Write-Host "    (skip) no hay plan_compras\ventas_vs_descargas.ps1" -ForegroundColor DarkYellow }
+    if (Test-Path $vdJson) {
+        $vJ = [IO.File]::ReadAllText($vdJson, [Text.Encoding]::UTF8).Trim()
+        $tgtV = Join-Path $base 'index_brasil.html'
+        $vTxt = Get-Content $tgtV -Raw -Encoding UTF8
+        $patV = '/\*__VENTAS_DESC_JSON__\*/.*?/\*__END_VENTAS_DESC__\*/'
+        $nV = ([regex]::Matches($vTxt, $patV, 'Singleline')).Count
+        if ($nV -ne 1) { Write-Host "    (skip) index_brasil.html: esperaba 1 par de marcadores VENTAS_DESC, hay $nV" -ForegroundColor Red }
+        else {
+            $repV = '/*__VENTAS_DESC_JSON__*/' + $vJ + '/*__END_VENTAS_DESC__*/'
+            Set-Content -Path $tgtV -Value ([regex]::Replace($vTxt, $patV, { param($m) $repV }, 'Singleline')) -Encoding UTF8 -NoNewline
+            Write-Host "    OK index_brasil.html (grafico venta vs descarga)" -ForegroundColor Green
+        }
+    } else { Write-Host "    (aviso) sin fuentes\ventas_vs_descargas.json" -ForegroundColor DarkYellow }
+} catch { Add-Falla -Paso 'Ventas historicas / venta vs descarga (5j0b)' -Detalle $_.Exception.Message; Write-Host "    5j0b FALLO: $($_.Exception.Message)" -ForegroundColor Red }Write-Host "[5j] Plan de compras (plan_compras\generar_datos.ps1)..." -ForegroundColor Cyan
 $genPC = Join-Path $base "plan_compras\generar_datos.ps1"
 if (-not (Test-Path $genPC)) {
     Write-Host "    (skip) no hay plan_compras\generar_datos.ps1" -ForegroundColor DarkYellow
