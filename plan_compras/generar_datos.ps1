@@ -70,6 +70,22 @@ if (Test-Path $alohaCam) {
                 # encima); 'parcial' = tomado con la semana ya vendiendo (el plan prorratea la venta de esa semana). Los mensajes
                 # dicen cual se uso. Gonzalo: "dale hacemos todo eso" (cambio 2 de la lista conjunta).
                 $conteo.tipo = $(if ($fAc.DayOfWeek -eq [DayOfWeek]::Saturday -or $fAc.DayOfWeek -eq [DayOfWeek]::Sunday -or ($fAc.DayOfWeek -eq [DayOfWeek]::Monday -and $fAc.Hour -lt 8)) { 'cierre' } else { 'parcial' })
+                # [12/10/2026] CONTEO DE REFERENCIA FIJO (cambio 2): si el conteo fisico es parcial (lunes/martes con la semana ya
+                # vendiendo) y hay un cierre del sabado anterior (aloha_camaras.json > ultimo_cierre = stock ERP al sabado 23:59,
+                # que coincide con el conteo fisico del sabado: 27.462 vs 27.488 el 10/10), se arranca de ese cierre: la semana se
+                # cuenta entera (venta completa, descargas desde el domingo) y no depende de a que hora corrio el pipeline. Mas de
+                # 2 dias despues del sabado (miercoles, viernes) vale el conteo fisico del dia, que ya trae la realidad de la semana.
+                if ($conteo.tipo -eq 'parcial' -and $ac.PSObject.Properties.Name -contains 'ultimo_cierre' -and $ac.ultimo_cierre -and $ac.ultimo_cierre.sabado -and $ac.ultimo_cierre.porOrigen) {
+                    $fSab = ([DateTime]$ac.ultimo_cierre.sabado).Date
+                    if (($fAc.Date - $fSab).TotalDays -le 2 -and ($fAc.Date - $fSab).TotalDays -ge 0) {
+                        $conteo = [ordered]@{ fecha = (Ymd $fSab) }
+                        foreach ($o in 'BR', 'PY', 'BO', 'EC') { $conteo[$o] = [int]$ac.ultimo_cierre.porOrigen.$o }
+                        $conteo.fuente = "Aloha stock ERP al cierre del sab $($fSab.ToString('dd/MM')) 23:59 (ultimo_cierre; el conteo fisico del $($fAc.ToString('dd/MM HH:mm')) era parcial)"
+                        $conteo.contado_hasta = $fSab.ToString('yyyy-MM-dd') + ' 23:59'
+                        $conteo.tipo = 'cierre'
+                        $fechaConteo = $conteo.fecha
+                    }
+                }
                 $fechaConteo = $conteo.fecha
             }
         }
@@ -102,6 +118,30 @@ if ($ultV.Count -ge 4) {
         if (-not @($ventas | Where-Object { $_.semana_lunes -eq $k }).Count) { $ventas += [PSCustomObject]@{ semana_lunes = $k; BR = $aBR; PY = $aPY; BO = $aBO; fuente = $notaV } }
     }
     $ventas = @($ventas | Sort-Object semana_lunes)
+    # [12/10/2026] ESTACIONALIDAD (cambio 4 de la lista conjunta; Gonzalo: "dale hacemos todo eso"): fuentes\ventas_vs_descargas.json
+    #     (otra ventana) trae por semana del año factor_madera_bo = venta suavizada de esa semana / promedio de todas (1,00 = semana
+    #     promedio; maximos ~1,25 en enero, minimos ~0,78 en junio-julio). La venta AUTO deja de ser el promedio plano de 10 semanas:
+    #     base = promedio de esas 10 semanas desestacionalizado (cada una dividida por su factor) y venta(n) = base x factor(n).
+    #     Si el archivo no esta o no trae factores, queda el promedio plano.
+    $vdF = Join-Path $repo 'fuentes\ventas_vs_descargas.json'; $factores = @{}
+    try { if (Test-Path $vdF) { $vd = Get-Content $vdF -Raw -Encoding UTF8 | ConvertFrom-Json; foreach ($cc in @($vd.calendario)) { if ($null -ne $cc.factor_madera_bo -and [double]$cc.factor_madera_bo -gt 0) { $factores[[int]$cc.n] = [double]$cc.factor_madera_bo } } } } catch { Write-Host "  (aviso) ventas_vs_descargas.json ilegible: $($_.Exception.Message)" }
+    function SemanaNDe($k) { $d = [DateTime]$k; return [int][math]::Floor(($d.DayOfYear - 1) / 7) + 1 }
+    if ($factores.Count -ge 40) {
+        $des = @(); foreach ($u in $ultV) { $nU = SemanaNDe $u.semana_lunes; if ($factores.ContainsKey($nU)) { $des += ([double]$u.TODO / $factores[$nU]) } }
+        if ($des.Count -ge 4) {
+            $baseDes = [int]([math]::Round((($des | Measure-Object -Average).Average) / 100) * 100)
+            $nEst = 0
+            foreach ($v in $ventas) {
+                if ([string]$v.fuente -ne $notaV) { continue }
+                $nV = SemanaNDe $v.semana_lunes; if (-not $factores.ContainsKey($nV)) { continue }
+                $fV = $factores[$nV]; $estV = [int]([math]::Round(($baseDes * $fV) / 100) * 100)
+                $v.BR = [int][math]::Round($estV * $sBR / $sT); $v.PY = [int][math]::Round($estV * $sPY / $sT); $v.BO = $estV - $v.BR - $v.PY
+                $v.fuente = "AUTO: estacional = $baseDes (promedio 10 sem desestacionalizado) x $($fV.ToString('0.00', [Globalization.CultureInfo]::InvariantCulture)) (factor sem $nV) = $estV; Aloha $($ultV[0].semana_lunes) a $($ultV[-1].semana_lunes)"
+                $nEst++
+            }
+            Write-Host "  venta prevista estacional: base $baseDes x factor de la semana ($nEst semanas AUTO)"
+        }
+    }
     Write-Host "  venta prevista automatica: $promV/sem (mix BR $aBR / PY $aPY / BO $aBO) para las semanas AUTO"
 }
 # [11/10/2026] VENTA DE LA SEMANA EN CURSO con los dias reales (regla del miercoles de Gonzalo: "lunes, martes y miercoles,

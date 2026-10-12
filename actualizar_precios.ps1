@@ -3973,6 +3973,30 @@ try {
             Write-Host "    OK index_brasil.html (grafico venta vs descarga)" -ForegroundColor Green
         }
     } else { Write-Host "    (aviso) sin fuentes\ventas_vs_descargas.json" -ForegroundColor DarkYellow }
+    # [12/10/2026] cambios 5 y 6: descartes por semana (aloha_ventas_historico.json) y FIFO del pizarron (aloha_pizarron.json >
+    # fifo) a index_brasil, bloques VENTAS_HIST y FIFO (tarjetas "Descartes por semana y origen" y "Pizarron - lotes con mas de
+    # 14 dias de frio" de la seccion Productores 2019-2026).
+    $inyecciones = @(
+        @{ nombre = 'VENTAS_HIST'; json = (Join-Path $fuentes 'aloha_ventas_historico.json'); sub = $null },
+        @{ nombre = 'FIFO'; json = (Join-Path $fuentes 'aloha_pizarron.json'); sub = 'fifo' }
+    )
+    $tgtV = Join-Path $base 'index_brasil.html'
+    foreach ($iy in $inyecciones) {
+        if (-not (Test-Path $iy.json)) { Write-Host "    (aviso) sin $(Split-Path $iy.json -Leaf)" -ForegroundColor DarkYellow; continue }
+        $raw = [IO.File]::ReadAllText($iy.json, [Text.Encoding]::UTF8).Trim()
+        if ($iy.sub) {
+            $obj = $raw | ConvertFrom-Json
+            if (-not ($obj.PSObject.Properties.Name -contains $iy.sub)) { Write-Host "    (aviso) $(Split-Path $iy.json -Leaf) sin clave $($iy.sub)" -ForegroundColor DarkYellow; continue }
+            $raw = ([ordered]@{ generado = [string]$obj.generado; ($iy.sub) = $obj.($iy.sub) } | ConvertTo-Json -Depth 10 -Compress)
+        }
+        $vTxt = Get-Content $tgtV -Raw -Encoding UTF8
+        $patI = '/\*__' + $iy.nombre + '_JSON__\*/.*?/\*__END_' + $iy.nombre + '__\*/'
+        $nI = ([regex]::Matches($vTxt, $patI, 'Singleline')).Count
+        if ($nI -ne 1) { Write-Host "    (skip) index_brasil.html: esperaba 1 par de marcadores $($iy.nombre), hay $nI" -ForegroundColor Red; continue }
+        $repI = '/*__' + $iy.nombre + '_JSON__*/' + $raw + '/*__END_' + $iy.nombre + '__*/'
+        Set-Content -Path $tgtV -Value ([regex]::Replace($vTxt, $patI, { param($m) $repI }, 'Singleline')) -Encoding UTF8 -NoNewline
+        Write-Host "    OK index_brasil.html (bloque $($iy.nombre))" -ForegroundColor Green
+    }
 } catch { Add-Falla -Paso 'Ventas historicas / venta vs descarga (5j0b)' -Detalle $_.Exception.Message; Write-Host "    5j0b FALLO: $($_.Exception.Message)" -ForegroundColor Red }Write-Host "[5j] Plan de compras (plan_compras\generar_datos.ps1)..." -ForegroundColor Cyan
 $genPC = Join-Path $base "plan_compras\generar_datos.ps1"
 if (-not (Test-Path $genPC)) {
@@ -4633,6 +4657,7 @@ function Get-DescargasSemanaTexto {
     if ($J.cancel_esperadas_por_semana -and ($J.cancel_esperadas_por_semana.PSObject.Properties.Name -contains $kW)) { $ce = [double]$J.cancel_esperadas_por_semana.$kW; if ($ce -ge 0.5) { $L += "Margen por cancelaciones: ~$([math]::Round($ce)) $(if ([math]::Round($ce) -eq 1) { 'camión' } else { 'camiones' })" } }    $L += "*Venta prevista:* $($venta.ToString('N0'))"
     $fv = & $fuenteDe $Lunes; if ($fv -match '^AUTO: promedio real de las ultimas (\d+) semanas') { $L += "(promedio real de $($Matches[1]) semanas)" }   # [11/10/2026] venta automatica
     elseif ($fv -match '^AUTO-dia: estimada con \d+ dias reales \(([^,) ]+)( x2)?') { $L += "($($Matches[1]) real$(if ($Matches[2]) { ' ×2' }))" }   # [11/10/2026] semana en curso con los dias vendidos
+    elseif ($fv -match '^AUTO: estacional = (\d+) \(promedio 10 sem desestacionalizado\) x ([\d\.]+) \(factor sem (\d+)\)') { $L += "(estacional: ×$($Matches[2].Replace('.', ',')) del promedio)" }   # [12/10/2026] venta estacional
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
     } else {

@@ -1155,6 +1155,25 @@ LOG DE CAMBIOS:
                    a las 4-6 semanas de "solo el dictado" (09/10). Todavia no se muestra en el simulador ni en los paneles.
                Los cambios 4-6 (estacionalidad desde la venta real, descartes semanales, FIFO del pizarron) esperan las
                claves nuevas de la otra ventana en ventas_vs_descargas.json, aloha_ventas_historico.json y aloha_pizarron.json.
+  12/10/2026 -> LISTA CONJUNTA, cambios 4-6 y conteo de referencia (datos de la otra ventana, enganche de esta):
+               (4) ESTACIONALIDAD: ventas_vs_descargas.json trae por semana del año factor_madera_bo (venta suavizada de esa
+                   semana / promedio de todas; maximos 1,22-1,25 en enero, minimos 0,77-0,81 en junio-julio). generar_datos:
+                   venta AUTO = base (promedio 10 semanas desestacionalizado, hoy 15.800) x factor(n). Semana 41 = 17.900,
+                   42 = 17.200, 45 = 18.500 (antes 15.600 planas). Fila AUTO-dia de la semana en curso sigue mandando desde el
+                   miercoles. Mensaje de cargas: "(estacional: x1,13 del promedio)".
+               (5) DESCARTES: aloha_ventas_historico.json trae descartes{BR,PY,BO,EC,total} por semana (el ERP los registra
+                   desde 2026); tarjeta "Descartes por semana y origen" en index_brasil (bloque VENTAS_HIST, barras apiladas
+                   2026). 2026: 6.693 cajas en 40 semanas, 167/sem, 0,7 % de lo vendido; ultima semana 314 (1,4 %).
+               (6) FIFO: aloha_pizarron.json trae fifo{umbral 14 dias, lotes, porOrigen, sospechosos_sin_cerrar (>45 dias),
+                   sin_origen}; tarjeta "Pizarron - lotes con mas de 14 dias de frio" en index_brasil (bloque FIFO, solo la
+                   clave fifo). Hoy 60 lotes: BR 20 / PY 13 / EC 27; 1 sospechoso (JP011 Provesi, 340 dias); 14 sin origen.
+                   Limpiar el pizarron en Aloha es de la gente de Gonzalo.
+               (2b) CONTEO DE REFERENCIA FIJO: aloha_camaras.json > ultimo_cierre = stock ERP al sabado 23:59 (coincide con el
+                   conteo fisico del sabado: 27.462 vs 27.488 el 10/10). Si el conteo fisico es parcial y esta a <= 2 dias de
+                   ese sabado (lunes/martes), el plan arranca del cierre del sabado y cuenta la semana entera; miercoles y
+                   viernes vale el conteo fisico del dia. Mensaje: "_(conteo Aloha sab 10 23:59)_". Efecto hoy: arranque 27.462
+                   en vez de 22.920 prorrateado; sab 17 cierra 22.984 con venta estacional 17.900, faltan 3; sab 24 10.794, faltan 15.
+               Paso 5j0b inyecta ademas VENTAS_HIST y FIFO. Probado con run_dry (293 s) y render headless (60 filas FIFO).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

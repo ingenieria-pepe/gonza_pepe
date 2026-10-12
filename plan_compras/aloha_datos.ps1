@@ -216,10 +216,26 @@ try {
             Log "  $sede : no disponible ($($_.Exception.Message))" 'DarkYellow'
         }
     }
+    # Ultimo cierre (12/10/2026): stock del ERP al cierre del sabado de la ultima semana completa, segun /stock/ventas-presentacion
+    # (campo stock, stock_al = sabado 23:59). Coincide con el conteo fisico del sabado (10/10: 27.462 vs 27.488) y, a diferencia del
+    # mapa de camaras, no cambia cuando el lunes ya se vendio parte: el plan lo usa como conteo de referencia fijo.
+    $ultimoCierre = $null
+    $cierreFila = $(if ($listaSemanas) { @($listaSemanas | Where-Object { -not $_.parcial }) | Select-Object -Last 1 } else { $null })
+    if ($cierreFila) {
+        $ultimoCierre = [ordered]@{
+            semana_lunes = $cierreFila.semana_lunes; sabado = $cierreFila.hasta; stock_al = $cierreFila.stock_al
+            porOrigen = [ordered]@{ BR = [int]$cierreFila.BR.stock; PY = [int]$cierreFila.PY.stock; BO = [int]$cierreFila.BO.stock; EC = [int]$cierreFila.EC.stock }
+            madera = ([int]$cierreFila.BR.stock + [int]$cierreFila.PY.stock); madera_bo = ([int]$cierreFila.BR.stock + [int]$cierreFila.PY.stock + [int]$cierreFila.BO.stock)
+            total_banana = ([int]$cierreFila.BR.stock + [int]$cierreFila.PY.stock + [int]$cierreFila.BO.stock + [int]$cierreFila.EC.stock)
+            fuente = 'stock ERP al cierre del sabado (ventas-presentacion de la ultima semana completa)'
+        }
+        Log ("  ultimo cierre sab {0}: BR {1} · PY {2} · BO {3} · EC {4} (madera+BO {5})" -f $ultimoCierre.sabado, $ultimoCierre.porOrigen.BR, $ultimoCierre.porOrigen.PY, $ultimoCierre.porOrigen.BO, $ultimoCierre.porOrigen.EC, $ultimoCierre.madera_bo)
+    }
     $camaras = [ordered]@{
         generado = $ahora.ToString('yyyy-MM-dd HH:mm'); fuente = 'Aloha API GET /stock/mapa-camaras?sede=ZAC|CR (conteo fisico por camara; banana por pais del producto)'
         porOrigen = [ordered]@{ BR = (R0 $camO.BR); PY = (R0 $camO.PY); BO = (R0 $camO.BO); EC = (R0 $camO.EC) }
         madera = (R0 ($camO.BR + $camO.PY)); carton = (R0 ($camO.BO + $camO.EC)); total_banana = (R0 ($camO.BR + $camO.PY + $camO.BO + $camO.EC))
+        ultimo_cierre = $ultimoCierre
         sedes = $sedes
     }
     Guardar 'aloha_camaras.json' $camaras
@@ -261,13 +277,18 @@ try {
     # son casi seguro lotes que no se cerraron en el pizarron al venderse (p.ej. JP011 con 340 dias) y van aparte, como sospechosos.
     # Los lotes cargados por foto vienen sin producto: el origen se infiere del codigo (PY..., ECUADOR/BONITA, BO...).
     $fifoUmbral = 14; $fifoSinCerrar = 45
-    function Origen-Lote { param($l) if ($l.origen) { return $l.origen }; $cod = [string]$l.codigo
-        if ($cod -match '^(?i)PY') { return 'PY' }; if ($cod -match '(?i)ecuador|bonita') { return 'EC' }; if ($cod -match '^(?i)BO') { return 'BO' }; return $null }
+    # El pizarron tambien tiene exoticos, uva, "Varios": no son banana y quedan fuera del FIFO (se cuentan en otros_productos).
+    $noBananaLote = '(?i)exot|expt|uva|mission|eden|varios|^FI\d'
+    function Origen-Lote { param($l) if ($l.origen) { return $l.origen }; $cod = ([string]$l.codigo).Trim()
+        if ($cod -match '^(?i)PY') { return 'PY' }; if ($cod -match '(?i)ecuador|bonita') { return 'EC' }; if ($cod -match '^(?i)BO') { return 'BO' }
+        if ($cod -match '^[A-Za-z]{2}\d{2,}$') { return 'BR' }   # lotes por foto sin producto: codigo de productor brasileno (FH073, CP052, JP011...)
+        return $null }
     $viejos = @($lotes | Where-Object { (Num $_.dias_frio) -gt $fifoUmbral } | Sort-Object { -(Num $_.dias_frio) })
-    $fifoLotes = @(); $fifoSosp = @()
+    $fifoLotes = @(); $fifoSosp = @(); $fifoOtros = 0
     foreach ($l in $viejos) {
-        $x = [ordered]@{ sede = $l.sede; camara = $l.camara; codigo = $l.codigo; productor = $l.productor; origen = (Origen-Lote $l); dias_frio = [int](Num $l.dias_frio)
-                         cantidad = $l.cantidad; fecha_ingreso = $l.fecha_ingreso; fuente = $l.fuente }
+        if (("$($l.codigo) $($l.productor) $($l.producto)") -match $noBananaLote) { $fifoOtros++; continue }
+        $x = [ordered]@{ sede = $l.sede; camara = $l.camara; codigo = $l.codigo; productor = $l.productor; origen = (Origen-Lote $l); origen_inferido = (-not $l.origen)
+                         dias_frio = [int](Num $l.dias_frio); cantidad = $l.cantidad; fecha_ingreso = $l.fecha_ingreso; fuente = $l.fuente }
         if ($x.dias_frio -gt $fifoSinCerrar) { $fifoSosp += $x } else { $fifoLotes += $x }
     }
     $fifoPO = [ordered]@{}
@@ -279,6 +300,7 @@ try {
         umbral_dias = $fifoUmbral; sin_cerrar_dias = $fifoSinCerrar
         nota = 'cantidad = cajas que ENTRARON con el lote, no las que quedan; dias_frio desde fecha_ingreso. Mas de sin_cerrar_dias dias: probablemente lote sin cerrar en el pizarron, no fruta.'
         lotes = $fifoLotes; porOrigen = $fifoPO; sospechosos_sin_cerrar = $fifoSosp; sin_origen = @($lotes | Where-Object { -not (Origen-Lote $_) }).Count
+        otros_productos = $fifoOtros   # lotes viejos que no son banana (exoticos, uva, Varios), excluidos de lotes[]
     }
     Log ("  FIFO: {0} lotes con mas de {1} dias ({2}); {3} sospechosos sin cerrar (>{4} dias); {5} lotes sin origen" -f $fifoLotes.Count, $fifoUmbral, (($fifoPO.GetEnumerator() | ForEach-Object { "$($_.Key) $($_.Value.lotes)" }) -join ', '), $fifoSosp.Count, $fifoSinCerrar, $fifo.sin_origen)
     $pizarron = [ordered]@{
