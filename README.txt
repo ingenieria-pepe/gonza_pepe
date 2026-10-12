@@ -1112,6 +1112,16 @@ LOG DE CAMBIOS:
                  tabla trayectoria por año, concentracion BR, criterios. Regla propia en el sello (bloque PRODUCTORES).
                Probado con run_dry (196 s) y render headless de Edge (19 filas en el semaforo, 42 en la trayectoria).
                Conteo Aloha del lun 12/10 11:56: 22.920 (BR 16.374, PY 5.003, BO 1.543); sab 17 cierra 21.354, faltan 4.
+  12/10/2026 -> (7) TRANSPORTISTAS (otra ventana): el xlsx OTROS suma las hojas transportistas_detalle, transp_x_productor
+               (2025-2026) y transp_concentracion (por año), con nombres unificados (Transzanini -> Zanini, Silvio Abierto ->
+               Silvio, Osveli/Osvelii -> Osvelli, ATX -> AXT, Compas -> Compass, Mega -> Mega Logistica, Sergio Nava -> Sergio
+               Navas, Bianvirc/Agrobianvirc -> Agrovianbirc, VPM -> VPN; 0/xx/vacio/#N/A = sin dato). Hallazgo: los 229
+               cancelados no tienen transportista (se cancelan antes de asignar camion). historico_cargas.ps1 aplica el mismo
+               mapa para que el semaforo diga lo mismo. (6) VENTAS HISTORICAS (otra ventana): la API de Aloha solo tiene
+               ventas desde la semana del 30/06/2025 (antes devuelve 0; /integraciones/charlie da 401), asi que no hay
+               historia multianual de ventas: plan_compras\aloha_ventas_historico.ps1 (incremental, solo GET) deja
+               fuentes\aloha_ventas_historico.json con 67 semanas lun-sab por origen; el cruce ventas vs descargas por
+               semana del año queda pendiente de esa ventana.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

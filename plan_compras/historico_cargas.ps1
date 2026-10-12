@@ -42,6 +42,7 @@ function SemanaN($lunes) { return [int][math]::Floor(($lunes.DayOfYear - 1) / 7)
 function Mediana($a) { $s = @($a | Sort-Object); if (-not $s.Count) { return $null }; return $s[[int][math]::Floor($s.Count / 2)] }
 function P90($a) { $s = @($a | Sort-Object); if (-not $s.Count) { return $null }; return $s[[int][math]::Min($s.Count - 1, [math]::Floor($s.Count * 0.9))] }
 $noBanana = '(?i)^(Papa|Boniato|Cebolla|Abacaxi|Varios|Registro|Zanahoria|Ajo|Calabac|Zapallo|Pi[nñ]a|Mango|Lim[oó]n|Naranja|Uva|Manzana|Pera|Mel[oó]n|Sand[ií]a|Tomate|Morr[oó]n|Pomelo|Kiwi|Palta|Ar[aá]ndano|Exotic|Mix|Bahia \+|xx$)'
+$mapaTransp = [ordered]@{ '(?i)^transzanini' = 'Zanini'; '(?i)^silvio abierto' = 'Silvio'; '(?i)^osvelii?$' = 'Osvelli'; '(?i)^atx$' = 'AXT'; '(?i)^compas$' = 'Compass'; '(?i)^mega$' = 'Mega Logistica'; '(?i)^G\.S\.C\.S\. PARAGUAY TTES' = 'G.S.C.S. PARAGUAY TTES.'; '(?i)^sergio nava$' = 'Sergio Navas'; '(?i)^(bianvirc|agrobianvirc)$' = 'Agrovianbirc'; '(?i)^vpm$' = 'VPN' }
 
 function Leer-Cargas($path, $fuente, $desde, $hasta) {
     $rows = @()
@@ -65,7 +66,9 @@ function Leer-Cargas($path, $fuente, $desde, $hasta) {
         $cd = $(if ($cDesc -ge 0) { Num (Cel $f $cDesc) } else { $null }); if ($cd -and ($cd -lt 100 -or ($mic -and $cd -gt 1.5 * $mic))) { $cd = $null }
         $fd = $(if ($cFd -ge 0) { Fecha $f[$cFd] } else { $null }); if ($fd -and ($fd -lt $fc -or ($fd - $fc).TotalDays -gt 30)) { $fd = $null }
         $ff = $(if ($cFf -ge 0) { Fecha $f[$cFf] } else { $null }); if ($ff -and ($ff -lt $fc -or ($ff - $fc).TotalDays -gt 30)) { $ff = $null }
-        $tr = Cel $f $cTr; if ($tr -match '^(0|#N/A|-|xx)$') { $tr = '' }
+        $tr = Cel $f $cTr; if ($tr -match '^(0|#N/A|-|xx|00:00:00)$') { $tr = '' }
+        # mismo mapa que documentos\estadisticas_plan_cargas (otra ventana, 12/10): variantes de escritura de los transportistas
+        foreach ($mp in $mapaTransp.GetEnumerator()) { if ($tr -match $mp.Key) { $tr = $mp.Value; break } }
         $out.Add([PSCustomObject]@{ fuente = $fuente; status = $st; productor = $pr; pais = $pais; carga = $fc; frontera = (Cel $f $cFr); fecha_frontera = $ff; descarga = $fd; transportista = $tr; cajas_mic = $mic; cajas_desc = $cd })
     }
     return $out
