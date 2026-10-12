@@ -3580,6 +3580,34 @@ if ($pcXlsx.Count -eq 0) {
 }
 
 # ==========================================================================
+# 5h2) Historico de cargas 2019-2026 y semaforo de productores (index_brasil)  [12/10/2026]
+#   plan_compras\historico_cargas.ps1 une el Excel historico de Gonzalo (copia sin choferes, cargas 2019-2023) con el
+#   export de la API (2024 en adelante) y deja fuentes\historico_cargas.json: por año, referencia por semana de descarga,
+#   trayectoria y semaforo por productor, lag y tasa de cancelacion por productor. Aca se inyecta en index_brasil.html
+#   entre /*__PRODUCTORES_JSON__*/ y /*__END_PRODUCTORES__*/ (seccion "Productores 2019-2026"); generar_datos (5j) lo
+#   lee para el plan (lag por productor, margen por cancelaciones) y los mensajes (referencia historica de la semana).
+#   Gonzalo 12/10: "vamos por todas y ayudate con la otra ventana".
+# ==========================================================================
+Write-Host "[5h2] Historico de cargas 2019-2026 (productores, semaforo, referencia semanal)..." -ForegroundColor Cyan
+try {
+    $histScript = Join-Path $base 'plan_compras\historico_cargas.ps1'
+    $histJson = Join-Path $fuentes 'historico_cargas.json'
+    if (-not (Test-Path $histScript)) { throw "falta $histScript" }
+    & $histScript
+    if (-not (Test-Path $histJson)) { throw 'historico_cargas.ps1 no dejo fuentes\historico_cargas.json' }
+    $hJ = [IO.File]::ReadAllText($histJson, [Text.Encoding]::UTF8).Trim()
+    $tgtH = Join-Path $base 'index_brasil.html'
+    $hTxt = Get-Content $tgtH -Raw -Encoding UTF8
+    $patH = '/\*__PRODUCTORES_JSON__\*/.*?/\*__END_PRODUCTORES__\*/'
+    $nH = ([regex]::Matches($hTxt, $patH, 'Singleline')).Count
+    if ($nH -ne 1) { Write-Host "    (skip) index_brasil.html: esperaba 1 par de marcadores PRODUCTORES, hay $nH" -ForegroundColor Red }
+    else {
+        $repH = '/*__PRODUCTORES_JSON__*/' + $hJ + '/*__END_PRODUCTORES__*/'
+        Set-Content -Path $tgtH -Value ([regex]::Replace($hTxt, $patH, { param($m) $repH }, 'Singleline')) -Encoding UTF8 -NoNewline
+        Write-Host "    OK index_brasil.html (seccion Productores 2019-2026)" -ForegroundColor Green
+    }
+} catch { Add-Falla -Paso 'Historico de cargas (5h2)' -Detalle $_.Exception.Message; Write-Host "    5h2 FALLO: $($_.Exception.Message)" -ForegroundColor Red }
+# ==========================================================================
 # 5i) Saldo por dia y plan de cargas semanal (index_cargas.html)  [15/09/2026]
 #
 # Fuente: fuentes\plan_semanal\plan_semanal.xlsx, llenada A MANO con la foto
@@ -4513,6 +4541,7 @@ function Get-DescargasSemanaTexto {
     $cam = @()
     foreach ($c in $J.camiones) {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
+        if (($c.PSObject.Properties.Name -contains 'lag') -and $null -ne $c.lag) { $lag = [int]$c.lag }   # [12/10/2026] lag por productor (historico)
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
         if ($desc -le $fCon) { continue }
         $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
@@ -4564,7 +4593,10 @@ function Get-DescargasSemanaTexto {
     $nParc = @($ll | Where-Object { $_.parcial }).Count
     $L += "*Total:* $($ll.Count - $nParc) camiones" + $(if ($nParc -eq 1) { ' + 1/2 carga' } elseif ($nParc -gt 1) { " + $nParc medias cargas" } else { '' }) + " · $($tot.ToString('N0')) cajas"
     if ($nParc -gt 0) { $L += '(carga exóticos con ' + (($ll | Where-Object { $_.parcial } | ForEach-Object { $_.nombre }) -join ', ') + ')' }   # [09/10/2026] formato de Gonzalo
-    $L += "*Venta prevista:* $($venta.ToString('N0'))"
+    # [12/10/2026] referencia historica de la misma semana del año y margen por cancelaciones (plan_compras.json, del historico 2019-2026)
+    $kW = $Lunes.ToString('yyyy-MM-dd')
+    if ($J.referencia_semanal -and ($J.referencia_semanal.PSObject.Properties.Name -contains $kW)) { $rs = $J.referencia_semanal.$kW; $L += "*Histórico sem $($rs.n):* $([math]::Round([double]$rs.prom)) camiones"; $L += "(promedio $($rs.anios), misma semana)" }
+    if ($J.cancel_esperadas_por_semana -and ($J.cancel_esperadas_por_semana.PSObject.Properties.Name -contains $kW)) { $ce = [double]$J.cancel_esperadas_por_semana.$kW; if ($ce -ge 0.5) { $L += "Margen por cancelaciones: ~$([math]::Round($ce)) $(if ([math]::Round($ce) -eq 1) { 'camión' } else { 'camiones' })" } }    $L += "*Venta prevista:* $($venta.ToString('N0'))"
     $fv = & $fuenteDe $Lunes; if ($fv -match '^AUTO: promedio real de las ultimas (\d+) semanas') { $L += "(promedio real de $($Matches[1]) semanas)" }   # [11/10/2026] venta automatica
     elseif ($fv -match '^AUTO-dia: estimada con \d+ dias reales \(([^,) ]+)( x2)?') { $L += "($($Matches[1]) real$(if ($Matches[2]) { ' ×2' }))" }   # [11/10/2026] semana en curso con los dias vendidos
     if ($cierre -ge $min) {
@@ -4597,6 +4629,7 @@ function Get-PlanSemanaCuenta {
     $cam = @()
     foreach ($c in $J.camiones) {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
+        if (($c.PSObject.Properties.Name -contains 'lag') -and $null -ne $c.lag) { $lag = [int]$c.lag }   # [12/10/2026] lag por productor (historico)
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
         if ($desc -le $fCon) { continue }
         $cam += [PSCustomObject]@{ sem = (& $lunesDe $desc); cajas = [int]$c.cajas; carga = ([DateTime]$c.carga).Date; parcial = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial) }
@@ -4654,7 +4687,9 @@ function Get-AvisoComprasTexto {
         elseif ($cg.Count -eq 2) { $L += "(cargados $(& $fc $cg[0]) y $(& $fc $cg[1]))" }
         elseif ($cg.Count -gt 2) { $L += "(cargados entre $(& $fc $cg[0]) y $(& $fc $cg[-1]))" }
     }
-    $L += "Cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
+    $kW1 = $lun1.ToString('yyyy-MM-dd')   # [12/10/2026] historico y margen por cancelaciones
+    if ($J.referencia_semanal -and ($J.referencia_semanal.PSObject.Properties.Name -contains $kW1)) { $rs1 = $J.referencia_semanal.$kW1; $L += "Histórico sem $($rs1.n): $([math]::Round([double]$rs1.prom)) camiones" }
+    if ($J.cancel_esperadas_por_semana -and ($J.cancel_esperadas_por_semana.PSObject.Properties.Name -contains $kW1)) { $ce1 = [double]$J.cancel_esperadas_por_semana.$kW1; if ($ce1 -ge 0.5) { $L += "Margen por cancelaciones: ~$([math]::Round($ce1)) $(if ([math]::Round($ce1) -eq 1) { 'camión' } else { 'camiones' })" } }    $L += "Cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
     if ($faltan -gt 0) {
         $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
         $L += "entre lun $($lun1.ToString('dd')) y mié $($lun1.AddDays(2).ToString('dd'))"

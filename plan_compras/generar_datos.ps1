@@ -314,7 +314,37 @@ foreach ($c in $camiones) {
     if ($alohaNom.ContainsKey($k)) { $nm = ($alohaNom[$k].GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1).Key }
     $c | Add-Member -NotePropertyName nombre -NotePropertyValue $nm -Force
 }
-foreach ($k in $GRUPOS.Keys) {
+# [12/10/2026] HISTORICO 2019-2026 (fuentes\historico_cargas.json, lo arma plan_compras\historico_cargas.ps1 en el paso 5h2):
+#     lag y tasa de cancelacion por productor (nombre como lo escribe Aloha) y referencia de camiones por semana de
+#     descarga (promedio de los años anteriores). Gonzalo 12/10: "vamos por todas". El lag por productor pisa al del
+#     origen solo si el historico tiene 10+ viajes de ese productor con fecha de descarga (BR casi todos 3; BAHIA 7).
+$histJ = $null; $histF = Join-Path $repo 'fuentes\historico_cargas.json'
+try { if (Test-Path $histF) { $histJ = Get-Content $histF -Raw -Encoding UTF8 | ConvertFrom-Json } } catch { Write-Host "  (aviso) historico_cargas.json ilegible: $($_.Exception.Message)" }
+$nLagP = 0
+# llave lag_por_productor de la hoja supuestos (1 = usar la mediana historica del productor, 0 = siempre el lag del origen);
+# sin la llave, 1. Ojo: con 1, Paraguay GM (mediana 5 dias) cargado un martes llega el domingo y cuenta para la semana siguiente.
+$usarLagProd = 1; if ($supuestos.ContainsKey('lag_por_productor')) { $usarLagProd = [int]$supuestos['lag_por_productor'] }
+foreach ($c in $camiones) {
+    $lagC = $(if ($LAG_DESC.ContainsKey([string]$c.origen)) { [int]$LAG_DESC[[string]$c.origen] } else { 3 })
+    $tasaC = $null
+    if ($histJ) {
+        $nmH = [string]$c.nombre
+        if ($usarLagProd -and $histJ.lags_productor -and ($histJ.lags_productor.PSObject.Properties.Name -contains $nmH)) { $lagC = [int]$histJ.lags_productor.$nmH; $nLagP++ }
+        if ($histJ.cancel_tasa_productor -and ($histJ.cancel_tasa_productor.PSObject.Properties.Name -contains $nmH)) { $tasaC = [double]$histJ.cancel_tasa_productor.$nmH }
+    }
+    $c | Add-Member -NotePropertyName lag -NotePropertyValue $lagC -Force
+    $c | Add-Member -NotePropertyName cancel_tasa -NotePropertyValue $tasaC -Force
+}
+$refSem = [ordered]@{}
+if ($histJ -and $histJ.semanas_ref) {
+    $lunR = (Get-Date).Date; $lunR = $(if ($lunR.DayOfWeek -eq [DayOfWeek]::Sunday) { $lunR.AddDays(1) } else { $lunR.AddDays(-((([int]$lunR.DayOfWeek) + 6) % 7)) })
+    for ($w = -1; $w -le 9; $w++) {
+        $l = $lunR.AddDays(7 * $w); $n = [int][math]::Floor(($l.DayOfYear - 1) / 7) + 1
+        $sr = @($histJ.semanas_ref | Where-Object { [int]$_.n -eq $n }) | Select-Object -First 1
+        if ($sr) { $refSem[(Ymd $l)] = [ordered]@{ n = $n; prom = [double]$sr.prom; prom_BR = [double]$sr.prom_BR; prom_PY = [double]$sr.prom_PY; min = $sr.min; max = $sr.max; anios = [string]$sr.anios } }
+    }
+}
+if ($histJ) { Write-Host "  historico 2019-2026: lag por productor en $nLagP camiones; referencia semanal para $($refSem.Count) semanas" }foreach ($k in $GRUPOS.Keys) {
     $conteo[$k] = 0; foreach ($o in $GRUPOS[$k]) { $conteo[$k] += [int]$conteo[$o] }
     foreach ($v in $ventas) { $s = 0; foreach ($o in $GRUPOS[$k]) { $s += [int]$v.$o }; $v | Add-Member -NotePropertyName $k -NotePropertyValue $s -Force }
 }
@@ -350,6 +380,20 @@ $out = [ordered]@{
         }
         $h
     )
+    # [12/10/2026] cancelaciones esperadas por semana de DESCARGA (suma de la tasa historica de cada productor sobre los
+    # camiones que todavia no descargaron) y referencia historica de camiones por semana. Para los mensajes ("Margen por
+    # cancelaciones: ~1 camion", "Historico sem N: X camiones"). Son estadisticas, no camiones supuestos.
+    cancel_esperadas_por_semana = $(
+        $h2 = [ordered]@{}
+        foreach ($c in $camiones) {
+            if ($c.descarga -or ([string]$c.status) -match '^(Descargado|Arribado)' -or $null -eq $c.cancel_tasa) { continue }
+            try { $d = ([DateTime]$c.carga).AddDays([int]$c.lag) } catch { continue }
+            $lun = $(if ($d.DayOfWeek -eq [DayOfWeek]::Sunday) { $d.AddDays(1) } else { $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)) })
+            $k = Ymd $lun; if (-not $h2.Contains($k)) { $h2[$k] = 0.0 }; $h2[$k] = [math]::Round($h2[$k] + [double]$c.cancel_tasa, 2)
+        }
+        $h2
+    )
+    referencia_semanal = $refSem
     camiones = @($camiones | Sort-Object carga, origen)
 }
 $json = $out | ConvertTo-Json -Depth 6 -Compress

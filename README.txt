@@ -1088,6 +1088,30 @@ LOG DE CAMBIOS:
   12/10/2026 -> las dos planillas de origen SI van al repo, como copias "(sin choferes)": mismas hojas y filas, sin las
                columnas Chofer y Celular (hoja Cargas) ni la hoja Choferes. Gonzalo primero dijo "puede ir todo tranqui" y
                despues eligio "subi sin choferes". Los originales con choferes quedan solo en la laptop (.gitignore por nombre).
+  12/10/2026 -> HISTORICO 2019-2026 EN EL PIPELINE: semaforo de productores, referencia semanal, lag y cancelaciones por
+               productor (Gonzalo, sobre los 7 analisis propuestos: "vamos por todas y ayudate con la otra ventana").
+               - plan_compras\historico_cargas.ps1 (nuevo, PS 5.1, ~26 s): une el Excel historico sin choferes (cargas < 2024)
+                 con el export de la API (2024-) y deja fuentes\historico_cargas.json: por año (BR, PY, total), referencia
+                 por semana del año (camiones por semana de DESCARGA, promedio 2019-2025, min/max, por año, actual), semaforo
+                 y trayectoria por productor (por año, pico, techo mes y 4 semanas, ultimas 4 semanas vs promedio 12 meses,
+                 cancelaciones 8 semanas y tasa, lead time mediana/p90, cajas/camion, dia de carga, transportista; estado
+                 activo / en baja / sin cargar / inactivo), concentracion BR, lags_productor (20+ viajes) y cancel_tasa.
+                 Nombres unificados por forma mas frecuente (Corupa -> Corupá); transportista 0/#N/A = sin dato.
+               - actualizar_precios.ps1: paso 5h2 (corre el script e inyecta el JSON en index_brasil.html entre
+                 /*__PRODUCTORES_JSON__*/ y /*__END_PRODUCTORES__*/; el sello lo toma solo). Mensaje de cargas y aviso del
+                 miercoles: "Historico sem N: X camiones (promedio 2019-2025, misma semana)" y "Margen por cancelaciones:
+                 ~N camion(es)" cuando la suma de tasas de la semana llega a 0,5. Las dos cuentas usan el lag por camion.
+               - generar_datos.ps1: lee historico_cargas.json; cada camion lleva lag (mediana del productor si tiene 20+
+                 viajes, si no el del origen) y cancel_tasa; plan_compras.json suma referencia_semanal (11 semanas) y
+                 cancel_esperadas_por_semana. Llave nueva lag_por_productor en supuestos (sin la llave = 1). OJO: con el
+                 lag real Paraguay GM (mediana 5 dias) cargado un martes llega el domingo y cuenta para la semana siguiente;
+                 el 12/10 eso movio a GM de la semana 12-17 a la 19-24. Gonzalo decide si queda (lag_por_productor = 0 lo apaga).
+               - index_brasil.html: seccion nueva "Productores 2019-2026 — semaforo y trayectoria" entre Plan de cargas y
+                 Almar vs competencia: 4 KPI (semana del año historica, año en curso vs anterior al mismo dia, cargando hoy,
+                 en baja o sin cargar), grafico Chart.js (promedio por semana vs año en curso y anterior), tabla semaforo,
+                 tabla trayectoria por año, concentracion BR, criterios. Regla propia en el sello (bloque PRODUCTORES).
+               Probado con run_dry (196 s) y render headless de Edge (19 filas en el semaforo, 42 en la trayectoria).
+               Conteo Aloha del lun 12/10 11:56: 22.920 (BR 16.374, PY 5.003, BO 1.543); sab 17 cierra 21.354, faltan 4.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
