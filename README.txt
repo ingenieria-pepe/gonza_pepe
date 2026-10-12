@@ -1085,6 +1085,9 @@ LOG DE CAMBIOS:
                  Colombia 27 (2024) y 14 (2025); lead time EC 18-19 dias (Fray Bentos), BO 6-7 (Salto); merma EC 1,8 % -> 4,7 %.
                Solo cajas y camiones, sin precios ni costos (Gonzalo 11/10). Scripts generadores en los scratchpads de las dos
                ventanas; si hace falta regenerar, pasarlos al repo.
+  12/10/2026 -> las dos planillas de origen SI van al repo, como copias "(sin choferes)": mismas hojas y filas, sin las
+               columnas Chofer y Celular (hoja Cargas) ni la hoja Choferes. Gonzalo primero dijo "puede ir todo tranqui" y
+               despues eligio "subi sin choferes". Los originales con choferes quedan solo en la laptop (.gitignore por nombre).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

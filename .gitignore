@@ -33,6 +33,6 @@ fuentes/plan_cargas/otros/*(Aloha API).xlsx
 
 # archivos de bloqueo de Excel (~$nombre.xlsx) mientras el libro esta abierto
 ~$*
-# [12/10/2026] planillas historicas de Gonzalo (traen choferes y celulares): quedan en la laptop, no en el repo
-fuentes/plan_cargas/historico/
-fuentes/plan_cargas/otros/historico/
+# [12/10/2026] planillas historicas de Gonzalo: los ORIGINALES (con choferes y celulares) quedan en la laptop; al repo van las copias "(sin choferes)" (Gonzalo 12/10: "subi sin choferes")
+fuentes/plan_cargas/historico/*(Excel de Gonzalo).xlsx
+fuentes/plan_cargas/otros/historico/*(Excel de Gonzalo).xlsx
