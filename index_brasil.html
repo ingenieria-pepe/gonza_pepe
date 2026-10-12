@@ -683,16 +683,18 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       // ---- FIFO
       var F = (window.FIFO_DATA || {}).fifo, rf = document.getElementById('pr-ff-resumen'), tb = document.querySelector('#pr-fifo tbody');
       if (!F || !F.lotes) { rf.textContent = 'Sin datos del pizarrón todavía.'; return; }
-      var L = F.lotes || [], umbral = F.umbral_dias || 14, viejo = F.sin_cerrar_dias || 45;
-      document.getElementById('pr-ff-t').textContent = 'Pizarrón — lotes con más de ' + umbral + ' días de frío (FIFO)';
+      // [12/10/2026] Gonzalo: 'que es Ecuador en Brasil': en este panel solo los lotes de Brasil y Paraguay (la madera); Ecuador y Bolivia quedan afuera
+      var SOLO = { BR: 1, PY: 1 };
+      var L = (F.lotes || []).filter(function(l){ return SOLO[l.origen]; }), umbral = F.umbral_dias || 14, viejo = F.sin_cerrar_dias || 45;
+      document.getElementById('pr-ff-t').textContent = 'Pizarrón — lotes de Brasil y Paraguay con más de ' + umbral + ' días de frío (FIFO)';
       var po = F.porOrigen || {}, partes = [];
-      Object.keys(po).forEach(function(o){ if (po[o] && po[o].lotes) partes.push(o + ' ' + po[o].lotes + ' lotes / ' + fmtI(po[o].cajas) + ' cajas'); });
-      var sosp = F.sospechosos_sin_cerrar || [];
+      Object.keys(po).forEach(function(o){ if (SOLO[o] && po[o] && po[o].lotes) partes.push(o + ' ' + po[o].lotes + ' lotes / ' + fmtI(po[o].cajas) + ' cajas'); });
+      var sosp = (F.sospechosos_sin_cerrar || []).filter(function(l){ return SOLO[l.origen]; });
       rf.innerHTML = '<strong>' + L.length + ' lotes</strong> con más de ' + umbral + ' días de frío al ' + fmtD((window.FIFO_DATA || {}).generado) + ': ' + partes.join(' · ') + '.' + (sosp.length ? ' <span style="color:#c53030"><strong>' + sosp.length + ' con más de ' + viejo + ' días</strong>, casi seguro lotes que no se cerraron en Aloha: ' + sosp.map(function(l){ return (l.codigo || '') + ' ' + (l.productor || '') + ' (' + l.dias_frio + ' d)'; }).join(', ') + '.</span>' : '') + (F.sin_origen ? ' ' + F.sin_origen + ' lotes vienen sin origen y se infirió del código.' : '');
       var rows = '';
       L.forEach(function(l){ rows += '<tr' + (l.dias_frio >= viejo ? ' class="fase4-row"' : (l.dias_frio >= 30 ? ' class="fase23-row"' : '')) + '><td>' + (l.sede || '') + '</td><td>' + (l.camara || '') + '</td><td>' + (l.codigo || '') + '</td><td>' + (l.productor || '—') + '</td><td>' + (l.origen || '—') + (l.origen_inferido ? ' <span style="color:#718096;font-size:11px">(inferido)</span>' : '') + '</td><td class="num">' + l.dias_frio + '</td><td class="num">' + fmtI(l.cantidad) + '</td><td>' + fmtD(l.fecha_ingreso) + '</td></tr>'; });
       tb.innerHTML = rows || '<tr><td colspan="8">Ningún lote supera los ' + umbral + ' días.</td></tr>';
-      document.getElementById('pr-ff-nota').textContent = (F.nota || '') + ' Cajas ingresadas = lo que entró al lote, no lo que queda. Amarillo: 30 días o más; rojo: ' + viejo + ' o más. Fuente: Aloha /pizarron (otra ventana, aloha_datos.ps1).';
+      document.getElementById('pr-ff-nota').textContent = (F.nota || '') + ' Solo Brasil y Paraguay; los lotes de Ecuador y Bolivia no se muestran en este panel. Cajas ingresadas = lo que entró al lote, no lo que queda. Amarillo: 30 días o más; rojo: ' + viejo + ' o más. Fuente: Aloha /pizarron (otra ventana, aloha_datos.ps1).';
     })();
     </script>
     <div class="chart-card"><h3>Criterios</h3><ul id="pr-crit" style="font-size:13px;color:#4a5568;margin:0;padding-left:18px;"></ul></div>
