@@ -1179,6 +1179,8 @@ LOG DE CAMBIOS:
   12/10/2026 -> FIFO del pizarron en index_brasil solo con lotes de Brasil y Paraguay (Gonzalo, viendo lotes ECUADOR en el panel
                de Brasil: "que es Ecuador en Brasil"). Ecuador y Bolivia quedan fuera de esa tarjeta; si los quiere, van al
                panel de Ecuador / Paraguay-Bolivia.
+  12/10/2026 -> tarjeta "Pizarron - lotes con mas de 14 dias de frio (FIFO)" SACADA de index_brasil (Gonzalo: "saca esto") y su
+               inyeccion en 5j0b; la clave fifo de aloha_pizarron.json sigue generandose por si se quiere en otro lado.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

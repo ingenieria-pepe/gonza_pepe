@@ -3977,8 +3977,8 @@ try {
     # fifo) a index_brasil, bloques VENTAS_HIST y FIFO (tarjetas "Descartes por semana y origen" y "Pizarron - lotes con mas de
     # 14 dias de frio" de la seccion Productores 2019-2026).
     $inyecciones = @(
-        @{ nombre = 'VENTAS_HIST'; json = (Join-Path $fuentes 'aloha_ventas_historico.json'); sub = $null },
-        @{ nombre = 'FIFO'; json = (Join-Path $fuentes 'aloha_pizarron.json'); sub = 'fifo' }
+        @{ nombre = 'VENTAS_HIST'; json = (Join-Path $fuentes 'aloha_ventas_historico.json'); sub = $null }
+        # [12/10/2026] la tarjeta FIFO del pizarron se saco a pedido de Gonzalo ('saca esto'); los datos siguen en aloha_pizarron.json > fifo
     )
     $tgtV = Join-Path $base 'index_brasil.html'
     foreach ($iy in $inyecciones) {
