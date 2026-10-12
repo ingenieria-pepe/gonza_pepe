@@ -1174,6 +1174,8 @@ LOG DE CAMBIOS:
                    viernes vale el conteo fisico del dia. Mensaje: "_(conteo Aloha sab 10 23:59)_". Efecto hoy: arranque 27.462
                    en vez de 22.920 prorrateado; sab 17 cierra 22.984 con venta estacional 17.900, faltan 3; sab 24 10.794, faltan 15.
                Paso 5j0b inyecta ademas VENTAS_HIST y FIFO. Probado con run_dry (293 s) y render headless (60 filas FIFO).
+  12/10/2026 -> tarjeta de descartes desde la semana del 01/06/2026 (otra ventana: el ERP los registra de forma consistente
+               desde junio; ene-may trae reversas y el 0,7 % anual quedaba diluido). Tasa real jun-sep: 1,4 a 2,5 % de lo vendido.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

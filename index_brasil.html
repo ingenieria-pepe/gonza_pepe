@@ -648,7 +648,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       <h3 id="pr-dc-t">Descartes por semana y origen — cajas (año en curso)</h3>
       <canvas id="pr-dc-chart" height="90"></canvas>
       <p id="pr-dc-resumen" style="font-size:13px;color:#4a5568;margin:10px 0 0 0;">Cargando…</p>
-      <p style="font-size:12px;color:#718096;margin:6px 0 0 0;">Descartes registrados en el ERP (Aloha, ventas-presentación), semana lunes a sábado. El ERP los registra desde 2026; en 2025 casi no hay. Lo arma plan_compras\aloha_ventas_historico.ps1 (otra ventana).</p>
+      <p style="font-size:12px;color:#718096;margin:6px 0 0 0;">Descartes registrados en el ERP (Aloha, ventas-presentación), semana lunes a sábado. El ERP los registra de forma consistente desde junio de 2026 (antes hay meses con reversas y casi nada en 2025), por eso la tarjeta y el porcentaje arrancan en la semana del 01/06/2026. Lo arma plan_compras\aloha_ventas_historico.ps1 (otra ventana).</p>
     </div>
     <div class="chart-card">
       <h3 id="pr-ff-t">Pizarrón — lotes con más de 14 días de frío (FIFO)</h3>
@@ -666,10 +666,11 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
       var H = window.VENTAS_HIST_DATA || {}, rd = document.getElementById('pr-dc-resumen');
       var sem = (H.semanas || []).filter(function(s){ return s.descartes; });
       var hoyY = sem.length ? Math.max.apply(null, sem.map(function(s){ return +String(s.semana_lunes).slice(0, 4); })) : new Date().getFullYear();
-      var s26 = sem.filter(function(s){ return String(s.semana_lunes).slice(0, 4) == hoyY; });
+      var DESDE = '2026-06-01';   // el ERP registra descartes de forma consistente desde junio de 2026 (antes: meses con reversas)
+      var s26 = sem.filter(function(s){ return String(s.semana_lunes).slice(0, 4) == hoyY && String(s.semana_lunes) >= DESDE; });
       if (!s26.length) { rd.textContent = 'Sin descartes registrados todavía.'; }
       else {
-        document.getElementById('pr-dc-t').textContent = 'Descartes por semana y origen — cajas, ' + hoyY;
+        document.getElementById('pr-dc-t').textContent = 'Descartes por semana y origen — cajas, desde el ' + fmtD(DESDE);
         var labels = s26.map(function(s){ return fmtD(s.semana_lunes).slice(0, 5); });
         var ds = [['BR', 'Brasil', '#2c5282'], ['PY', 'Paraguay', '#c05621'], ['BO', 'Bolivia', '#2f855a'], ['EC', 'Ecuador', '#d69e2e']].map(function(o){ return { label: o[1], data: s26.map(function(s){ return +(s.descartes[o[0]] || 0); }), backgroundColor: o[2], stack: 'd' }; });
         try { new Chart(document.getElementById('pr-dc-chart').getContext('2d'), { type: 'bar', data: { labels: labels, datasets: ds }, options: { responsive: true, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { footer: function(it){ var t = 0; it.forEach(function(i){ t += i.parsed.y; }); return 'Total: ' + fmtI(t) + ' cajas'; } } } }, scales: { x: { stacked: true, title: { display: true, text: 'semana (lunes)' } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: 'cajas descartadas' } } } } }); }
@@ -677,7 +678,7 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
         var tot = 0, vta = 0, porO = { BR: 0, PY: 0, BO: 0, EC: 0 };
         s26.forEach(function(s){ tot += +(s.descartes.total || 0); vta += +(s.total || 0); ['BR', 'PY', 'BO', 'EC'].forEach(function(o){ porO[o] += +(s.descartes[o] || 0); }); });
         var ult = s26[s26.length - 1], ultPct = ult.total ? Math.round((+ult.descartes.total || 0) * 1000 / ult.total) / 10 : null;
-        rd.innerHTML = '<strong>' + hoyY + ':</strong> ' + fmtI(tot) + ' cajas descartadas en ' + s26.length + ' semanas, ' + fmtI(tot / s26.length) + ' por semana, ' + (vta ? (Math.round(tot * 1000 / vta) / 10).toString().replace('.', ',') : '—') + ' % de lo vendido. Por origen: Brasil ' + fmtI(porO.BR) + ', Paraguay ' + fmtI(porO.PY) + ', Bolivia ' + fmtI(porO.BO) + ', Ecuador ' + fmtI(porO.EC) + '. Última semana (' + fmtD(ult.semana_lunes) + '): ' + fmtI(ult.descartes.total) + ' cajas' + (ultPct === null ? '' : ' (' + String(ultPct).replace('.', ',') + ' %)') + '.';
+        rd.innerHTML = '<strong>Desde el ' + fmtD(DESDE) + ':</strong> ' + fmtI(tot) + ' cajas descartadas en ' + s26.length + ' semanas, ' + fmtI(tot / s26.length) + ' por semana, ' + (vta ? (Math.round(tot * 1000 / vta) / 10).toString().replace('.', ',') : '—') + ' % de lo vendido. Por origen: Brasil ' + fmtI(porO.BR) + ', Paraguay ' + fmtI(porO.PY) + ', Bolivia ' + fmtI(porO.BO) + ', Ecuador ' + fmtI(porO.EC) + '. Última semana (' + fmtD(ult.semana_lunes) + '): ' + fmtI(ult.descartes.total) + ' cajas' + (ultPct === null ? '' : ' (' + String(ultPct).replace('.', ',') + ' %)') + '.';
       }
       // ---- FIFO
       var F = (window.FIFO_DATA || {}).fifo, rf = document.getElementById('pr-ff-resumen'), tb = document.querySelector('#pr-fifo tbody');
