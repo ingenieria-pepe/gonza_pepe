@@ -329,7 +329,9 @@ foreach ($c in $camiones) {
     $tasaC = $null
     if ($histJ) {
         $nmH = [string]$c.nombre
-        if ($usarLagProd -and $histJ.lags_productor -and ($histJ.lags_productor.PSObject.Properties.Name -contains $nmH)) { $lagC = [int]$histJ.lags_productor.$nmH; $nLagP++ }
+        # [12/10/2026] Gonzalo: Paraguay "como todo PY" (4 dias para todos; GM a 5 lo movia a la semana siguiente): el lag por
+        # productor queda solo para Brasil.
+        if ($usarLagProd -and [string]$c.origen -eq 'BR' -and $histJ.lags_productor -and ($histJ.lags_productor.PSObject.Properties.Name -contains $nmH)) { $lagC = [int]$histJ.lags_productor.$nmH; $nLagP++ }
         if ($histJ.cancel_tasa_productor -and ($histJ.cancel_tasa_productor.PSObject.Properties.Name -contains $nmH)) { $tasaC = [double]$histJ.cancel_tasa_productor.$nmH }
     }
     $c | Add-Member -NotePropertyName lag -NotePropertyValue $lagC -Force

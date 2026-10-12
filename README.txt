@@ -1136,6 +1136,10 @@ LOG DE CAMBIOS:
                986 cajas/camion); 2.º semestre 2025: 15.308 vs 14.990; la venta supero a la descarga en 30 de 67 semanas.
                Gonzalo (a la otra ventana): "precios no quiero manejar por ahora": el precio de Bolivia deja de estar
                pendiente; nada de funciones por precio en plan, simulador ni mensajes. Probado con run_dry (248 s) y Edge.
+  12/10/2026 -> lag por productor SOLO para Brasil. Gonzalo, sobre GM a 5 dias ("cargado martes llega domingo y cuenta para la
+               semana siguiente"): "como todo PY" -> Paraguay siempre 4 dias; generar_datos aplica la mediana del productor
+               (20+ viajes) solo a camiones BR. GM vuelve al sab 17/10: semana 12-17 = 12 camiones + 1/2 carga, cierre 22.334,
+               faltan 3; semana 19-24 = 5 camiones, cierre 11.744, faltan 14 (conteo Aloha lun 12/10 11:56).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
