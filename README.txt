@@ -1065,6 +1065,26 @@ LOG DE CAMBIOS:
                sab 17 25.310 ok. Semana 19-24: 4 camiones, faltan 12.
   11/10/2026 -> cargas_programadas: camion de Bolivia de la semana 19-24 (Banexfrut, 1.050, carga vie 16/10, descarga jue 22).
                Gonzalo: "semana 19 se descarga jueves el Bol". Semana 19-24: 5 camiones (5.010), cierre sab 24 14.720, faltan 11.
+  12/10/2026 -> ESTADISTICAS DE CARGAS 2019-2026 (Gonzalo dejo dos planillas: "tengo mucha info para vos y la otra ventana,
+               sacar datos y estadisticas"). Archivos de origen, en subcarpetas "historico" para que generar_datos y el paso 5h
+               (que toman el xlsx mas nuevo de plan_cargas\ y otros\) no los confundan con los de la API. NO van al repo
+               (.gitignore: traen nombres y celulares de choferes); quedan en la laptop y en Descargas de Gonzalo:
+               - fuentes\plan_cargas\historico\2026-10-12_Plan - Cargas BR historico 2018-2024 (Excel de Gonzalo).xlsx: su Excel
+                 de antes de Aloha (hoja Cargas 4.110 filas, cargas 12/01/2018 a 24/08/2024, BR y PY; Carpetas, Choferes, Rangos).
+               - fuentes\plan_cargas\otros\historico\2026-10-12_Plan - Arribos OTROS 2021-2026 (Excel de Gonzalo).xlsx: el mismo
+                 dataset que "Plan - Cargas OTROS (Aloha API).xlsx" (1.058 vs 1.061 filas); se guarda porque el lo mando.
+               Salida en documentos\estadisticas_plan_cargas\ (hoja Resumen primero, criterios iguales en las dos):
+               - 2026-10-12_estadisticas_cargas_BR_PY_2019-2026.xlsx (esta ventana): 2019-2023 del historico, 2024-2026 de la
+                 API (en ene-ago 2024 las dos fuentes dan 352 vs 362 camiones BR). Hojas por_anio, por_mes, productores_BR,
+                 productores_PY, fronteras, transportistas, tiempos, dia_de_carga, cancelaciones, semanas. BR+PY descargados:
+                 2019 449 · 2020 588 · 2021 813 · 2022 629 · 2023 584 · 2024 843 · 2025 862 · 2026 614 (al 12/10; mismo tramo
+                 2025: 705). PY: 2023 214, 2024 267, 2025 61, 2026 153. Lead time BR carga->descarga mediana 3 dias (P90 4 en
+                 2026); PY 4. Dia de carga BR 2026: viernes 39 % (2019-2025: 21 %). Transportistas BR 2024-2026: FG 188/369/225.
+               - 2026-10-12_estadisticas_cargas_OTROS_2021-2026.xlsx (otra ventana, sobre el export OTROS de la API): Ecuador
+                 2024 187 contenedores / 297.320 cajas, 2025 179 / 349.482, 2026 128 / 258.650; Bolivia 18 / 53 / 55 camiones;
+                 Colombia 27 (2024) y 14 (2025); lead time EC 18-19 dias (Fray Bentos), BO 6-7 (Salto); merma EC 1,8 % -> 4,7 %.
+               Solo cajas y camiones, sin precios ni costos (Gonzalo 11/10). Scripts generadores en los scratchpads de las dos
+               ventanas; si hace falta regenerar, pasarlos al repo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
