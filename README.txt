@@ -1181,6 +1181,10 @@ LOG DE CAMBIOS:
                panel de Ecuador / Paraguay-Bolivia.
   12/10/2026 -> tarjeta "Pizarron - lotes con mas de 14 dias de frio (FIFO)" SACADA de index_brasil (Gonzalo: "saca esto") y su
                inyeccion en 5j0b; la clave fifo de aloha_pizarron.json sigue generandose por si se quiere en otro lado.
+  12/10/2026 -> % EN BLANCO EN LAS DONAS (otra ventana; Gonzalo con la captura de Ecuador: "que todas las graficas tengan ese
+               porcentaje en blanco"): plugin inline pctBlanco por instancia (afterDatasetsDraw, sin Chart.register) en las donas
+               de competencia de index_brasil.html e index_paraguay_bolivia.html: el % (1 decimal) en blanco negrita 11px en el
+               medio de cada porcion de 6 % o mas, mismo criterio que las donas SVG de Ecuador. Verificado con render headless.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

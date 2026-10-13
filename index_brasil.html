@@ -1124,6 +1124,14 @@ window.MERCADO_BR = /*__MERCADO_BR_JSON__*/{"datos_actualizado":"2026-10-08 17:4
     if (window.Chart) new Chart(card.querySelector('canvas').getContext('2d'), {
       type: 'doughnut',
       data: { labels: labels, datasets: [{ data: datos, backgroundColor: colores, borderColor: SURF, borderWidth: 2, hoverOffset: 6 }] },
+      // % en blanco dentro de cada porcion, como las donas SVG de index_ecuador (pedido de Gonzalo 12/10/2026: "todas las graficas con ese porcentaje en blanco")
+      plugins: [{ id: 'pctBlanco', afterDatasetsDraw: ch => {
+        const m = ch.getDatasetMeta(0), ctx = ch.ctx; if (!m || !m.data) return;
+        ctx.save(); ctx.fillStyle = '#fff'; ctx.font = '700 11px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        m.data.forEach((arc, i) => { const f = total ? (Number(datos[i]) || 0) / total : 0; if (f < 0.06) return;
+          const a = (arc.startAngle + arc.endAngle) / 2, r = (arc.innerRadius + arc.outerRadius) / 2;
+          ctx.fillText(fmt1(f * 100) + ' %', arc.x + Math.cos(a) * r, arc.y + Math.sin(a) * r); });
+        ctx.restore(); } }],
       options: { responsive: true, maintainAspectRatio: false, cutout: '45%',
         plugins: { legend: { display: false },
           tooltip: { callbacks: { label: c => ' ' + c.label + ': U$S ' + fmtI(c.parsed) + ' (' + fmt2(total ? c.parsed / total * 100 : 0) + ' %)' } } } }
