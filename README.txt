@@ -1185,6 +1185,10 @@ LOG DE CAMBIOS:
                porcentaje en blanco"): plugin inline pctBlanco por instancia (afterDatasetsDraw, sin Chart.register) en las donas
                de competencia de index_brasil.html e index_paraguay_bolivia.html: el % (1 decimal) en blanco negrita 11px en el
                medio de cada porcion de 6 % o mas, mismo criterio que las donas SVG de Ecuador. Verificado con render headless.
+  12/10/2026 -> index_brasil: la seccion "Plan de cargas Brasil" pasa abajo del Resumen ejecutivo (Gonzalo: "cargas en index
+               brasil ponelo abajo de resumen, es muy larga la lista de cargas y entrevera todo"); bloque movido entero por la
+               otra ventana (HTML + script CARGAS_DATA, sin cambios adentro), nav interno Cepea · Clima · Competencia BR ·
+               Resumen · Cargas. Orden final: Cepea, Clima, Productores 2019-2026, Competencia, Resumen, Cargas, Notas.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
