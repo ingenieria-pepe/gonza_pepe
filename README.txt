@@ -1217,6 +1217,9 @@ LOG DE CAMBIOS:
                da la cuenta cierre del sabado - venta lun/mar + Fischer del lunes. Sab 17 cierra 20.947 (faltan 5), sab 24
                20.713 (faltan 5). Gonzalo vio que el mensaje de cargas (foto del sabado) y el aviso (foto de hoy) no decian lo
                mismo: en la corrida real salen los dos del mismo conteo.
+  13/10/2026 -> semana 19-25/10: Cassio pasa a 3 (tersa, cuarta y sexta: se suma la cuarta 21) y Fisher a 3 (tersa, cuarta y
+               sexta: se suma la tersa 20). Gonzalo: "casio carga 3 martes miercoles y viernes", "fisher tambien". Semana 19-24:
+               19 camiones (18.982), cierre sab 24 22.729, faltan 3; los de la sexta 23 siguen descargando el mar 27.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
