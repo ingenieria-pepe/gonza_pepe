@@ -1192,6 +1192,14 @@ LOG DE CAMBIOS:
   12/10/2026 -> index_brasil: "Productores 2019-2026" pasa despues de Cargas (Gonzalo: "abajo de cargas, o sea despues de
                cargas"); bloque entero movido (comentario, h2, tarjetas y los tres scripts PRODUCTORES / VENTAS_DESC /
                VENTAS_HIST). Orden final: Cepea, Clima, Competencia, Resumen, Cargas, Productores 2019-2026, Notas. Render ok.
+  12/10/2026 -> (a) index_brasil, grafico "Temperatura maxima semanal vs Cepea": se suma el precio Cepea de Vale do Ribeira / San
+               Pablo (regiones id 52, naranja punteada, mismo eje; null donde falte semana) y la roja pasa a llamarse "Cepea
+               Nanica Norte SC" (Gonzalo: "agrega la banana de San Pablo"; otra ventana). Ultimo viernes 09/10: Norte SC 0,90
+               vs Vale do Ribeira 1,50 R$/kg.
+               (b) donas de competencia de index_brasil e index_paraguay_bolivia: Almar SIEMPRE en rojo (Gonzalo: "Banana de
+               Bolivia almar color rojo"; "cambia el color de Ciro Gentile"). Antes el rojo (#f44336, primero de la paleta
+               Material) era del numero uno del ranking de cada año, asi que en Bolivia lo tenia Ciro Gentile y Almar salia de
+               otro color; ahora Almar = rojo y los demas toman la paleta sin el rojo (Ciro pasa al azul indigo).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

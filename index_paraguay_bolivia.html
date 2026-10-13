@@ -2005,7 +2005,9 @@ window.CEPEA_DATA = /*__CEPEA_JSON__*/{"datos_actualizado":"2026-10-12 18:12","f
     const nombre = i => i === almar ? 'Almar' : corto(i.nombre);
     const activos = IMP.filter(i => anios.some(y => usdDe(i, y) > 0));
     const rankGlobal = activos.slice().sort((x, y) => usdDe(y, A) - usdDe(x, A) || (P ? usdDe(y, P) - usdDe(x, P) : 0));
-    const colorMap = {}; rankGlobal.forEach((i, n) => { colorMap[i.nombre] = n < PAL.length ? PAL[n] : GRIS; });
+    // [12/10/2026] Gonzalo: Almar siempre en rojo (antes el rojo era del #1 del ranking); los demas usan la paleta sin el rojo
+    const ROJO = PAL[0]; const colorMap = {}; const PALSIN = PAL.filter(c => c !== ROJO); let ci = 0;
+    rankGlobal.forEach(i => { colorMap[i.nombre] = (almar && i === almar) ? ROJO : (ci < PALSIN.length ? PALSIN[ci++] : GRIS); });
     const colorDe = i => colorMap[i.nombre] || GRIS;
     const sumMes = (imps, y, m) => imps.reduce((s, i) => s + (Number((pk(i, y).mensualT || [])[m]) || 0), 0);
     const incDe = (i, y) => { const m = Number(mk(y).usd) || 0; return m ? usdDe(i, y) / m * 100 : 0; };
