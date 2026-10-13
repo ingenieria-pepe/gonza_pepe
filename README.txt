@@ -1200,6 +1200,12 @@ LOG DE CAMBIOS:
                Bolivia almar color rojo"; "cambia el color de Ciro Gentile"). Antes el rojo (#f44336, primero de la paleta
                Material) era del numero uno del ranking de cada año, asi que en Bolivia lo tenia Ciro Gentile y Almar salia de
                otro color; ahora Almar = rojo y los demas toman la paleta sin el rojo (Ciro pasa al azul indigo).
+  13/10/2026 -> DICTADO semana de carga 19-25/10 (Gonzalo por chat, con dias): Brasil 12 = Fisher cuarta y sexta, Cassio tersa y
+               sexta, Ivo cuarta, Agro cuarta, Stein cuarta, Gilson cuarta, Josemar cuarta, Marconi sexta, Furlani sexta (camion
+               entero), Shapo sexta; Paraguay 5 = Milciades lunes, Alvarito martes, Diego martes, Guido lunes, Hugo domingo 18.
+               (El borrador del 12/10 traia Celso 1; en el dictado con dias no esta, asi que no se carga.) Resultado: semana
+               19-24 descarga 17 camiones (16.966; lun-mie 4, jue-sab 13), venta estacional 17.200, cierre sab 24 22.750, faltan
+               3; los de la sexta 23 (Fisher, Cassio, Marconi, Furlani, Shapo) descargan el mar 27: semana 26-31 arranca con 5.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
