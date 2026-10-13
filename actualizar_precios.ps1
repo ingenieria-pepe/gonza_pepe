@@ -4651,13 +4651,7 @@ function Get-DescargasSemanaTexto {
     $nLM = @($conDia | Where-Object { -not $_.parcial -and [int]$_.dia.DayOfWeek -ge 1 -and [int]$_.dia.DayOfWeek -le 3 }).Count
     $nJS = @($conDia | Where-Object { -not $_.parcial -and ([int]$_.dia.DayOfWeek -ge 4 -or [int]$_.dia.DayOfWeek -eq 0) }).Count
     if (($nLM + $nJS) -gt 0) { $L += "Descargan lun-mié $nLM · jue-sáb $nJS" }
-    # [12/10/2026] referencia historica de la misma semana del año y margen por cancelaciones (plan_compras.json, del historico 2019-2026)
-    $kW = $Lunes.ToString('yyyy-MM-dd')
-    if ($J.referencia_semanal -and ($J.referencia_semanal.PSObject.Properties.Name -contains $kW)) { $rs = $J.referencia_semanal.$kW; $L += "*Histórico sem $($rs.n):* $([math]::Round([double]$rs.prom)) camiones"; $L += "(promedio $($rs.anios), misma semana)" }
-    if ($J.cancel_esperadas_por_semana -and ($J.cancel_esperadas_por_semana.PSObject.Properties.Name -contains $kW)) { $ce = [double]$J.cancel_esperadas_por_semana.$kW; if ($ce -ge 0.5) { $L += "Margen por cancelaciones: ~$([math]::Round($ce)) $(if ([math]::Round($ce) -eq 1) { 'camión' } else { 'camiones' })" } }    $L += "*Venta prevista:* $($venta.ToString('N0'))"
-    $fv = & $fuenteDe $Lunes; if ($fv -match '^AUTO: promedio real de las ultimas (\d+) semanas') { $L += "(promedio real de $($Matches[1]) semanas)" }   # [11/10/2026] venta automatica
-    elseif ($fv -match '^AUTO-dia: estimada con \d+ dias reales \(([^,) ]+)( x2)?') { $L += "($($Matches[1]) real$(if ($Matches[2]) { ' ×2' }))" }   # [11/10/2026] semana en curso con los dias vendidos
-    elseif ($fv -match '^AUTO: estacional = (\d+) \(promedio 10 sem desestacionalizado\) x ([\d\.]+) \(factor sem (\d+)\)') { $L += "(estacional: ×$($Matches[2].Replace('.', ',')) del promedio)" }   # [12/10/2026] venta estacional
+    $L += "*Venta prevista:* $($venta.ToString('N0'))"
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
     } else {
@@ -4746,9 +4740,7 @@ function Get-AvisoComprasTexto {
         elseif ($cg.Count -eq 2) { $L += "(cargados $(& $fc $cg[0]) y $(& $fc $cg[1]))" }
         elseif ($cg.Count -gt 2) { $L += "(cargados entre $(& $fc $cg[0]) y $(& $fc $cg[-1]))" }
     }
-    $kW1 = $lun1.ToString('yyyy-MM-dd')   # [12/10/2026] historico y margen por cancelaciones
-    if ($J.referencia_semanal -and ($J.referencia_semanal.PSObject.Properties.Name -contains $kW1)) { $rs1 = $J.referencia_semanal.$kW1; $L += "Histórico sem $($rs1.n): $([math]::Round([double]$rs1.prom)) camiones" }
-    if ($J.cancel_esperadas_por_semana -and ($J.cancel_esperadas_por_semana.PSObject.Properties.Name -contains $kW1)) { $ce1 = [double]$J.cancel_esperadas_por_semana.$kW1; if ($ce1 -ge 0.5) { $L += "Margen por cancelaciones: ~$([math]::Round($ce1)) $(if ([math]::Round($ce1) -eq 1) { 'camión' } else { 'camiones' })" } }    $L += "Cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
+    $L += "Cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
     if ($faltan -gt 0) {
         $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
         $L += "entre lun $($lun1.ToString('dd')) y mié $($lun1.AddDays(2).ToString('dd'))"

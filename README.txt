@@ -1206,6 +1206,12 @@ LOG DE CAMBIOS:
                (El borrador del 12/10 traia Celso 1; en el dictado con dias no esta, asi que no se carga.) Resultado: semana
                19-24 descarga 17 camiones (16.966; lun-mie 4, jue-sab 13), venta estacional 17.200, cierre sab 24 22.750, faltan
                3; los de la sexta 23 (Fisher, Cassio, Marconi, Furlani, Shapo) descargan el mar 27: semana 26-31 arranca con 5.
+  13/10/2026 -> mensajes de WhatsApp mas cortos (Gonzalo: "sacalo esto que marea"): fuera del mensaje de cargas y del aviso del
+               miercoles los renglones "Historico sem N" + "(promedio 2019-2025, misma semana)", "Margen por cancelaciones" y
+               las notas debajo de Venta prevista ("(promedio real de N semanas)", "(lun-mar-mie real x2)", "(estacional: ...)").
+               Quedan Venta prevista y Cierre a secas. Los datos siguen en plan_compras.json (referencia_semanal,
+               cancel_esperadas_por_semana) y en el panel. Arreglo de paso: esos renglones habian quedado pegados en la misma
+               linea de codigo que "Venta prevista" y "Cierre estimado", que se repusieron. Sidecars de Aloha refrescados 18:41.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
