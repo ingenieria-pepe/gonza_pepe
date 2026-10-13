@@ -1212,6 +1212,11 @@ LOG DE CAMBIOS:
                Quedan Venta prevista y Cierre a secas. Los datos siguen en plan_compras.json (referencia_semanal,
                cancel_esperadas_por_semana) y en el panel. Arreglo de paso: esos renglones habian quedado pegados en la misma
                linea de codigo que "Venta prevista" y "Cierre estimado", que se repusieron. Sidecars de Aloha refrescados 18:41.
+  13/10/2026 -> plan regenerado con el conteo fisico de Aloha del martes 13 12:07 (20.866: BR 14.501, PY 4.917, BO 1.448; parcial,
+               3 dias despues del sabado, asi que ya no aplica el cierre del sabado). Hay ~1.100 cajas menos en camara que lo que
+               da la cuenta cierre del sabado - venta lun/mar + Fischer del lunes. Sab 17 cierra 20.947 (faltan 5), sab 24
+               20.713 (faltan 5). Gonzalo vio que el mensaje de cargas (foto del sabado) y el aviso (foto de hoy) no decian lo
+               mismo: en la corrida real salen los dos del mismo conteo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
