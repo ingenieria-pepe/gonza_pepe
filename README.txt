@@ -1189,6 +1189,9 @@ LOG DE CAMBIOS:
                brasil ponelo abajo de resumen, es muy larga la lista de cargas y entrevera todo"); bloque movido entero por la
                otra ventana (HTML + script CARGAS_DATA, sin cambios adentro), nav interno Cepea · Clima · Competencia BR ·
                Resumen · Cargas. Orden final: Cepea, Clima, Productores 2019-2026, Competencia, Resumen, Cargas, Notas.
+  12/10/2026 -> index_brasil: "Productores 2019-2026" pasa despues de Cargas (Gonzalo: "abajo de cargas, o sea despues de
+               cargas"); bloque entero movido (comentario, h2, tarjetas y los tres scripts PRODUCTORES / VENTAS_DESC /
+               VENTAS_HIST). Orden final: Cepea, Clima, Competencia, Resumen, Cargas, Productores 2019-2026, Notas. Render ok.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
