@@ -4663,8 +4663,8 @@ function Get-DescargasSemanaTexto {
             $L += "entre lun $($Lunes.ToString('dd')) y mié $($Lunes.AddDays(2).ToString('dd'))"
         } else { $L += 'Bajo el objetivo, ya cerrado' }
     }
-    $L += "Objetivo: $($min.ToString('N0')) de stock al cierre"
-    $L += 'de los sábados'
+    $L += "*Nuevo objetivo: $($min.ToString('N0')) de stock*"   # [14/10/2026] Gonzalo: en negrita, 'nuevo objetivo' (27.000 desde hoy)
+    $L += '*al cierre de los sábados*'
     return ($L -join "`n")
 }
 function Get-PlanSemanaCuenta {
@@ -4721,7 +4721,7 @@ function Get-AvisoComprasTexto {
     if ($porDias) {
         $nd = @(([string]$f0.dias_usados) -split '-').Count
         $L += "*Venta $($f0.dias_usados):* $(([int]$f0.real_dias).ToString('N0'))"
-        $L += "(prevista $(([int]$f0.prevista_dias).ToString('N0')))"
+        # [14/10/2026] Gonzalo: 'sacalo': sin el renglon '(prevista N)'; la comparacion sigue por dentro (difCam)
         if ($difCam -gt 0) { $L += "Se vendió $difCam $(if ($difCam -eq 1) { 'camión' } else { 'camiones' }) más en $nd días" }
         elseif ($difCam -lt 0) { $L += "Se vendió $(-$difCam) $(if ($difCam -eq -1) { 'camión' } else { 'camiones' }) menos en $nd días" }
         else { $L += 'Venta en línea con lo previsto' }
@@ -4745,8 +4745,8 @@ function Get-AvisoComprasTexto {
         $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
         $L += "entre lun $($lun1.ToString('dd')) y mié $($lun1.AddDays(2).ToString('dd'))"
     }
-    $L += "Objetivo: $($min.ToString('N0')) de stock al cierre"
-    $L += 'de los sábados'
+    $L += "*Nuevo objetivo: $($min.ToString('N0')) de stock*"   # [14/10/2026] Gonzalo: en negrita, 'nuevo objetivo' (27.000 desde hoy)
+    $L += '*al cierre de los sábados*'
     return ($L -join "`n")
 }
 Write-Host "[WA] Evaluando alertas WhatsApp..." -ForegroundColor Cyan

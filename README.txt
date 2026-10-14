@@ -1231,6 +1231,8 @@ LOG DE CAMBIOS:
                plan_compras.xlsx > supuestos > minimo_cajas_sabado = 27000. Con eso: sab 17 22.986 (faltan 5), sab 24 26.784
                (falta 1), sab 31 15.732 con los 6 de la sexta 23 (faltan 12). El aviso de las 12:00 ahora si sale: falta 1 para el
                sab 24. Los mensajes toman el objetivo del JSON (minimos.TODO), nada que cambiar en el texto.
+  14/10/2026 -> aviso del miercoles sin el renglon "(prevista N)" (Gonzalo: "sacalo si"); la comparacion con lo previsto sigue
+               por dentro para decir "se vendio N camiones mas/menos" o "en linea".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
