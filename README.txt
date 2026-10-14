@@ -1227,6 +1227,10 @@ LOG DE CAMBIOS:
                quedan afuera). Venta real lun-mar-mie 8.818 (4.512 / 1.991 / 2.315 a las 11:48) vs prevista 9.057: en linea,
                semana estimada 17.600. Conteo Aloha mie 14 11:49: 19.372 (BR 13.119, PY 4.907, BO 1.346). Semana 19-24 descarga
                21 camiones (20.998), cierre sab 24 26.784, sobre el objetivo: el aviso de las 12:00 no sale (nada que avisar).
+  14/10/2026 -> OBJETIVO DEL SABADO 27.000 (Gonzalo: "Uruguay quiere cierre de los sabados a 27 mil"; antes 25.000 desde el 01/10):
+               plan_compras.xlsx > supuestos > minimo_cajas_sabado = 27000. Con eso: sab 17 22.986 (faltan 5), sab 24 26.784
+               (falta 1), sab 31 15.732 con los 6 de la sexta 23 (faltan 12). El aviso de las 12:00 ahora si sale: falta 1 para el
+               sab 24. Los mensajes toman el objetivo del JSON (minimos.TODO), nada que cambiar en el texto.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
