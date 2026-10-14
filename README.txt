@@ -1220,6 +1220,13 @@ LOG DE CAMBIOS:
   13/10/2026 -> semana 19-25/10: Cassio pasa a 3 (tersa, cuarta y sexta: se suma la cuarta 21) y Fisher a 3 (tersa, cuarta y
                sexta: se suma la tersa 20). Gonzalo: "casio carga 3 martes miercoles y viernes", "fisher tambien". Semana 19-24:
                19 camiones (18.982), cierre sab 24 22.729, faltan 3; los de la sexta 23 siguen descargando el mar 27.
+  14/10/2026 -> DICTADO DEFINITIVO semana de carga 19-25/10 (Gonzalo: "asi quedo definida la semana que viene"; reemplaza el del
+               13/10): Brasil 17 = Fisher tersa y sexta, Cassio tersa/cuarta/sexta, Celso cuarta, Ivo cuarta, Agro cuarta y sexta,
+               Muller Fabricio tersa y sexta (nuevo), Stein cuarta y sexta, Gilson cuarta, Marconi cuarta, Shapo sexta, Wagner
+               cuarta; Paraguay 5 = Milciades lunes, Alvarito martes, Diego lunes y martes, Guido lunes (Hugo, Josemar y Furlani
+               quedan afuera). Venta real lun-mar-mie 8.818 (4.512 / 1.991 / 2.315 a las 11:48) vs prevista 9.057: en linea,
+               semana estimada 17.600. Conteo Aloha mie 14 11:49: 19.372 (BR 13.119, PY 4.907, BO 1.346). Semana 19-24 descarga
+               21 camiones (20.998), cierre sab 24 26.784, sobre el objetivo: el aviso de las 12:00 no sale (nada que avisar).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
