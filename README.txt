@@ -1253,6 +1253,10 @@ LOG DE CAMBIOS:
                14.980 con los 6 de la sexta 23, faltan 13.
   15/10/2026 -> carga extra de Jhony Viera el sab 17/10 (Gonzalo: "hay una carga extra sabado 17 de jony viera"), descarga el
                mar 20. Semana 19-24: 23 camiones (23.142), cierre sab 24 27.040, sobre los 27.000.
+  15/10/2026 -> dos cargas mas en la semana 19-25 (Gonzalo: "bahia sexta gral 38", "sergio correia sabado 36"): BAHIA vie 23
+               (transporte Gral, 38 R$/caja; lag historico 7 dias -> descarga vie 30) y Sergio sab 24 (36; descarga mar 27).
+               Las dos van a la semana 26-31 (8 camiones, cierre sab 31 18.004, faltan 9); el sab 24 sigue en 27.040. Precios
+               agregados a la Semana 43 de cargas 2026.xlsx (filas 154-155, Total con el rango nuevo).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
