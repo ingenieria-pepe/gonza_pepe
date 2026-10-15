@@ -179,12 +179,17 @@ if ($av -and $av.semanas) {
             $mBR = [int]$filaV.BR; $mPY = [int]$filaV.PY; $mBO = [int]$filaV.BO; $mT = $mBR + $mPY + $mBO
             if ($mT -le 0) { $mBR = 6; $mPY = 3; $mBO = 1; $mT = 10 }
             $fuenteBase = [string]$filaV.fuente
-            $filaV.BR = [int][math]::Round($estV * $mBR / $mT); $filaV.PY = [int][math]::Round($estV * $mPY / $mT); $filaV.BO = $estV - $filaV.BR - $filaV.PY
-            $filaV.fuente = "AUTO-dia: estimada con $($usados.Count) dias reales ($($usados -join '-')$(if ($regla) { ' x2' } else { ', reparto por dia' })) = $estV; prevista $baseV"
+            # [15/10/2026] Gonzalo: "esta semana se va a vender 18 mil... calcula eso": si la venta de la semana la dicto el (fuente
+            # "Gonzalo ..."), vale la suya; la estimacion con los dias reales queda solo como comparacion para el aviso del miercoles.
+            $dictadaG = ([string]$filaV.fuente -match '^Gonzalo')
+            if (-not $dictadaG) {
+                $filaV.BR = [int][math]::Round($estV * $mBR / $mT); $filaV.PY = [int][math]::Round($estV * $mPY / $mT); $filaV.BO = $estV - $filaV.BR - $filaV.PY
+                $filaV.fuente = "AUTO-dia: estimada con $($usados.Count) dias reales ($($usados -join '-')$(if ($regla) { ' x2' } else { ', reparto por dia' })) = $estV; prevista $baseV"
+            }
             foreach ($kv in @(@('base', $baseV), @('base_fuente', $fuenteBase), @('dias_usados', ($usados -join '-')), @('dias_saltados', ($saltados -join '-')), @('real_dias', [int][math]::Round($sumV)), @('prevista_dias', $prevDias), @('regla_x2', $regla))) {
                 Add-Member -InputObject $filaV -NotePropertyName $kv[0] -NotePropertyValue $kv[1] -Force
             }
-            Write-Host "  venta semana en curso ($kHoyV) estimada con $($usados.Count) dias reales ($($usados -join '-')): $estV (prevista $baseV; dias $([int][math]::Round($sumV)) vs $prevDias)$(if ($saltados.Count) { "; sin contar: $($saltados -join '-')" })"
+            Write-Host "  venta semana en curso ($kHoyV) estimada con $($usados.Count) dias reales ($($usados -join '-')): $estV (prevista $baseV; dias $([int][math]::Round($sumV)) vs $prevDias)$(if ($saltados.Count) { "; sin contar: $($saltados -join '-')" })$(if ($dictadaG) { ' - la venta dictada por Gonzalo se mantiene' })"
         }
     }
 }

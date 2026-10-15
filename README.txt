@@ -1261,6 +1261,11 @@ LOG DE CAMBIOS:
                ojo"; punto medio, fuente Gonzalo, no la pisa el promedio; desde el mie 21 la estima con los dias reales). Con
                eso el sab 24 cierra 23.740 (faltan 4) y el sab 31 14.704 (faltan 13). Regla nueva de Gonzalo: "mandame" = por
                el chat; WhatsApp solo si lo pide con todas las letras.
+  15/10/2026 -> venta de la semana en curso 18.000 (Gonzalo: "esta semana se va a vender 18 mil, la semana que viene se estima 21
+               o 20 mil, calcula eso"). Regla: si Gonzalo dicta la venta de la semana en curso, vale la suya; la estimacion con
+               los dias reales (AUTO-dia) ya no la pisa y queda solo como comparacion para el aviso del miercoles (real vs
+               previsto -> "en linea" / "N camiones mas/menos"). Con 18.000 esta semana y 20.500 la que viene: sab 17 20.898,
+               sab 24 23.540 (faltan 4), sab 31 14.504 (faltan 13).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -4709,7 +4709,7 @@ function Get-AvisoComprasTexto {
     $min = 25000; if ($J.minimos -and $J.minimos.TODO) { $min = [int]$J.minimos.TODO }
     $cxc = 1000; if ($J.cajas_camion -and $J.cajas_camion.TODO) { $cxc = [int]$J.cajas_camion.TODO }
     $f0 = $s0.fila
-    $porDias = ($f0 -and ($f0.PSObject.Properties.Name -contains 'real_dias') -and ([string]$f0.fuente -like 'AUTO-dia:*') -and [string]$f0.semana_lunes -eq $lun0.ToString('yyyy-MM-dd'))
+    $porDias = ($f0 -and ($f0.PSObject.Properties.Name -contains 'real_dias') -and [string]$f0.semana_lunes -eq $lun0.ToString('yyyy-MM-dd'))   # [15/10/2026] tambien si la venta la dicto Gonzalo
     $difCam = 0
     if ($porDias) { $difCam = [int][math]::Round(([int]$f0.real_dias - [int]$f0.prevista_dias) / $cxc) }
     $faltan = [int][math]::Ceiling([math]::Max(0, $min - $s1.cierre) / $cxc)
