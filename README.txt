@@ -1251,6 +1251,8 @@ LOG DE CAMBIOS:
                semana guardada como fecha y fuente "definitivo con valores", agregadas por la otra ventana) borradas. Resultado:
                sab 17 cierra 21.098 (ya cerrado); semana 19-24 descarga 22 (22.134), cierre sab 24 26.032, falta 1; sab 31
                14.980 con los 6 de la sexta 23, faltan 13.
+  15/10/2026 -> carga extra de Jhony Viera el sab 17/10 (Gonzalo: "hay una carga extra sabado 17 de jony viera"), descarga el
+               mar 20. Semana 19-24: 23 camiones (23.142), cierre sab 24 27.040, sobre los 27.000.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
