@@ -1233,6 +1233,12 @@ LOG DE CAMBIOS:
                sab 24. Los mensajes toman el objetivo del JSON (minimos.TODO), nada que cambiar en el texto.
   14/10/2026 -> aviso del miercoles sin el renglon "(prevista N)" (Gonzalo: "sacalo si"); la comparacion con lo previsto sigue
                por dentro para decir "se vendio N camiones mas/menos" o "en linea".
+  14/10/2026 -> DICTADO DE LA TARDE semana 19-25/10 ("hubo cambios, hay que organizar"), con transportista por carga: Brasil 19 =
+               Fisher tersa/sexta (Amaro), Muller Fabricio tersa/sexta (Chabat, via Curuca), Stein cuarta/sexta (Chabat), Cassio
+               tersa (Axt) cuarta/sexta (Nilton), Celso cuarta, Ivo cuarta, Jaime Zimerman cuarta (NUEVO, no es el Jaime viejo),
+               Agro cuarta/sexta, Gilson cuarta/sexta, Marconi cuarta, Shapo cuarta, Wagner cuarta (todos Nilton); Paraguay 3 =
+               Milciades lunes, Alvarito martes, Guido lunes (Diego afuera). Semana 19-24 descarga 21 (21.054), cierre sab 24
+               26.840, falta 1 para 27.000; los 6 de la sexta 23 descargan el mar 27 (sab 31 15.788, faltan 12).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
