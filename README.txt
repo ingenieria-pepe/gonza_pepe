@@ -1257,6 +1257,10 @@ LOG DE CAMBIOS:
                (transporte Gral, 38 R$/caja; lag historico 7 dias -> descarga vie 30) y Sergio sab 24 (36; descarga mar 27).
                Las dos van a la semana 26-31 (8 camiones, cierre sab 31 18.004, faltan 9); el sab 24 sigue en 27.040. Precios
                agregados a la Semana 43 de cargas 2026.xlsx (filas 154-155, Total con el rango nuevo).
+  15/10/2026 -> venta prevista de la semana del 19/10 = 20.500 (Gonzalo: "la idea es semana que viene vender 20 o 21 mil cajas,
+               ojo"; punto medio, fuente Gonzalo, no la pisa el promedio; desde el mie 21 la estima con los dias reales). Con
+               eso el sab 24 cierra 23.740 (faltan 4) y el sab 31 14.704 (faltan 13). Regla nueva de Gonzalo: "mandame" = por
+               el chat; WhatsApp solo si lo pide con todas las letras.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
