@@ -1239,6 +1239,18 @@ LOG DE CAMBIOS:
                Agro cuarta/sexta, Gilson cuarta/sexta, Marconi cuarta, Shapo cuarta, Wagner cuarta (todos Nilton); Paraguay 3 =
                Milciades lunes, Alvarito martes, Guido lunes (Diego afuera). Semana 19-24 descarga 21 (21.054), cierre sab 24
                26.840, falta 1 para 27.000; los 6 de la sexta 23 descargan el mar 27 (sab 31 15.788, faltan 12).
+  15/10/2026 -> PLANIFICACION con precios (Gonzalo por chat): fuentes\cargas 2026.xlsx > Setiembre suma Semana 42 (12-17/10:
+               Fisher 35 x2, Agro 35 x2, Cassio 35 x2, Stein 38 x2, Ivo 40, Marconi 38, Josemar 40, Gilson 38 x2, Shapo 38; PY
+               Alvarito martes y Milciades miercoles a 7 USD) y Semana 43 (19-24/10: Fisher 35 x2, Muller Fabricio 38 x2, Stein
+               x2 SIN precio, Cassio 35 x3, Celso 38, Ivo 40, Jaime Zimerman 38, Agro x2 SIN precio, Gilson 38, Marconi 38,
+               Shapo 38, Wagner 38; PY Milciades 7 USD y Guido 7,5 USD, lunes), mismo formato que las semanas 40 y 41.
+               cargas_programadas rehecha para las dos semanas con esa lista (semana 12-17: Agro y Gilson suman la sexta 16,
+               Alvarito pasa al martes 13, Milciades al miercoles 14, Guido afuera; Furlani 1/2 y Banexfrut se mantienen;
+               semana 19-25: Fisher tersa+cuarta, Gilson 1, Shapo y Wagner a la sexta, Paraguay solo Milciades y Guido; Agro
+               2 con la sexta SUPUESTA porque el dictado solo decia cuarta). Dos filas duplicadas (Agro y Gilson vie 16, con la
+               semana guardada como fecha y fuente "definitivo con valores", agregadas por la otra ventana) borradas. Resultado:
+               sab 17 cierra 21.098 (ya cerrado); semana 19-24 descarga 22 (22.134), cierre sab 24 26.032, falta 1; sab 31
+               14.980 con los 6 de la sexta 23, faltan 13.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
