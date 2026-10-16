@@ -1284,6 +1284,10 @@ LOG DE CAMBIOS:
                recargada completa la semana 19-25 (23 BR + 2 medias + Guido) en el plan y en la Semana 43 de cargas 2026.xlsx.
   16/10/2026 -> FIX 2: el plan si quedo bien; lo que faltaba eran los precios de la Semana 43 (variable $f pisaba $F en PowerShell,
                que no distingue mayusculas). Semana 43 de cargas 2026.xlsx con las 23 cargas BR y sus precios + Guido.
+  16/10/2026 -> cargas_programadas suma la columna opcional "descarga" (fecha real vista en Aloha): si esta, el camion dictado usa
+               esa fecha y no se suma si es anterior al conteo (antes se contaba dos veces lo ya descargado). Aloha 16/10: ya
+               descargaron Stein, Ivo, Marconi, Gilson (mie 14) y Alvarito (mar 13) -> descarga 16/10; Guido mar 13 CANCELADO,
+               borrado. Por descargar sab 17: Fischer, Cassio (936), Corupa, Josemar.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

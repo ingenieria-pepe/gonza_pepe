@@ -42,7 +42,7 @@ $LAG_DESC = @{ BR = 3; PY = 4; BO = 6 }   # PY 3 -> 4 el 28/09/2026 (Gonzalo: "p
 
 # ---- plan_compras.xlsx
 $pcx = Join-Path $aqui 'plan_compras.xlsx'
-$prog = @(Tabla $pcx 'cargas_programadas' | ForEach-Object { $d = Fecha $_.fecha; [PSCustomObject]@{ origen = $_.origen; productor = $_.productor; carga = (Ymd $d); semana_carga = (Ymd $d.AddDays(-[int]$d.DayOfWeek)); cajas = [int]$_.cajas; transportista = $_.transportista; nota = $_.nota; parcial = ([int]$_.cajas -lt 600) } })   # [08/10/2026] < 600 cajas = carga parcial (p. ej. 12 pallets en camion mixto): suma cajas, no cuenta como camion
+$prog = @(Tabla $pcx 'cargas_programadas' | ForEach-Object { $d = Fecha $_.fecha; [PSCustomObject]@{ origen = $_.origen; productor = $_.productor; carga = (Ymd $d); semana_carga = (Ymd $d.AddDays(-[int]$d.DayOfWeek)); cajas = [int]$_.cajas; descarga = $(if ($_.PSObject.Properties.Name -contains 'descarga' -and ([string]$_.descarga).Trim()) { Ymd (Fecha $_.descarga) } else { $null }); transportista = $_.transportista; nota = $_.nota; parcial = ([int]$_.cajas -lt 600) } })   # [08/10/2026] < 600 cajas = carga parcial (p. ej. 12 pallets en camion mixto): suma cajas, no cuenta como camion
 $ventas = @(Tabla $pcx 'ventas_plan' | ForEach-Object { [PSCustomObject]@{ semana_lunes = (Ymd (Fecha $_.semana_lunes)); BR = [int]$_.br; PY = [int]$_.py; BO = [int]$_.bo; fuente = $_.fuente } })
 # venta REAL por semana y origen (hoja ventas_semanales, transcrita del reporte semanal del ERP; 29/09/2026). Opcional.
 $ventasReales = @()
@@ -275,7 +275,7 @@ $quitar = @{}; $descartadas = 0
 for ($i = 0; $i -lt $camiones.Count; $i++) { $c = $camiones[$i]; if ($dictOW.ContainsKey(([string]$c.origen) + '|' + $c.semana_carga)) { $quitar[$i] = $true; $descartadas++ } }
 $usadas = 0; $omitidas = 0; $reemplazadas = 0
 foreach ($p in ($prog | Sort-Object carga)) {
-    $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = 'programado'; descarga = $null; transportista = $p.transportista; fuente = 'plan_compras'; nota = [string]$p.nota; parcial = [bool]$p.parcial }
+    $camiones += [PSCustomObject]@{ origen = $p.origen; productor = $p.productor; carga = $p.carga; semana_carga = $p.semana_carga; cajas = $p.cajas; status = $(if ($p.descarga) { 'Descargado' } else { 'programado' }); descarga = $p.descarga; transportista = $p.transportista; fuente = 'plan_compras'; nota = [string]$p.nota; parcial = [bool]$p.parcial }
     $usadas++
 }
 # [12/10/2026] PLAN VS REAL (cambio 3 de la lista conjunta; Gonzalo: "dale hacemos todo eso"): las filas de Aloha que se
