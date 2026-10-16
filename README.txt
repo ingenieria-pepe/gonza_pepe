@@ -1296,6 +1296,7 @@ LOG DE CAMBIOS:
                jue 18,9 / vie 21,5 / sab 8,9 %) en vez de dias/6. Con conteo del viernes queda solo el sabado: 1.602 en vez de
                3.000. Mensaje de cargas y aviso. (El simulador sigue con dias/6.)
   16/10/2026 -> semana del feriado 2/11: venta 16.000 la semana entera (Gonzalo), reemplaza los 14.000 calculados.
+  16/10/2026 -> venta dictada de las proximas tres semanas: 19/10 20.000, 26/10 21.000, 2/11 16.000 (Gonzalo).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
