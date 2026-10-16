@@ -1280,6 +1280,8 @@ LOG DE CAMBIOS:
                (Furlani tersa, Josemar cuarta) + Guido lunes (7,5 USD). Cambios: Stein 3 (segunda, tersa, sexta), Ivo/Gilson/Shapo
                a la tersa, Agro 2, BAHIA con Silvio y Sergio SC con Nilton, Milciades afuera. Bloque Semana 43 de cargas 2026.xlsx
                rehecho con todos los precios. Sidecars de Aloha refrescados 14:57.
+  16/10/2026 -> FIX de c071592: la lista de filas del script no tenia comas y se cargaron 7 filas sin sentido (y 0 precios);
+               recargada completa la semana 19-25 (23 BR + 2 medias + Guido) en el plan y en la Semana 43 de cargas 2026.xlsx.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
