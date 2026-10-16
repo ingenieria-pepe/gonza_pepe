@@ -1282,6 +1282,8 @@ LOG DE CAMBIOS:
                rehecho con todos los precios. Sidecars de Aloha refrescados 14:57.
   16/10/2026 -> FIX de c071592: la lista de filas del script no tenia comas y se cargaron 7 filas sin sentido (y 0 precios);
                recargada completa la semana 19-25 (23 BR + 2 medias + Guido) en el plan y en la Semana 43 de cargas 2026.xlsx.
+  16/10/2026 -> FIX 2: el plan si quedo bien; lo que faltaba eran los precios de la Semana 43 (variable $f pisaba $F en PowerShell,
+               que no distingue mayusculas). Semana 43 de cargas 2026.xlsx con las 23 cargas BR y sus precios + Guido.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
