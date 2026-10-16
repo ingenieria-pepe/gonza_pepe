@@ -1276,6 +1276,10 @@ LOG DE CAMBIOS:
                exoticos, 432 cajas, no cuentan como camion), Jhony Viera tersa (Nilton) y la segunda de Gilson tambien cuarta.
                Semana 19-24: 25 camiones + 2 medias cargas, 26.050 cajas, cierre sab 24 27.428, SOBRE los 27.000. Semana 26-31:
                7 camiones, cierre sab 31 17.384, faltan 10.
+  16/10/2026 -> DICTADO DEFINITIVO semana 19-25/10 con precios (Gonzalo: "semana que viene definitivo"): 23 camiones BR + 2 medias
+               (Furlani tersa, Josemar cuarta) + Guido lunes (7,5 USD). Cambios: Stein 3 (segunda, tersa, sexta), Ivo/Gilson/Shapo
+               a la tersa, Agro 2, BAHIA con Silvio y Sergio SC con Nilton, Milciades afuera. Bloque Semana 43 de cargas 2026.xlsx
+               rehecho con todos los precios. Sidecars de Aloha refrescados 14:57.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
