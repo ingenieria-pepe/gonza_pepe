@@ -1272,6 +1272,10 @@ LOG DE CAMBIOS:
                Zimerman con Nilton. "Sergio 2 = Bahia sexta + SC sabado" son las mismas dos cargas ya cargadas (BAHIA vie 23 y
                Sergio sab 24). Pendientes de aclarar: Gilson (1 o 2 en cada semana) y si la extra de Jhony Viera del sab 17
                sigue. Resultado: sab 17 21.878; semana 19-24 23 camiones, sab 24 24.548, faltan 3; sab 31 14.504, faltan 13.
+  15/10/2026 -> (noche) semana 19-25, Gonzalo suma: 1/2 Furlani tersa y 1/2 Josemar cuarta (12 pallets cada una en el camion de
+               exoticos, 432 cajas, no cuentan como camion), Jhony Viera tersa (Nilton) y la segunda de Gilson tambien cuarta.
+               Semana 19-24: 25 camiones + 2 medias cargas, 26.050 cajas, cierre sab 24 27.428, SOBRE los 27.000. Semana 26-31:
+               7 camiones, cierre sab 31 17.384, faltan 10.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
