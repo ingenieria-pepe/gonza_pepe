@@ -4586,7 +4586,7 @@ function Get-DescargasSemanaTexto {
     $plan = @($J.ventas_plan | Sort-Object semana_lunes)
     $ventaDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; $v = 0; if ($fila) { foreach ($o in 'BR', 'PY', 'BO') { $v += [int]$fila.$o } }; $v }
     $fuenteDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; if ($fila) { [string]$fila.fuente } else { '' } }
-    $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); [math]::Round($v * $dias / 6) } else { $v } }
+    $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $sh = @(0.239, 0.112, 0.155, 0.189, 0.215, 0.089); $f = 0.0; for ($k = 0; $k -lt 6; $k++) { if ($w.AddDays($k) -gt $fCon.Date) { $f += $sh[$k] } }; [math]::Round($v * $f) } else { $v } }   # [16/10/2026] reparto real por dia (Gonzalo: 'viernes tarde no hay ventas, es solo sabado')
     $cam = @()
     foreach ($c in $J.camiones) {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
@@ -4678,7 +4678,7 @@ function Get-PlanSemanaCuenta {
     $plan = @($J.ventas_plan | Sort-Object semana_lunes)
     $filaDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; $fila }
     $ventaDe = { param($w) $f = & $filaDe $w; $v = 0; if ($f) { foreach ($o in 'BR', 'PY', 'BO') { $v += [int]$f.$o } }; $v }
-    $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $dias = [math]::Max(0, [math]::Min(6, [math]::Round(($w.AddDays(5) - $fCon).TotalDays))); [math]::Round($v * $dias / 6) } else { $v } }
+    $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $sh = @(0.239, 0.112, 0.155, 0.189, 0.215, 0.089); $f = 0.0; for ($k = 0; $k -lt 6; $k++) { if ($w.AddDays($k) -gt $fCon.Date) { $f += $sh[$k] } }; [math]::Round($v * $f) } else { $v } }   # [16/10/2026] reparto real por dia (Gonzalo: 'viernes tarde no hay ventas, es solo sabado')
     $cam = @()
     foreach ($c in $J.camiones) {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }

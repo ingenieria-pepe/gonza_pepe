@@ -1291,6 +1291,10 @@ LOG DE CAMBIOS:
   16/10/2026 -> semana atipica del lun 2/11 (UAM cerrada, y Finados en Brasil: frontera cerrada). Gonzalo: "el sabado 800 mas, el
                martes 700 mas". ventas_plan: semana 26/10 = 17900 (estacional 17100 + 800 del sab 31); semana 2/11 = 14000 (estacional
                17500 sin el lunes, 23,9 %, + 700 del martes 3). Las dos con fuente Gonzalo, el promedio automatico no las pisa.
+  16/10/2026 -> venta que falta de la semana del conteo con el reparto real por dia (Gonzalo: "viernes tarde no hay ventas, es solo
+               sabado"): suma de la participacion de los dias POSTERIORES al dia del conteo (lun 23,9 / mar 11,2 / mie 15,5 /
+               jue 18,9 / vie 21,5 / sab 8,9 %) en vez de dias/6. Con conteo del viernes queda solo el sabado: 1.602 en vez de
+               3.000. Mensaje de cargas y aviso. (El simulador sigue con dias/6.)
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
