@@ -1266,6 +1266,12 @@ LOG DE CAMBIOS:
                los dias reales (AUTO-dia) ya no la pisa y queda solo como comparacion para el aviso del miercoles (real vs
                previsto -> "en linea" / "N camiones mas/menos"). Con 18.000 esta semana y 20.500 la que viene: sab 17 20.898,
                sab 24 23.540 (faltan 4), sab 31 14.504 (faltan 13).
+  15/10/2026 -> confirmacion de Gonzalo de las dos semanas ("solo para confirmar"): semana 12-17 vuelve Guido martes 13 (Paraguay
+               3: Alvarito martes, Milciades miercoles, Guido martes); semana 19-25: Muller Fabricio pasa a 3 (tersa, cuarta,
+               sexta), Agro queda en 1 (cuarta; se saca la sexta supuesta), Paraguay solo Guido lunes (Milciades afuera), Jaime
+               Zimerman con Nilton. "Sergio 2 = Bahia sexta + SC sabado" son las mismas dos cargas ya cargadas (BAHIA vie 23 y
+               Sergio sab 24). Pendientes de aclarar: Gilson (1 o 2 en cada semana) y si la extra de Jhony Viera del sab 17
+               sigue. Resultado: sab 17 21.878; semana 19-24 23 camiones, sab 24 24.548, faltan 3; sab 31 14.504, faltan 13.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
