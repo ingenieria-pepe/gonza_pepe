@@ -155,6 +155,45 @@ header ul.fuentes{padding-left:18px;flex-basis:100%}
   <p class="note" id="ecrFuente"></p>
 </section>
 
+<section class="card" id="ec-serie">
+  <h2>📈 Ecuador → Uruguay 2019-2026 — mercado y lugar de Almar</h2>
+  <p class="sub" id="ecsIntro"></p>
+  <div class="kpis" id="ecsKpis"></div>
+  <h3 class="h3">Por año: cajas importadas y parte de Almar</h3>
+  <div class="tblwrap"><table class="ecr-tabla" id="ecsAnios"></table></div>
+  <h3 class="h3">Por importador: toneladas y % del año</h3>
+  <div class="tblwrap"><table class="ecr-tabla" id="ecsImps"></table></div>
+  <div class="note flag" id="ecsLectura"></div>
+  <p class="note" id="ecsFuente"></p>
+</section>
+<script id="datosEcSerie" type="application/json">/*__EC_SERIE_JSON__*/{"datos_actualizado":"2026-10-17 07:45","fuente":"Penta Transaction, Uruguay importaciones NCM 0803.90, origen Ecuador, un extracto por año (2019 a ene-oct 2026, bajados el 17/10/2026; penta\\ecuador_anual\\)","anios":[{"anio":2019,"meses":12,"t":18059,"cajas":913228,"almar_t":11412,"almar_cajas":580046,"importadores":5,"aduana":"Fray Bentos 66%, Montevideo 34%"},{"anio":2020,"meses":12,"t":14196,"cajas":710598,"almar_t":7921,"almar_cajas":403056,"importadores":6,"aduana":"Fray Bentos 85%, Montevideo 15%"},{"anio":2021,"meses":12,"t":12420,"cajas":620849,"almar_t":6608,"almar_cajas":337217,"importadores":6,"aduana":"Fray Bentos 86%, Montevideo 14%"},{"anio":2022,"meses":12,"t":13987,"cajas":716472,"almar_t":6618,"almar_cajas":340249,"importadores":7,"aduana":"Fray Bentos 98%, Montevideo 2%"},{"anio":2023,"meses":12,"t":14032,"cajas":721420,"almar_t":5959,"almar_cajas":305152,"importadores":8,"aduana":"Fray Bentos 100%, Montevideo 0%"},{"anio":2024,"meses":12,"t":15103,"cajas":776445,"almar_t":5943,"almar_cajas":299320,"importadores":8,"aduana":"Fray Bentos 100%"},{"anio":2025,"meses":12,"t":16260,"cajas":842551,"almar_t":7148,"almar_cajas":359311,"importadores":6,"aduana":"Fray Bentos 96%, Paysandu 4%"},{"anio":2026,"meses":10,"t":13783,"cajas":715128,"almar_t":6333,"almar_cajas":317790,"importadores":5,"aduana":"Fray Bentos 98%, Paysandu 2%"}],"importadores":[{"nombre":"ALMAR S.R.L.","t":{"2019":11412,"2020":7921,"2021":6608,"2022":6618,"2023":5959,"2024":5943,"2025":7148,"2026":6333}},{"nombre":"CIRO GENTILE S.A.","t":{"2019":3799,"2020":3392,"2021":3116,"2022":3744,"2023":3733,"2024":3867,"2025":3549,"2026":2385}},{"nombre":"PROEXUR S R L","t":{"2019":2431,"2020":2062,"2021":1928,"2022":2691,"2023":3383,"2024":4139,"2025":4103,"2026":2945}},{"nombre":"HENDERSON Y CIA S.A.","t":{"2019":0,"2020":35,"2021":435,"2022":348,"2023":279,"2024":823,"2025":744,"2026":666}},{"nombre":"LINA FRESH URUGUAY SAS","t":{"2019":0,"2020":0,"2021":0,"2022":0,"2023":0,"2024":0,"2025":656,"2026":1454}},{"nombre":"NALIA S A","t":{"2019":208,"2020":354,"2021":271,"2022":210,"2023":126,"2024":84,"2025":0,"2026":0}},{"nombre":"IROLDI BERMUDEZ NATALIA GIMENA","t":{"2019":0,"2020":0,"2021":0,"2022":353,"2023":510,"2024":0,"2025":0,"2026":0}},{"nombre":"GARMIN S.R.L.","t":{"2019":209,"2020":432,"2021":62,"2022":0,"2023":0,"2024":0,"2025":0,"2026":0}},{"nombre":"MARAMA IMPORT AND EXPORT LTDA","t":{"2019":0,"2020":0,"2021":0,"2022":0,"2023":0,"2024":205,"2025":58,"2026":0}}],"ene_sep":{"2025":{"t":10750,"almar_t":4498},"2026":{"t":13283,"almar_t":6053}}}/*__END_EC_SERIE__*/</script>
+<script>
+(function(){
+  var raw = document.getElementById('datosEcSerie').textContent.replace(/\/\*__EC_SERIE_JSON__\*\//, '').replace(/\/\*__END_EC_SERIE__\*\//, '');
+  var D; try { D = JSON.parse(raw); } catch (e) { document.getElementById('ecsIntro').textContent = 'Sin datos.'; return; }
+  var fI = function(n){ return Math.round(+n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+  var A = D.anios, ult = A[A.length - 1], pen = A[A.length - 2], pri = A[0];
+  var pct = function(a){ return a.cajas ? Math.round(a.almar_cajas * 100 / a.cajas) : 0; };
+  document.getElementById('ecsIntro').innerHTML = 'Todas las importaciones de banana de Ecuador a Uruguay, año por año, desde ' + pri.anio + '. ' + ult.anio + ' llega hasta octubre.';
+  var tr = D.ene_sep, t25 = tr['2025'], t26 = tr['2026'];
+  var kp = [
+    ['Almar ' + ult.anio, fI(ult.almar_cajas) + ' cajas', pct(ult) + ' % del mercado (' + pen.anio + ': ' + pct(pen) + ' %)'],
+    ['Almar ' + pri.anio, pct(pri) + ' %', 'el punto más bajo fue ' + A.reduce(function(m, a){ return pct(a) < pct(m) ? a : m; }).anio + ' con ' + pct(A.reduce(function(m, a){ return pct(a) < pct(m) ? a : m; })) + ' %'],
+    ['Mercado ene-sep', fI(t26.t) + ' t en 2026', (t26.t >= t25.t ? '+' : '') + Math.round((t26.t - t25.t) * 100 / t25.t) + ' % contra ' + fI(t25.t) + ' t en 2025'],
+    ['Almar ene-sep', fI(t26.almar_t) + ' t en 2026', (t26.almar_t >= t25.almar_t ? '+' : '') + Math.round((t26.almar_t - t25.almar_t) * 100 / t25.almar_t) + ' % contra ' + fI(t25.almar_t) + ' t en 2025']
+  ];
+  document.getElementById('ecsKpis').innerHTML = kp.map(function(k){ return '<div class="tile"><div class="lab">' + k[0] + '</div><div class="val">' + k[1] + '</div><div class="dl">' + k[2] + '</div></div>'; }).join('');
+  var h = '<thead><tr><th>Año</th><th class="num">Cajas</th><th class="num">Toneladas</th><th class="num">Cajas Almar</th><th>Parte de Almar</th><th class="num">Importadores</th><th>Aduana</th></tr></thead><tbody>';
+  A.forEach(function(a){ var p = pct(a); h += '<tr' + (/ALMAR/.test('') ? '' : '') + '><td><strong>' + a.anio + '</strong>' + (a.meses < 12 ? ' <span style="color:var(--muted);font-size:11px">(' + a.meses + ' meses)</span>' : '') + '</td><td class="num">' + fI(a.cajas) + '</td><td class="num">' + fI(a.t) + '</td><td class="num">' + fI(a.almar_cajas) + '</td><td><div style="display:flex;align-items:center;gap:8px"><div style="flex:0 0 120px;height:10px;background:var(--border);border-radius:5px;overflow:hidden"><div style="width:' + p + '%;height:100%;background:#c0392b"></div></div><strong>' + p + ' %</strong></div></td><td class="num">' + a.importadores + '</td><td style="font-size:12px;color:var(--muted)">' + a.aduana + '</td></tr>'; });
+  document.getElementById('ecsAnios').innerHTML = h + '</tbody>';
+  var tot = {}; A.forEach(function(a){ tot[a.anio] = a.t; });
+  var hi = '<thead><tr><th>Importador</th>' + A.map(function(a){ return '<th class="num">' + a.anio + '</th>'; }).join('') + '</tr></thead><tbody>';
+  D.importadores.forEach(function(im){ var esA = /ALMAR/i.test(im.nombre); hi += '<tr' + (esA ? ' style="background:rgba(192,57,43,0.08);font-weight:700"' : '') + '><td>' + (esA ? 'Almar' : im.nombre.replace(/ S\.?R\.?L\.?| S\.?A\.?S?\.?| LTDA.*| SAS| Y CIA/gi, '').toLowerCase().replace(/\b\w/g, function(c){ return c.toUpperCase(); })) + '</td>' + A.map(function(a){ var v = im.t[a.anio] || 0; return '<td class="num">' + (v ? fI(v) + ' t<br><span style="color:var(--muted);font-size:11px">' + Math.round(v * 100 / tot[a.anio]) + ' %</span>' : '<span style="color:var(--faint)">—</span>') + '</td>'; }).join('') + '</tr>'; });
+  document.getElementById('ecsImps').innerHTML = hi + '</tbody>';
+  document.getElementById('ecsLectura').innerHTML = '<strong>Lectura:</strong> la parte de Almar bajó seis años seguidos, de ' + pct(pri) + ' % en ' + pri.anio + ' a ' + pct(A.reduce(function(m, a){ return pct(a) < pct(m) ? a : m; })) + ' % en ' + A.reduce(function(m, a){ return pct(a) < pct(m) ? a : m; }).anio + ', y desde ahí volvió a subir: ' + pct(pen) + ' % en ' + pen.anio + ' y ' + pct(ult) + ' % en ' + ult.anio + '. El mercado de Ecuador crece desde 2021 y en 2026 va ' + Math.round((t26.t - t25.t) * 100 / t25.t) + ' % arriba de 2025 a septiembre.';
+  document.getElementById('ecsFuente').textContent = 'Fuente: ' + D.fuente + '. Toneladas = kilos netos declarados; cajas = cantidad comercial en cajas.';
+})();
+</script>
 <section class="card">
   <h2 id="h2mundo">Referencia mundial</h2>
   <p class="sub" id="subMundo"></p>
@@ -615,6 +654,7 @@ h2 .sello-act,h1 .sello-act{vertical-align:middle}
   var masNuevo = function(){ var best = null; orden.forEach(function(n){ var b = bloques[n], v = b.datos || b.generado; if (v && (!best || v > (bloques[best].datos || bloques[best].generado))) best = n; }); return best; };
   function bloqueDe(h){
     var id = (h.id || '').toLowerCase(), tx = (h.textContent || '').toLowerCase();
+    if (tiene('EC_SERIE') && (h.closest && h.closest('#ec-serie'))) return 'EC_SERIE';   // [17/10/2026] serie Ecuador 2019-2026
     if (tiene('CARGAS') && (id === 'cargas' || tx.indexOf('plan de cargas') >= 0)) return 'CARGAS';
     if (id === 'competencia' || tx.indexOf('competencia') >= 0) return primero(['MERCADO_BR', 'MERCADO_PYBO', 'EC_RANKING', 'MERCADO']) || masNuevo();
     if (tx.indexOf('aduana') >= 0 || tx.indexOf('importador') >= 0 || tx.indexOf('mercado') >= 0) return primero(['MERCADO_BR', 'MERCADO_PYBO', 'MERCADO', 'ECUADOR2', 'EC_RANKING']) || masNuevo();

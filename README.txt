@@ -1298,6 +1298,12 @@ LOG DE CAMBIOS:
   16/10/2026 -> semana del feriado 2/11: venta 16.000 la semana entera (Gonzalo), reemplaza los 14.000 calculados.
   16/10/2026 -> venta dictada de las proximas tres semanas: 19/10 20.000, 26/10 21.000, 2/11 16.000 (Gonzalo).
                (fix: en el commit anterior las semanas 26/10 y 2/11 quedaron en 0 por un choque de nombres de variable.)
+  17/10/2026 -> index_ecuador: seccion nueva "Ecuador -> Uruguay 2019-2026 - mercado y lugar de Almar" (Gonzalo bajo de Penta las
+               importaciones de Ecuador un archivo por año; "si, sumala claramente"). Archivos en penta\ecuador_anual\ (subcarpeta: el
+               paso 5c lee penta\ sin recursion y no los mezcla). Bloque EC_SERIE a mano: por año cajas, toneladas, cajas Almar, %
+               Almar, importadores y aduana; toneladas por importador y año; ene-sep 2025 vs 2026. Almar: 63 % (2019) -> 39 % (2024)
+               -> 44 % (2025) -> 46 % (2026 ene-oct). Mercado ene-sep 2026 13.283 t, +24 % vs 2025. Solo cajas y toneladas, sin
+               precios. No se pudo verificar el render (Edge abierto de Gonzalo); JSON validado.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
