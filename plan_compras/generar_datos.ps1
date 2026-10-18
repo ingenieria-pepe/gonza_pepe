@@ -136,7 +136,7 @@ if ($ultV.Count -ge 4) {
                 $nV = SemanaNDe $v.semana_lunes; if (-not $factores.ContainsKey($nV)) { continue }
                 $fV = $factores[$nV]; $estV = [int]([math]::Round(($baseDes * $fV) / 100) * 100)
                 # [18/10/2026] Gonzalo: "18 mil es el promedio semanal minimo": piso de la venta automatica (supuestos > venta_minima_semana)
-                $pisoV = 0; if ($supuestos.ContainsKey('venta_minima_semana')) { $pisoV = [int]$supuestos['venta_minima_semana'] }; if ($estV -lt $pisoV) { $estV = $pisoV }
+                if ($null -eq $pisoV) { $pisoV = 0; try { foreach ($sx in @(Tabla $pcx 'supuestos')) { if ([string]$sx.clave -eq 'venta_minima_semana') { $pisoV = [int]$sx.valor } } } catch {} }; if ($estV -lt $pisoV) { $estV = $pisoV }
                 $v.BR = [int][math]::Round($estV * $sBR / $sT); $v.PY = [int][math]::Round($estV * $sPY / $sT); $v.BO = $estV - $v.BR - $v.PY
                 $v.fuente = "AUTO: estacional = $baseDes (promedio 10 sem desestacionalizado) x $($fV.ToString('0.00', [Globalization.CultureInfo]::InvariantCulture)) (factor sem $nV) = $estV; Aloha $($ultV[0].semana_lunes) a $($ultV[-1].semana_lunes)"
                 $nEst++
