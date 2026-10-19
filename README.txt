@@ -1308,6 +1308,7 @@ LOG DE CAMBIOS:
                parte de las dos semanas de 20 y 20.5"; supuestos > venta_minima_semana; las semanas dictadas mandan). Semana
                26/10 = 20.500 (antes 21.000). La del feriado 2/11 sigue en 16.000 dictada.
                (fix: el piso leia la hoja supuestos antes de que estuviera cargada y generar_datos fallaba; ahora la lee en el momento.)
+  19/10/2026 -> semana 19-25: Celso mie 21 CANCELADO; lo cubre Ivo vie 23 (Nilton), que descarga el mar 27 (pasa a la semana del 26).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
