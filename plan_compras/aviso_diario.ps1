@@ -59,7 +59,7 @@ try {
     $fc = @(); foreach ($s in $ac.sedes.PSObject.Properties) { if ($s.Value.contado_hasta) { $fc += [DateTime]$s.Value.contado_hasta } }; $fcU = ($fc | Sort-Object | Select-Object -Last 1)
     $tot = [int]$ac.porOrigen.BR + [int]$ac.porOrigen.PY + [int]$ac.porOrigen.BO
     $L += "*Cámara* $(if ($fcU) { $DOW[[int]$fcU.DayOfWeek] + ' ' + $fcU.ToString('dd HH:mm') }): *$(& $fI $tot)*"
-    $L += "🇧🇷 $(& $fI $ac.porOrigen.BR) · 🇵🇾 $(& $fI $ac.porOrigen.PY) · 🇧🇴 $(& $fI $ac.porOrigen.BO)"
+    $L += "🇧🇷 $(& $fI $ac.porOrigen.BR)"; $L += "🇵🇾 $(& $fI $ac.porOrigen.PY)"; $L += "🇧🇴 $(& $fI $ac.porOrigen.BO)"   # [20/10/2026] un origen por renglon (Gonzalo)
     # [20/10/2026] Gonzalo: "ya tenes mensajes los miercoles y los viernes, no se puede duplicar la info": el diario queda solo con la
     # venta por dia y la camara. Descargas y cierre del sabado van en el aviso del miercoles y el mensaje de cargas del viernes.
     # [20/10/2026] Gonzalo: "las descargas de manana? ... inclui-las": solo el proximo dia con descargas (manana, o el primero que tenga),
