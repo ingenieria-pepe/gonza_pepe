@@ -48,7 +48,7 @@ try {
             $L += "$($DOW[[int]$fd.DayOfWeek]) $($fd.ToString('dd')): $(& $fI $d.madera_bo)" + $(if ($p) { "  (pasado $(& $fI $p.madera_bo))" } else { '' })
             $suma += [int]$d.madera_bo; if ($p) { $sumP += [int]$p.madera_bo }; $sumS += $SH[[int]$d.dow]
         }
-        $L += "*Total: $(& $fI $suma)*" + $(if ($sumP) { "  (pasada $(& $fI $sumP))" } else { '' })
+        if ($hechos.Count -gt 1) { $L += "*Total: $(& $fI $suma)*" + $(if ($sumP) { "  (pasada $(& $fI $sumP))" } else { '' }) }   # con un solo dia el total repetia el numero
         if (-not $esCierre -and $sumS -gt 0 -and $sumS -lt 0.99) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }
     }
     $hoyD = @($diasA | Where-Object { [string]$_.fecha -eq $hoy.ToString('yyyy-MM-dd') }) | Select-Object -First 1
