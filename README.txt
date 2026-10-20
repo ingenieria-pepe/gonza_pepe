@@ -1319,6 +1319,7 @@ LOG DE CAMBIOS:
   20/10/2026 -> dictado de dos semanas: 26-31/10 = 12 BR (Fisher, Cassio, Stein, Jhony, Shapo tersa; Muller, Agro, Gilson, BAHIA,
                Ivo, Aryste Mittelman cuarta; Wagner sabado; Sergio afuera) + 3 PY; 2-7/11 = 16 BR (Fisher, Cassio, Stein, Muller x3
                tersa/cuarta/sexta; Gilson tersa+sexta; Agro cuarta+sexta) + 3 PY (Guido y Milciades lunes 2, Alvarito martes 3).
+  20/10/2026 -> semana 26-31/10: Wagner pasa al martes 27; se suman Jaime Zimerman miercoles 28 y Andre Pauli martes 27 (nuevo).
   19/10/2026 -> AVISO DIARIO "Venta al mediodia" (Gonzalo: "un mensaje de WhatsApp a mi numero terminado en 8111 todos los dias, que me
                llegue al mediodia, asi me ordena cuando estoy en los bananales"): plan_compras\aviso_diario.ps1 (lee Aloha, regenera el
                plan y manda: venta de ayer vs el mismo dia de la semana pasada, semana hasta ayer y estimada con los dias reales, camara
