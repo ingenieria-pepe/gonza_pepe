@@ -66,7 +66,15 @@ try {
     $msgSem = Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lun -Hoy $hoy
     $lineas = @($msgSem -split "`n")
     $iHoy = [array]::IndexOf($lineas, "*$((@{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'})[[int]$hoy.DayOfWeek]) $($hoy.ToString('dd'))*")
-    if ($iHoy -ge 0) { $hoyDesc = @(); for ($k = $iHoy + 1; $k -lt $lineas.Count -and $lineas[$k].Trim(); $k++) { $hoyDesc += ($lineas[$k] -replace '^\S+\s', '') }; $L += ''; $L += "*Descargan hoy ($($hoyDesc.Count)):* " + ($hoyDesc -join ', ') }
+    $L += ''; if ($iHoy -ge 0) { $hoyDesc = @(); for ($k = $iHoy + 1; $k -lt $lineas.Count -and $lineas[$k].Trim(); $k++) { $hoyDesc += ($lineas[$k] -replace '^\S+\s', '') }; $L += "*Descargan hoy ($($hoyDesc.Count)):* " + ($hoyDesc -join ', ') } else { $L += '*Descargan hoy:* nada' }; $iHoy = 0
+    # [19/10/2026] Gonzalo eligio "hoy y manana": el proximo dia de descarga (domingo y lunes no se descarga: sabado -> martes)
+    $man = $hoy.AddDays(1); while ($man.DayOfWeek -eq [DayOfWeek]::Sunday -or $man.DayOfWeek -eq [DayOfWeek]::Monday) { $man = $man.AddDays(1) }
+    $lunMan = $man.AddDays(-((([int]$man.DayOfWeek) + 6) % 7))
+    $linM = @($(if ($lunMan -eq $lun) { $lineas } else { (Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lunMan -Hoy $hoy) -split "`n" }))
+    $iM = [array]::IndexOf($linM, "*$((@{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'})[[int]$man.DayOfWeek]) $($man.ToString('dd'))*")
+    $manDesc = @(); if ($iM -ge 0) { for ($k = $iM + 1; $k -lt $linM.Count -and $linM[$k].Trim(); $k++) { $manDesc += ($linM[$k] -replace '^\S+\s', '') } }
+    if ($iHoy -lt 0) { $L += '' }
+    $L += "*$(if ($man -eq $hoy.AddDays(1)) { 'Mañana' } else { 'Próxima' }) $($DOW[[int]$man.DayOfWeek]) $($man.ToString('dd')) ($($manDesc.Count)):* " + $(if ($manDesc.Count) { $manDesc -join ', ' } else { 'nada' })
     $cierre = @($lineas | Where-Object { $_ -match '^\*Cierre s' }) | Select-Object -First 1
     $falta = @($lineas | Where-Object { $_ -match '^Falta|^Bajo el objetivo' }) | Select-Object -First 1
     $J = Get-Content (Join-Path $aqui 'plan_compras.json') -Raw -Encoding UTF8 | ConvertFrom-Json
