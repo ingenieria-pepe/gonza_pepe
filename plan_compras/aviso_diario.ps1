@@ -62,6 +62,19 @@ try {
     $L += "🇧🇷 $(& $fI $ac.porOrigen.BR) · 🇵🇾 $(& $fI $ac.porOrigen.PY) · 🇧🇴 $(& $fI $ac.porOrigen.BO)"
     # [20/10/2026] Gonzalo: "ya tenes mensajes los miercoles y los viernes, no se puede duplicar la info": el diario queda solo con la
     # venta por dia y la camara. Descargas y cierre del sabado van en el aviso del miercoles y el mensaje de cargas del viernes.
+    # [20/10/2026] Gonzalo: "las descargas de manana? ... inclui-las": solo el proximo dia con descargas (manana, o el primero que tenga),
+    # sin el cierre del sabado (ese va en los mensajes del miercoles y el viernes).
+    $tt = [IO.File]::ReadAllText((Join-Path $repo 'actualizar_precios.ps1'), [Text.Encoding]::UTF8)
+    $i0 = $tt.IndexOf('function Get-DescargasSemanaTexto {'); $i1 = $tt.IndexOf('Write-Host "[WA] Evaluando alertas WhatsApp..."'); Invoke-Expression $tt.Substring($i0, $i1 - $i0)
+    $NOMD = @{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'}; $semMsgs = @{}
+    for ($dd = 1; $dd -le 10; $dd++) {
+        $dx = $hoy.AddDays($dd); if ($dx.DayOfWeek -eq [DayOfWeek]::Sunday) { continue }
+        $lw = $dx.AddDays(-((([int]$dx.DayOfWeek) + 6) % 7)); $k = $lw.ToString('yyyy-MM-dd')
+        if (-not $semMsgs.ContainsKey($k)) { $semMsgs[$k] = @((Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lw -Hoy $hoy) -split "`n") }
+        $ls = $semMsgs[$k]; $i = [array]::IndexOf($ls, "*$($NOMD[[int]$dx.DayOfWeek]) $($dx.ToString('dd'))*"); $px = @()
+        if ($i -ge 0) { for ($q = $i + 1; $q -lt $ls.Count -and $ls[$q].Trim(); $q++) { $px += ($ls[$q] -replace '^\S+\s', '') } }
+        if ($px.Count) { $L += ''; $L += "*Descargan $(if ($dd -eq 1) { 'mañana' } else { '' }) $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):*".Replace('  ', ' ').Replace('* ', '*'); $L += ($px -join ', '); break }
+    }
     $txt = ($L -join "`n")
     Write-Host $txt
     if ($Dry) { Log 'aviso diario (dry): no se manda'; return }

@@ -1328,6 +1328,7 @@ LOG DE CAMBIOS:
                algo (lo ya descargado esta en la camara) y "Proxima descarga" = el primer dia con camiones.
   20/10/2026 -> aviso diario solo con venta por dia y camara (Gonzalo: "ya tenes mensajes los miercoles y los viernes, no se puede
                duplicar la info"): fuera descargas y cierre del sabado.
+  20/10/2026 -> aviso diario: vuelve una linea con las descargas del proximo dia que tenga camiones (manana o el siguiente), sin cierre.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
