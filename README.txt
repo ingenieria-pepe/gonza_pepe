@@ -1313,6 +1313,12 @@ LOG DE CAMBIOS:
                cuarta/sexta, Agro cuarta, Gilson sexta, Wagner sexta, BAHIA cuarta, Sergio sabado, Jhony tersa, Ivo sexta, Josemar
                sexta, Aryste Mittelman sexta (nuevo), Shapo sexta; Paraguay 3 = Alvarito lunes, Milciades martes, Guido martes.
                Lo de la sexta 30 y sabado 31 cruza recien el mar 3/11 (Finados, frontera cerrada el lun 2) y va a la semana del 2/11.
+  19/10/2026 -> AVISO DIARIO "Venta al mediodia" (Gonzalo: "un mensaje de WhatsApp a mi numero terminado en 8111 todos los dias, que me
+               llegue al mediodia, asi me ordena cuando estoy en los bananales"): plan_compras\aviso_diario.ps1 (lee Aloha, regenera el
+               plan y manda: venta de ayer vs el mismo dia de la semana pasada, semana hasta ayer y estimada con los dias reales, camara
+               por origen, descargas de hoy y cierre del sabado vs objetivo). Tarea programada de la LAPTOP "Poronga_Aviso_Diario",
+               lunes a sabado 12:00 (si la laptop esta apagada, corre al prenderla). Destinatario: phones_diario o el telefono
+               terminado en 8111. -Dry imprime sin mandar; log en fuentes\aviso_diario.log (ignorado por git).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
