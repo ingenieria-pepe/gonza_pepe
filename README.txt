@@ -1313,6 +1313,9 @@ LOG DE CAMBIOS:
                cuarta/sexta, Agro cuarta, Gilson sexta, Wagner sexta, BAHIA cuarta, Sergio sabado, Jhony tersa, Ivo sexta, Josemar
                sexta, Aryste Mittelman sexta (nuevo), Shapo sexta; Paraguay 3 = Alvarito lunes, Milciades martes, Guido martes.
                Lo de la sexta 30 y sabado 31 cruza recien el mar 3/11 (Finados, frontera cerrada el lun 2) y va a la semana del 2/11.
+  20/10/2026 -> semana de carga 26-31/10 re-dictada (Gonzalo adelanto cargas a tersa/cuarta): Fisher, Cassio y Stein tersa+cuarta,
+               Muller cuarta+sabado, Agro, Gilson, BAHIA cuarta, Jhony tersa, Wagner/Sergio/Ivo/Aryste Mittelman/Shapo sabado (Josemar
+               afuera); Paraguay Alvarito lunes, Milciades y Guido martes. Venta semana 19/10 = 19.500 (Gonzalo).
   19/10/2026 -> AVISO DIARIO "Venta al mediodia" (Gonzalo: "un mensaje de WhatsApp a mi numero terminado en 8111 todos los dias, que me
                llegue al mediodia, asi me ordena cuando estoy en los bananales"): plan_compras\aviso_diario.ps1 (lee Aloha, regenera el
                plan y manda: venta de ayer vs el mismo dia de la semana pasada, semana hasta ayer y estimada con los dias reales, camara
