@@ -60,33 +60,8 @@ try {
     $tot = [int]$ac.porOrigen.BR + [int]$ac.porOrigen.PY + [int]$ac.porOrigen.BO
     $L += "*Cámara* $(if ($fcU) { $DOW[[int]$fcU.DayOfWeek] + ' ' + $fcU.ToString('dd HH:mm') }): *$(& $fI $tot)*"
     $L += "🇧🇷 $(& $fI $ac.porOrigen.BR) · 🇵🇾 $(& $fI $ac.porOrigen.PY) · 🇧🇴 $(& $fI $ac.porOrigen.BO)"
-    # plan: descargas de hoy y cierre del sabado (misma cuenta que el mensaje de cargas)
-    $tt = [IO.File]::ReadAllText((Join-Path $repo 'actualizar_precios.ps1'), [Text.Encoding]::UTF8)
-    $i0 = $tt.IndexOf('function Get-DescargasSemanaTexto {'); $i1 = $tt.IndexOf('Write-Host "[WA] Evaluando alertas WhatsApp..."'); Invoke-Expression $tt.Substring($i0, $i1 - $i0)
-    $msgSem = Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lun -Hoy $hoy
-    $lineas = @($msgSem -split "`n")
-    # [20/10/2026] Gonzalo: "por que mandas algo que dice nada?": no se muestran dias sin descargas. Lo que ya descargo hoy esta en
-    # la camara (el plan no lo cuenta de nuevo). Se muestra lo que falta descargar hoy (si hay) y el proximo dia con descargas.
-    $NOMD = @{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'}
-    $semMsgs = @{ ($lun.ToString('yyyy-MM-dd')) = $lineas }
-    $descDe = { param($d)
-        $lw = $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)); $k = $lw.ToString('yyyy-MM-dd')
-        if (-not $semMsgs.ContainsKey($k)) { $semMsgs[$k] = @((Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lw -Hoy $hoy) -split "`n") }
-        $ls = $semMsgs[$k]; $i = [array]::IndexOf($ls, "*$($NOMD[[int]$d.DayOfWeek]) $($d.ToString('dd'))*"); $out = @()
-        if ($i -ge 0) { for ($q = $i + 1; $q -lt $ls.Count -and $ls[$q].Trim(); $q++) { $out += ($ls[$q] -replace '^\S+\s', '') } }
-        $out }
-    $hoyDesc = @(& $descDe $hoy)
-    $hayLinea = $false
-    if ($hoyDesc.Count) { $L += ''; $L += "*Faltan descargar hoy ($($hoyDesc.Count)):* " + ($hoyDesc -join ', '); $hayLinea = $true }
-    for ($dd = 1; $dd -le 10; $dd++) {
-        $dx = $hoy.AddDays($dd); if ($dx.DayOfWeek -eq [DayOfWeek]::Sunday) { continue }
-        $px = @(& $descDe $dx)
-        if ($px.Count) { if (-not $hayLinea) { $L += '' }; $L += "*Próxima descarga $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):* " + ($px -join ', '); break }
-    }
-    $cierre = @($lineas | Where-Object { $_ -match '^\*Cierre s' }) | Select-Object -First 1
-    $falta = @($lineas | Where-Object { $_ -match '^Falta|^Bajo el objetivo' }) | Select-Object -First 1
-    $J = Get-Content (Join-Path $aqui 'plan_compras.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-    if ($cierre) { $L += ''; $L += ($cierre -replace ' cajas', ''); if ($falta) { $L += $falta }; $L += "Objetivo: $(& $fI $J.minimos.TODO)" }
+    # [20/10/2026] Gonzalo: "ya tenes mensajes los miercoles y los viernes, no se puede duplicar la info": el diario queda solo con la
+    # venta por dia y la camara. Descargas y cierre del sabado van en el aviso del miercoles y el mensaje de cargas del viernes.
     $txt = ($L -join "`n")
     Write-Host $txt
     if ($Dry) { Log 'aviso diario (dry): no se manda'; return }
