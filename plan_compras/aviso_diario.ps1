@@ -37,7 +37,7 @@ try {
     # [19/10/2026] Gonzalo: "lunes por un lado, martes por otro... hasta terminar la semana": un renglon por dia ya vendido de la
     # semana, cada uno contra el mismo dia de la semana pasada, y el acumulado. El lunes muestra la semana anterior entera (cierre).
     $todos = @($av.semanas | Where-Object { $_.PSObject.Properties.Name -contains 'dias' } | ForEach-Object { @($_.dias) })
-    $hechos = @($diasA | Where-Object { ([DateTime]$_.fecha).Date -lt $hoy } | Sort-Object fecha)
+    $hechos = @($diasA | Where-Object { ([DateTime]$_.fecha).Date -le $hoy -and [int]$_.madera_bo -gt 0 } | Sort-Object fecha)   # [19/10/2026] la UAM vende de 3 a 11: a las 12 el dia de hoy ya esta completo
     $esCierre = $false
     if (-not $hechos.Count -and $diasP.Count) { $hechos = @($diasP | Sort-Object fecha); $esCierre = $true }
     if ($hechos.Count) {
@@ -52,7 +52,7 @@ try {
         if (-not $esCierre -and $sumS -gt 0 -and $sumS -lt 0.99) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }
     }
     $hoyD = @($diasA | Where-Object { [string]$_.fecha -eq $hoy.ToString('yyyy-MM-dd') }) | Select-Object -First 1
-    if ($hoyD -and [int]$hoyD.madera_bo -gt 0) { $L += "Hoy hasta ahora: $(& $fI $hoyD.madera_bo)" }
+    # (hoy ya va en la lista: la UAM cierra a las 11)
     $L += ''
     # camara
     $ac = Get-Content (Join-Path $repo 'fuentes\aloha_camaras.json') -Raw -Encoding UTF8 | ConvertFrom-Json

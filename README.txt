@@ -1322,6 +1322,8 @@ LOG DE CAMBIOS:
   19/10/2026 -> aviso diario: un renglon por dia vendido de la semana (lun, mar, mie...) contra el mismo dia de la semana pasada, y el
                total acumulado; el lunes muestra la semana anterior cerrada. Gonzalo: "lunes por un lado, martes por otro... hasta terminar la semana".
   19/10/2026 -> aviso diario: descargas de hoy y del proximo dia de descarga (manana; el sabado muestra el martes).
+  19/10/2026 -> aviso diario: el dia de hoy entra completo en la lista (Gonzalo: "la UAM trabaja de las 3 am hasta las 11 am, al medio
+               dia ya tenes toda la informacion"); se saca "Hoy hasta ahora" y la semana estimada ya cuenta el dia.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
