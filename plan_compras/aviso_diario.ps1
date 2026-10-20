@@ -34,20 +34,23 @@ try {
     $diasA = @(); if ($semA -and $semA.PSObject.Properties.Name -contains 'dias') { $diasA = @($semA.dias) }
     $diasP = @(); if ($semP -and $semP.PSObject.Properties.Name -contains 'dias') { $diasP = @($semP.dias) }
     $L = @("*🍌 Venta al mediodía · $($DOW[[int]$hoy.DayOfWeek]) $($hoy.ToString('dd/MM'))*", '')
-    # ayer (si ayer fue domingo, el sabado)
-    $ayer = $hoy.AddDays(-1); if ($ayer.DayOfWeek -eq [DayOfWeek]::Sunday) { $ayer = $ayer.AddDays(-1) }
+    # [19/10/2026] Gonzalo: "lunes por un lado, martes por otro... hasta terminar la semana": un renglon por dia ya vendido de la
+    # semana, cada uno contra el mismo dia de la semana pasada, y el acumulado. El lunes muestra la semana anterior entera (cierre).
     $todos = @($av.semanas | Where-Object { $_.PSObject.Properties.Name -contains 'dias' } | ForEach-Object { @($_.dias) })
-    $dAy = @($todos | Where-Object { [string]$_.fecha -eq $ayer.ToString('yyyy-MM-dd') }) | Select-Object -First 1
-    $dAyP = @($todos | Where-Object { [string]$_.fecha -eq $ayer.AddDays(-7).ToString('yyyy-MM-dd') }) | Select-Object -First 1
-    if ($dAy) { $L += "*$($DOW[[int]$ayer.DayOfWeek]) $($ayer.ToString('dd')):* $(& $fI $dAy.madera_bo) cajas" + $(if ($dAyP) { " ($($DOW[[int]$ayer.DayOfWeek]) pasado $(& $fI $dAyP.madera_bo))" } else { '' }) }
-    # semana hasta ayer y estimada
-    $hechos = @($diasA | Where-Object { ([DateTime]$_.fecha).Date -lt $hoy })
+    $hechos = @($diasA | Where-Object { ([DateTime]$_.fecha).Date -lt $hoy } | Sort-Object fecha)
+    $esCierre = $false
+    if (-not $hechos.Count -and $diasP.Count) { $hechos = @($diasP | Sort-Object fecha); $esCierre = $true }
     if ($hechos.Count) {
-        $suma = ($hechos | Measure-Object madera_bo -Sum).Sum; $sumS = 0.0; foreach ($d in $hechos) { $sumS += $SH[[int]$d.dow] }
-        $nd = $hechos.Count; $sumP = 0; foreach ($d in $diasP | Select-Object -First $nd) { $sumP += [int]$d.madera_bo }
-        $L += "*Semana hasta ayer:* $(& $fI $suma)" + $(if ($sumP) { " (pasada $(& $fI $sumP))" } else { '' })
-        if ($sumS -gt 0) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }
-    } elseif ($semP) { $L += "*Semana pasada:* $(& $fI ([int]$semP.venta_cajas.BR + [int]$semP.venta_cajas.PY + [int]$semP.venta_cajas.BO)) cajas" }
+        $L += $(if ($esCierre) { "*Semana del $(([DateTime]$hechos[0].fecha).ToString('dd/MM')) (cerrada)*" } else { '*Venta por día*' })
+        $suma = 0; $sumP = 0; $sumS = 0.0
+        foreach ($d in $hechos) {
+            $fd = ([DateTime]$d.fecha).Date; $p = @($todos | Where-Object { [string]$_.fecha -eq $fd.AddDays(-7).ToString('yyyy-MM-dd') }) | Select-Object -First 1
+            $L += "$($DOW[[int]$fd.DayOfWeek]) $($fd.ToString('dd')): $(& $fI $d.madera_bo)" + $(if ($p) { "  (pasado $(& $fI $p.madera_bo))" } else { '' })
+            $suma += [int]$d.madera_bo; if ($p) { $sumP += [int]$p.madera_bo }; $sumS += $SH[[int]$d.dow]
+        }
+        $L += "*Total: $(& $fI $suma)*" + $(if ($sumP) { "  (pasada $(& $fI $sumP))" } else { '' })
+        if (-not $esCierre -and $sumS -gt 0 -and $sumS -lt 0.99) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }
+    }
     $hoyD = @($diasA | Where-Object { [string]$_.fecha -eq $hoy.ToString('yyyy-MM-dd') }) | Select-Object -First 1
     if ($hoyD -and [int]$hoyD.madera_bo -gt 0) { $L += "Hoy hasta ahora: $(& $fI $hoyD.madera_bo)" }
     $L += ''

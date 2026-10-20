@@ -1319,6 +1319,8 @@ LOG DE CAMBIOS:
                por origen, descargas de hoy y cierre del sabado vs objetivo). Tarea programada de la LAPTOP "Poronga_Aviso_Diario",
                lunes a sabado 12:00 (si la laptop esta apagada, corre al prenderla). Destinatario: phones_diario o el telefono
                terminado en 8111. -Dry imprime sin mandar; log en fuentes\aviso_diario.log (ignorado por git).
+  19/10/2026 -> aviso diario: un renglon por dia vendido de la semana (lun, mar, mie...) contra el mismo dia de la semana pasada, y el
+               total acumulado; el lunes muestra la semana anterior cerrada. Gonzalo: "lunes por un lado, martes por otro... hasta terminar la semana".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
