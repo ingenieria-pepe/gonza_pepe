@@ -74,7 +74,7 @@ try {
         if (-not $semMsgs.ContainsKey($k)) { $semMsgs[$k] = @((Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lw -Hoy $hoy) -split "`n") }
         $ls = $semMsgs[$k]; $i = [array]::IndexOf($ls, "*$($NOMD[[int]$d.DayOfWeek]) $($d.ToString('dd'))*"); $out = @()
         if ($i -ge 0) { for ($q = $i + 1; $q -lt $ls.Count -and $ls[$q].Trim(); $q++) { $out += ($ls[$q] -replace '^\S+\s', '') } }
-        , $out }
+        $out }
     $hoyDesc = @(& $descDe $hoy)
     $hayLinea = $false
     if ($hoyDesc.Count) { $L += ''; $L += "*Faltan descargar hoy ($($hoyDesc.Count)):* " + ($hoyDesc -join ', '); $hayLinea = $true }
