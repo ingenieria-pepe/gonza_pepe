@@ -65,16 +65,24 @@ try {
     $i0 = $tt.IndexOf('function Get-DescargasSemanaTexto {'); $i1 = $tt.IndexOf('Write-Host "[WA] Evaluando alertas WhatsApp..."'); Invoke-Expression $tt.Substring($i0, $i1 - $i0)
     $msgSem = Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lun -Hoy $hoy
     $lineas = @($msgSem -split "`n")
-    $iHoy = [array]::IndexOf($lineas, "*$((@{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'})[[int]$hoy.DayOfWeek]) $($hoy.ToString('dd'))*")
-    $L += ''; if ($iHoy -ge 0) { $hoyDesc = @(); for ($k = $iHoy + 1; $k -lt $lineas.Count -and $lineas[$k].Trim(); $k++) { $hoyDesc += ($lineas[$k] -replace '^\S+\s', '') }; $L += "*Descargan hoy ($($hoyDesc.Count)):* " + ($hoyDesc -join ', ') } else { $L += '*Descargan hoy:* nada' }; $iHoy = 0
-    # [19/10/2026] Gonzalo eligio "hoy y manana": el proximo dia de descarga (domingo y lunes no se descarga: sabado -> martes)
-    $man = $hoy.AddDays(1); while ($man.DayOfWeek -eq [DayOfWeek]::Sunday -or $man.DayOfWeek -eq [DayOfWeek]::Monday) { $man = $man.AddDays(1) }
-    $lunMan = $man.AddDays(-((([int]$man.DayOfWeek) + 6) % 7))
-    $linM = @($(if ($lunMan -eq $lun) { $lineas } else { (Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lunMan -Hoy $hoy) -split "`n" }))
-    $iM = [array]::IndexOf($linM, "*$((@{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'})[[int]$man.DayOfWeek]) $($man.ToString('dd'))*")
-    $manDesc = @(); if ($iM -ge 0) { for ($k = $iM + 1; $k -lt $linM.Count -and $linM[$k].Trim(); $k++) { $manDesc += ($linM[$k] -replace '^\S+\s', '') } }
-    if ($iHoy -lt 0) { $L += '' }
-    $L += "*$(if ($man -eq $hoy.AddDays(1)) { 'Mañana' } else { 'Próxima' }) $($DOW[[int]$man.DayOfWeek]) $($man.ToString('dd')) ($($manDesc.Count)):* " + $(if ($manDesc.Count) { $manDesc -join ', ' } else { 'nada' })
+    # [20/10/2026] Gonzalo: "por que mandas algo que dice nada?": no se muestran dias sin descargas. Lo que ya descargo hoy esta en
+    # la camara (el plan no lo cuenta de nuevo). Se muestra lo que falta descargar hoy (si hay) y el proximo dia con descargas.
+    $NOMD = @{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'}
+    $semMsgs = @{ ($lun.ToString('yyyy-MM-dd')) = $lineas }
+    $descDe = { param($d)
+        $lw = $d.AddDays(-((([int]$d.DayOfWeek) + 6) % 7)); $k = $lw.ToString('yyyy-MM-dd')
+        if (-not $semMsgs.ContainsKey($k)) { $semMsgs[$k] = @((Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lw -Hoy $hoy) -split "`n") }
+        $ls = $semMsgs[$k]; $i = [array]::IndexOf($ls, "*$($NOMD[[int]$d.DayOfWeek]) $($d.ToString('dd'))*"); $out = @()
+        if ($i -ge 0) { for ($q = $i + 1; $q -lt $ls.Count -and $ls[$q].Trim(); $q++) { $out += ($ls[$q] -replace '^\S+\s', '') } }
+        , $out }
+    $hoyDesc = @(& $descDe $hoy)
+    $hayLinea = $false
+    if ($hoyDesc.Count) { $L += ''; $L += "*Faltan descargar hoy ($($hoyDesc.Count)):* " + ($hoyDesc -join ', '); $hayLinea = $true }
+    for ($dd = 1; $dd -le 10; $dd++) {
+        $dx = $hoy.AddDays($dd); if ($dx.DayOfWeek -eq [DayOfWeek]::Sunday) { continue }
+        $px = @(& $descDe $dx)
+        if ($px.Count) { if (-not $hayLinea) { $L += '' }; $L += "*Próxima descarga $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):* " + ($px -join ', '); break }
+    }
     $cierre = @($lineas | Where-Object { $_ -match '^\*Cierre s' }) | Select-Object -First 1
     $falta = @($lineas | Where-Object { $_ -match '^Falta|^Bajo el objetivo' }) | Select-Object -First 1
     $J = Get-Content (Join-Path $aqui 'plan_compras.json') -Raw -Encoding UTF8 | ConvertFrom-Json
