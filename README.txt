@@ -1309,6 +1309,10 @@ LOG DE CAMBIOS:
                26/10 = 20.500 (antes 21.000). La del feriado 2/11 sigue en 16.000 dictada.
                (fix: el piso leia la hoja supuestos antes de que estuviera cargada y generar_datos fallaba; ahora la lee en el momento.)
   19/10/2026 -> semana 19-25: Celso mie 21 CANCELADO; lo cubre Ivo vie 23 (Nilton), que descarga el mar 27 (pasa a la semana del 26).
+  19/10/2026 -> DICTADO semana de carga 26/10-31/10: Brasil 18 = Fisher tersa/sexta, Cassio tersa/sexta, Stein cuarta/sexta, Muller
+               cuarta/sexta, Agro cuarta, Gilson sexta, Wagner sexta, BAHIA cuarta, Sergio sabado, Jhony tersa, Ivo sexta, Josemar
+               sexta, Aryste Mittelman sexta (nuevo), Shapo sexta; Paraguay 3 = Alvarito lunes, Milciades martes, Guido martes.
+               Lo de la sexta 30 y sabado 31 cruza recien el mar 3/11 (Finados, frontera cerrada el lun 2) y va a la semana del 2/11.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
