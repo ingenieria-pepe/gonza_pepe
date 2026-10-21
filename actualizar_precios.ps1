@@ -4651,7 +4651,7 @@ function Get-DescargasSemanaTexto {
     $nLM = @($conDia | Where-Object { -not $_.parcial -and [int]$_.dia.DayOfWeek -ge 1 -and [int]$_.dia.DayOfWeek -le 3 }).Count
     $nJS = @($conDia | Where-Object { -not $_.parcial -and ([int]$_.dia.DayOfWeek -ge 4 -or [int]$_.dia.DayOfWeek -eq 0) }).Count
     if (($nLM + $nJS) -gt 0) { $L += "Descargan lun-mié $nLM · jue-sáb $nJS" }
-    $L += "*Venta prevista:* $($venta.ToString('N0'))"
+    if ($Lunes -ne (& $lunesDe $fCon)) { $L += "*Venta prevista:* $($venta.ToString('N0'))" }   # [21/10/2026] Gonzalo: 'saca eso que marea': en la semana del conteo la venta que falta (parcial) no se muestra
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
     } else {
