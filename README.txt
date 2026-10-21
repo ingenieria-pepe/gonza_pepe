@@ -1343,6 +1343,7 @@ LOG DE CAMBIOS:
   20/10/2026 -> aviso diario solo con venta por dia y camara (Gonzalo: "ya tenes mensajes los miercoles y los viernes, no se puede
                duplicar la info"): fuera descargas y cierre del sabado.
   20/10/2026 -> aviso diario: vuelve una linea con las descargas del proximo dia que tenga camiones (manana o el siguiente), sin cierre.
+  21/10/2026 -> plan de compras: Paraguay 3 en la semana de carga 26-31/10 (Alvarito lun, Guido mar, Milciades lun 26).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
