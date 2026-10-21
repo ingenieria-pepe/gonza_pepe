@@ -1323,6 +1323,7 @@ LOG DE CAMBIOS:
   20/10/2026 -> venta 21.000 las semanas 9/11 y 16/11 (Gonzalo); 2/11 sigue en 16.000 y 26/10 en 20.500.
   20/10/2026 -> re-dictado de las semanas 26-31/10 (cargas pasadas al sabado 31 para no pasarse el sabado 31) y 2-7/11 (Ivo, Jaime
                Zimerman, Aryste Mittelman y Andre Pauli suman; Cassio sabado 7; Paraguay Milciades lunes 2 y Alvarito martes 3).
+  20/10/2026 -> Ivo y Aryste Mittelman de la semana 26-31/10 vuelven del sabado 31 al miercoles 28 (Gonzalo: "al menos 2 cargas voy a cambiar").
   19/10/2026 -> AVISO DIARIO "Venta al mediodia" (Gonzalo: "un mensaje de WhatsApp a mi numero terminado en 8111 todos los dias, que me
                llegue al mediodia, asi me ordena cuando estoy en los bananales"): plan_compras\aviso_diario.ps1 (lee Aloha, regenera el
                plan y manda: venta de ayer vs el mismo dia de la semana pasada, semana hasta ayer y estimada con los dias reales, camara
