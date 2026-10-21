@@ -4587,12 +4587,13 @@ function Get-DescargasSemanaTexto {
     $ventaDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; $v = 0; if ($fila) { foreach ($o in 'BR', 'PY', 'BO') { $v += [int]$fila.$o } }; $v }
     $fuenteDe = { param($w) $k = $w.ToString('yyyy-MM-dd'); $fila = $null; foreach ($pp in $plan) { if ($pp.semana_lunes -eq $k) { $fila = $pp; break }; if ($pp.semana_lunes -lt $k) { $fila = $pp } }; if (-not $fila -and $plan.Count) { $fila = $plan[-1] }; if ($fila) { [string]$fila.fuente } else { '' } }
     $prorrateo = { param($w, $v) if ($w -eq (& $lunesDe $fCon)) { $sh = @(0.239, 0.112, 0.155, 0.189, 0.215, 0.089); $f = 0.0; for ($k = 0; $k -lt 6; $k++) { if ($w.AddDays($k) -gt $fCon.Date) { $f += $sh[$k] } }; [math]::Round($v * $f) } else { $v } }   # [16/10/2026] reparto real por dia (Gonzalo: 'viernes tarde no hay ventas, es solo sabado')
-    $cam = @()
+    $cam = @(); $nYa = 0
     foreach ($c in $J.camiones) {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
         if (($c.PSObject.Properties.Name -contains 'lag') -and $null -ne $c.lag) { $lag = [int]$c.lag }   # [12/10/2026] lag por productor (historico)
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
-        if ($desc -le $fCon) { continue }
+        # [21/10/2026] Gonzalo: "como me vas a decir que no hubo descargas": se cuentan las ya descargadas de la semana (estan en el conteo)
+        if ($desc -le $fCon) { if ($desc -ge $Lunes -and -not ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial)) { $nYa++ }; continue }
         $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
         $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto'); real = [bool]$c.descarga; parcial = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial) }
     }
@@ -4650,7 +4651,12 @@ function Get-DescargasSemanaTexto {
     # [12/10/2026] cambio 1 de la lista conjunta: cuanto descarga al principio y al final de la semana (dias mostrados)
     $nLM = @($conDia | Where-Object { -not $_.parcial -and [int]$_.dia.DayOfWeek -ge 1 -and [int]$_.dia.DayOfWeek -le 3 }).Count
     $nJS = @($conDia | Where-Object { -not $_.parcial -and ([int]$_.dia.DayOfWeek -ge 4 -or [int]$_.dia.DayOfWeek -eq 0) }).Count
-    if (($nLM + $nJS) -gt 0) { $L += "Descargan lun-mié $nLM · jue-sáb $nJS" }
+    if ($Lunes -eq (& $lunesDe $fCon) -and $nYa -gt 0) {
+        # [21/10/2026] semana del conteo: lo ya descargado esta dentro del arranque; se muestra aparte de lo que falta
+        $DOWc = @('dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb')
+        $L += "Descargaron lun-$($DOWc[[int]$fCon.DayOfWeek]): $nYa (ya en cámara)"
+        if ($nJS + $nLM -gt 0) { $L += "Faltan descargar: $($nLM + $nJS)" }
+    } elseif (($nLM + $nJS) -gt 0) { $L += "Descargan lun-mié $nLM · jue-sáb $nJS" }
     if ($Lunes -ne (& $lunesDe $fCon)) { $L += "*Venta prevista:* $($venta.ToString('N0'))" }   # [21/10/2026] Gonzalo: 'saca eso que marea': en la semana del conteo la venta que falta (parcial) no se muestra
     if ($cierre -ge $min) {
         $L += "*Cierre sáb $($sab.ToString('dd')):* $($cierre.ToString('N0')) cajas ✅"
