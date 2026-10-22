@@ -1372,6 +1372,8 @@ LOG DE CAMBIOS:
   22/10/2026 -> plan de compras: Cassio del martes 20 confirmado (flete camara, 936 cajas); Aloha lo tiene todavia en Solicitado.
   22/10/2026 -> semana de carga 26-31/10 DEFINITIVA ("asi cierra definitivo"): Fischer 2 vuelve a mie 28, Jhony vuelve a mar 27;
                transportistas: Cassio mie Nilton, BAHIA Gral, Ivo/Marconi/Aryste/Wagner Chabat, Andre Pauli Nilton. Sab 31: 30.331.
+  22/10/2026 -> semana de carga 2-7/11: transportista y despachante vaciados en las 17 filas (los habia rellenado yo con el
+               "habitual" de cada productor; Gonzalo: "vacia lo que no pase"). Solo van los fletes que el dicta.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
