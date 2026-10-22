@@ -1374,6 +1374,12 @@ LOG DE CAMBIOS:
                transportistas: Cassio mie Nilton, BAHIA Gral, Ivo/Marconi/Aryste/Wagner Chabat, Andre Pauli Nilton. Sab 31: 30.331.
   22/10/2026 -> semana de carga 2-7/11: transportista y despachante vaciados en las 17 filas (los habia rellenado yo con el
                "habitual" de cada productor; Gonzalo: "vacia lo que no pase"). Solo van los fletes que el dicta.
+  22/10/2026 -> ALOHA CON TOKEN DE INTEGRACION "poronga" (pedido de Uruguay; el servidor daba 401 con la clave vieja del usuario Admin):
+               paso 3b de actualizar_precios.ps1, plan_compras\aloha_datos.ps1 y plan_compras\aloha_ventas_historico.ps1. Con "token" en
+               config\aloha.json: Bearer <token> a /integraciones/poronga/... (solo lectura, mismas respuestas), sin login ni logout.
+               Sin token: login con username/password como antes (la laptop sigue con gpepe). 401 con token = mensaje "token de Aloha
+               invalido o revocado... cargar_token_aloha.ps1" y corta; 429 = 60 s y un reintento; pausa de 0,55 s entre GETs con token.
+               El token nunca se imprime. Probado en la laptop sin token y con un token falso contra prod.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

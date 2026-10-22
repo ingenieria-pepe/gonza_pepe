@@ -82,21 +82,43 @@ while ($d -le $ultimaCompleta) {
 Log "semanas completas $($desdeD.ToString('yyyy-MM-dd')) a $($ultimaCompleta.ToString('yyyy-MM-dd')): $($pendientes.Count) a pedir, $($previas.Count) previas"
 if (-not $pendientes.Count) { Log "nada que pedir"; exit 0 }
 
-# ---- login
-$loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
-$loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
-$login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent $UA
-if ($login.debe_cambiar_password) { throw "el usuario de Aloha tiene la clave inicial: cambiarla en Aloha" }
-if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
-$hdr = @{ Authorization = "Bearer $($login.token)" }
-Log "login OK ($apiBase)" 'Green'
+# ---- login (o token de integracion)
+# [22/10/2026] TOKEN DE INTEGRACION "poronga" (Uruguay): si config\aloha.json trae "token", Bearer <token> a /integraciones/poronga/...,
+#     sin login ni logout; sin token, login con username/password como antes. El token nunca se imprime.
+$tokAloha = $(if ($cfg.PSObject.Properties.Name -contains 'token') { ([string]$cfg.token).Trim() } else { '' })
+$usaToken = -not [string]::IsNullOrWhiteSpace($tokAloha)
+$prefijo  = $(if ($usaToken) { '/integraciones/poronga' } else { '' })
+if ($usaToken) {
+    $hdr = @{ Authorization = "Bearer $tokAloha" }
+    Log "token de integracion poronga ($apiBase$prefijo), sin login" 'Green'
+} else {
+    if ([string]::IsNullOrWhiteSpace([string]$cfg.username) -or [string]::IsNullOrWhiteSpace([string]$cfg.password)) { throw "config\aloha.json incompleto (url y token, o url, username y password)" }
+    $loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
+    $loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
+    $login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent $UA
+    if ($login.debe_cambiar_password) { throw "el usuario de Aloha tiene la clave inicial: cambiarla en Aloha" }
+    if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
+    $hdr = @{ Authorization = "Bearer $($login.token)" }
+    Log "login OK ($apiBase)" 'Green'
+}
 
+# [22/10/2026] con token: 401 = token invalido o revocado; 429 (mas de 120 lecturas por minuto) = 60 s y UN reintento; pausa entre GETs
 function Get-Aloha { param([string]$ruta, [hashtable]$qs = @{})
     $q = @(); foreach ($k in $qs.Keys) { if ($null -ne $qs[$k] -and "$($qs[$k])" -ne '') { $q += "$k=$([uri]::EscapeDataString([string]$qs[$k]))" } }
-    $uri = "$apiBase$ruta" + $(if ($q.Count) { '?' + ($q -join '&') } else { '' })
-    $wr = Invoke-WebRequest -Uri $uri -Headers $hdr -TimeoutSec 90 -UserAgent $UA -UseBasicParsing
-    $txt = [System.Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray())
-    return ($txt | ConvertFrom-Json)
+    $uri = "$apiBase$prefijo$ruta" + $(if ($q.Count) { '?' + ($q -join '&') } else { '' })
+    if ($usaToken) { Start-Sleep -Milliseconds 550 }
+    for ($intento = 1; $intento -le 2; $intento++) {
+        try {
+            $wr = Invoke-WebRequest -Uri $uri -Headers $hdr -TimeoutSec 90 -UserAgent $UA -UseBasicParsing
+            $txt = [System.Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray())
+            return ($txt | ConvertFrom-Json)
+        } catch {
+            $cod = $null; try { $cod = [int]$_.Exception.Response.StatusCode } catch {}
+            if ($cod -eq 401 -and $usaToken) { throw "token de Aloha invalido o revocado: crear otro en Aloha -> Configuracion -> Parametros -> Integraciones -> Servidor de reportes (poronga) y cargarlo con cargar_token_aloha.ps1" }
+            if ($cod -eq 429 -and $intento -eq 1) { Log "  429 (limite de lecturas por minuto): espero 60 s y reintento una vez" 'DarkYellow'; Start-Sleep -Seconds 60; continue }
+            throw
+        }
+    }
 }
 
 $mapeo = @{ BR = @{}; PY = @{}; BO = @{}; EC = @{} }; $otrasAg = @{}
@@ -110,7 +132,7 @@ try {
         $sabado = $lunes.AddDays(5)
         try {
             $v = Get-Aloha '/stock/ventas-presentacion' @{ desde = $lunes.ToString('yyyy-MM-dd'); hasta = $sabado.ToString('yyyy-MM-dd'); incluir_sin_ventas = 'true' }
-        } catch { $errores++; Log "  sem $($lunes.ToString('yyyy-MM-dd')): ERROR $($_.Exception.Message)" 'Red'; continue }
+        } catch { if ($_.Exception.Message -like 'token de Aloha invalido*') { throw }; $errores++; Log "  sem $($lunes.ToString('yyyy-MM-dd')): ERROR $($_.Exception.Message)" 'Red'; continue }   # [22/10/2026] token rechazado: no seguir semana por semana
         $c = @{ BR = 0.0; PY = 0.0; BO = 0.0; EC = 0.0; otras = 0.0 }; $dsc = @{ BR = 0.0; PY = 0.0; BO = 0.0; EC = 0.0 }
         foreach ($f in @($v.filas)) {
             $ag = [string]$f.agrupacion
@@ -135,7 +157,7 @@ try {
         $nuevas[$fila.semana_lunes] = $fila
         Log ("  sem {0} (ISO {1}-{2:00}): BR {3} · PY {4} · BO {5} · EC {6} · total {7}{8} · descartes {9}" -f $fila.semana_lunes, $fila.iso_anio, $fila.iso_semana, $fila.BR, $fila.PY, $fila.BO, $fila.EC, $fila.total, $(if ($fila.otras) { " · otras $($fila.otras)" } else { '' }), $fila.descartes.total)
     }
-} finally { try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent $UA | Out-Null } catch {} }
+} finally { if (-not $usaToken) { try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent $UA | Out-Null } catch {} } }
 
 # ---- unir previas + nuevas y guardar
 $todas = @{}

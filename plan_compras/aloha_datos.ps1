@@ -39,8 +39,14 @@ if (-not (Test-Path $cfgPath)) { Log "sin config\aloha.json: no bajo nada" 'Dark
 $cfg = Get-Content $cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
 if (-not $cfg.enabled) { Log "config\aloha.json con enabled=false: no bajo nada" 'DarkYellow'; exit 0 }
 $apiBase = ([string]$cfg.url).TrimEnd('/')
-if ([string]::IsNullOrWhiteSpace($apiBase) -or [string]::IsNullOrWhiteSpace([string]$cfg.username) -or [string]::IsNullOrWhiteSpace([string]$cfg.password)) {
-    throw "config\aloha.json incompleto (url, username, password)"
+# [22/10/2026] TOKEN DE INTEGRACION "poronga" (Uruguay; el servidor daba 401 con la clave vieja del usuario Admin): si config\aloha.json
+#     trae "token", se entra con Authorization: Bearer <token> a las rutas /integraciones/poronga/... (solo lectura, mismas respuestas),
+#     sin login ni logout. Sin token, todo como antes (login con username/password; la laptop entra con gpepe). El token nunca se imprime.
+$tokAloha = $(if ($cfg.PSObject.Properties.Name -contains 'token') { ([string]$cfg.token).Trim() } else { '' })
+$usaToken = -not [string]::IsNullOrWhiteSpace($tokAloha)
+$prefijo  = $(if ($usaToken) { '/integraciones/poronga' } else { '' })
+if ([string]::IsNullOrWhiteSpace($apiBase) -or (-not $usaToken -and ([string]::IsNullOrWhiteSpace([string]$cfg.username) -or [string]::IsNullOrWhiteSpace([string]$cfg.password)))) {
+    throw "config\aloha.json incompleto (url y token, o url, username y password)"
 }
 if (-not (Test-Path $fuentes)) { New-Item -ItemType Directory -Path $fuentes | Out-Null }
 
@@ -58,22 +64,39 @@ function Num { param($v) if ($null -eq $v -or "$v" -eq '') { return 0.0 }; retur
 function R0 { param($v) return [math]::Round((Num $v), 0) }
 function Fecha-Corta { param($s) if ($null -eq $s -or "$s" -eq '') { return $null }; try { return ([DateTime]$s).ToString('yyyy-MM-dd HH:mm') } catch { return [string]$s } }
 
-# ---- login
-$loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
-$loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
-$login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent $UA
-if ($login.debe_cambiar_password) { throw "el usuario de Aloha tiene la clave inicial: cambiarla en Aloha" }
-if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
-$hdr = @{ Authorization = "Bearer $($login.token)" }
-Log "login OK ($apiBase)" 'Green'
+# ---- login (o token de integracion)
+if ($usaToken) {
+    $hdr = @{ Authorization = "Bearer $tokAloha" }
+    Log "token de integracion poronga ($apiBase$prefijo), sin login" 'Green'
+} else {
+    $loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
+    $loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
+    $login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent $UA
+    if ($login.debe_cambiar_password) { throw "el usuario de Aloha tiene la clave inicial: cambiarla en Aloha" }
+    if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
+    $hdr = @{ Authorization = "Bearer $($login.token)" }
+    Log "login OK ($apiBase)" 'Green'
+}
 
 # GET con decodificacion UTF-8 explicita (Invoke-RestMethod de PS 5.1 a veces lee los acentos como latin-1)
+# [22/10/2026] con token: prefijo /integraciones/poronga; 401 = token invalido o revocado (mensaje claro); 429 (mas de 120 lecturas
+# por minuto) = se espera 60 s y se reintenta UNA vez; pausa corta entre GETs para no llegar al limite.
 function Get-Aloha { param([string]$ruta, [hashtable]$qs = @{})
     $q = @(); foreach ($k in $qs.Keys) { if ($null -ne $qs[$k] -and "$($qs[$k])" -ne '') { $q += "$k=$([uri]::EscapeDataString([string]$qs[$k]))" } }
-    $uri = "$apiBase$ruta" + $(if ($q.Count) { '?' + ($q -join '&') } else { '' })
-    $wr = Invoke-WebRequest -Uri $uri -Headers $hdr -TimeoutSec 90 -UserAgent $UA -UseBasicParsing
-    $txt = [System.Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray())
-    return ($txt | ConvertFrom-Json)
+    $uri = "$apiBase$prefijo$ruta" + $(if ($q.Count) { '?' + ($q -join '&') } else { '' })
+    if ($usaToken) { Start-Sleep -Milliseconds 550 }
+    for ($intento = 1; $intento -le 2; $intento++) {
+        try {
+            $wr = Invoke-WebRequest -Uri $uri -Headers $hdr -TimeoutSec 90 -UserAgent $UA -UseBasicParsing
+            $txt = [System.Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray())
+            return ($txt | ConvertFrom-Json)
+        } catch {
+            $cod = $null; try { $cod = [int]$_.Exception.Response.StatusCode } catch {}
+            if ($cod -eq 401 -and $usaToken) { throw "token de Aloha invalido o revocado: crear otro en Aloha -> Configuracion -> Parametros -> Integraciones -> Servidor de reportes (poronga) y cargarlo con cargar_token_aloha.ps1" }
+            if ($cod -eq 429 -and $intento -eq 1) { Log "  429 (limite de lecturas por minuto): espero 60 s y reintento una vez" 'DarkYellow'; Start-Sleep -Seconds 60; continue }
+            throw
+        }
+    }
 }
 function Guardar { param([string]$nombre, $obj)
     $p = Join-Path $fuentes $nombre
@@ -327,6 +350,6 @@ try {
         $resumenFinal += "plan-cargas: $($pcOut.Count) filas"
     } catch { Log "  plan-cargas no disponible: $($_.Exception.Message)" 'DarkYellow' }
 } finally {
-    try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent $UA | Out-Null; Log "logout" } catch {}
+    if (-not $usaToken) { try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent $UA | Out-Null; Log "logout" } catch {} }
 }
 Log ("listo: " + ($resumenFinal -join ' | ')) 'Cyan'

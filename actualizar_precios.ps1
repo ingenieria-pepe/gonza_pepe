@@ -828,14 +828,37 @@ function Get-PlanCargasAloha {
     $apiBase = ([string]$cfg.url).TrimEnd('/')
     if ([string]::IsNullOrWhiteSpace($apiBase)) { throw "falta 'url' en config\aloha.json" }
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-    $loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
-    $loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
-    $login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent "poronga/1.0"
-    if ($login.debe_cambiar_password) {
-        throw "el usuario '$($cfg.username)' todavia tiene la clave inicial del admin: entrar una vez a Aloha con ese usuario y cambiarla"
+    # [22/10/2026] TOKEN DE INTEGRACION "poronga" (Uruguay; el servidor daba 401 con la clave vieja del usuario Admin): con "token" en
+    # config\aloha.json, Bearer <token> a /integraciones/poronga/plan-cargas... (solo lectura, mismas respuestas), sin login ni logout.
+    # Sin token, login con username/password como antes. 401 con token = token invalido o revocado; 429 = 60 s y UN reintento.
+    $tokA = $(if ($cfg.PSObject.Properties.Name -contains 'token') { ([string]$cfg.token).Trim() } else { '' })
+    $usaTok = -not [string]::IsNullOrWhiteSpace($tokA)
+    $pref = $(if ($usaTok) { '/integraciones/poronga' } else { '' })
+    $msg401 = 'token de Aloha invalido o revocado: crear otro en Aloha -> Configuracion -> Parametros -> Integraciones -> Servidor de reportes (poronga) y cargarlo con cargar_token_aloha.ps1'
+    if ($usaTok) {
+        $hdr = @{ Authorization = "Bearer $tokA" }
+    } else {
+        $loginJson  = @{ username = [string]$cfg.username; password = [string]$cfg.password } | ConvertTo-Json -Compress
+        $loginBytes = [System.Text.Encoding]::UTF8.GetBytes($loginJson)
+        $login = Invoke-RestMethod -Uri "$apiBase/auth/login" -Method Post -Body $loginBytes -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 -UserAgent "poronga/1.0"
+        if ($login.debe_cambiar_password) {
+            throw "el usuario '$($cfg.username)' todavia tiene la clave inicial del admin: entrar una vez a Aloha con ese usuario y cambiarla"
+        }
+        if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
+        $hdr = @{ Authorization = "Bearer $($login.token)" }
     }
-    if ([string]::IsNullOrWhiteSpace([string]$login.token)) { throw "login sin token (usuario/clave incorrectos?)" }
-    $hdr = @{ Authorization = "Bearer $($login.token)" }
+    $getA = { param([string]$uri, [string]$outFile)
+        for ($iA = 1; $iA -le 2; $iA++) {
+            try {
+                if ($outFile) { Invoke-WebRequest -Uri $uri -Headers $hdr -OutFile $outFile -UseBasicParsing -TimeoutSec 180 -UserAgent "poronga/1.0"; return $null }
+                return (Invoke-WebRequest -Uri $uri -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0" -UseBasicParsing)
+            } catch {
+                $codA = $null; try { $codA = [int]$_.Exception.Response.StatusCode } catch {}
+                if ($codA -eq 401 -and $usaTok) { throw $msg401 }
+                if ($codA -eq 429 -and $iA -eq 1) { Start-Sleep -Seconds 60; continue }
+                throw
+            }
+        } }
     $qs = @('limit=5000')
     if (-not [string]::IsNullOrWhiteSpace([string]$cfg.fuente)) { $qs += "fuente=$([uri]::EscapeDataString([string]$cfg.fuente))" }
     $resExports = @()
@@ -843,12 +866,12 @@ function Get-PlanCargasAloha {
         # UTF-8 a mano [24/09/2026]: la API responde application/json sin charset y
         # PS 5.1 decodifica ISO-8859-1: "Corupa" con acento salio como "CorupÃ¡" en el
         # WhatsApp del 24/09. Se leen los bytes crudos y se decodifican como UTF-8.
-        $wr = Invoke-WebRequest -Uri "$apiBase/plan-cargas?$($qs -join '&')" -Headers $hdr -TimeoutSec 60 -UserAgent "poronga/1.0" -UseBasicParsing
+        $wr = & $getA "$apiBase$pref/plan-cargas?$($qs -join '&')" ''
         $rows = [Text.Encoding]::UTF8.GetString($wr.RawContentStream.ToArray()) | ConvertFrom-Json
         foreach ($ex in @($exports)) {
             $tmp = [string]$ex.path + '.bajando'
             try {
-                Invoke-WebRequest -Uri "$apiBase/plan-cargas/export.xlsx?fuente=$([uri]::EscapeDataString([string]$ex.fuente))" -Headers $hdr -OutFile $tmp -UseBasicParsing -TimeoutSec 180 -UserAgent "poronga/1.0"
+                & $getA "$apiBase$pref/plan-cargas/export.xlsx?fuente=$([uri]::EscapeDataString([string]$ex.fuente))" $tmp | Out-Null
                 $chk = Test-XlsxAloha -Path $tmp
                 if ($chk) { throw $chk }
                 $dirEx = Split-Path $ex.path -Parent
@@ -861,15 +884,15 @@ function Get-PlanCargasAloha {
             }
         }
     } finally {
-        try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent "poronga/1.0" | Out-Null } catch {}
+        if (-not $usaTok) { try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent "poronga/1.0" | Out-Null } catch {} }
     }
     return [PSCustomObject]@{ rows = @($rows); exports = $resExports }
 }
 
 if ($null -eq $alohaCfg -or -not $alohaCfg.enabled) {
     Write-Host "    Plan de Cargas deshabilitado (config/aloha.json)" -ForegroundColor DarkYellow
-} elseif ([string]::IsNullOrWhiteSpace([string]$alohaCfg.username) -or [string]::IsNullOrWhiteSpace([string]$alohaCfg.password)) {
-    Write-Host "    Falta username/password en config/aloha.json - completar para activar" -ForegroundColor DarkYellow
+} elseif ([string]::IsNullOrWhiteSpace([string]$alohaCfg.token) -and ([string]::IsNullOrWhiteSpace([string]$alohaCfg.username) -or [string]::IsNullOrWhiteSpace([string]$alohaCfg.password))) {
+    Write-Host "    Falta token (o username/password) en config/aloha.json - completar para activar" -ForegroundColor DarkYellow
 } else {
     try {
         # Exportes .xlsx que reemplazan las bajadas a mano [24/09/2026]. Nombre fijo:
