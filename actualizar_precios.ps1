@@ -4628,7 +4628,9 @@ function Get-DescargasSemanaTexto {
     # [07/10/2026] Gonzalo: "las descargas no son martes porque recien van a cruzar martes, asi que son miercoles en adelante"
     # (lunes 12 feriado en Brasil, frontera cerrada). Regla: domingo -> lunes; lunes -> martes (lo del viernes/sabado cruza el
     # lunes y descarga el martes); si el dia de cruce es feriado, un dia mas. Las fechas REALES de descarga no se tocan.
-    $feriadosBR = @('2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25', '2027-01-01')
+    # [22/10/2026] sin el 02/11 (Finados): Gonzalo, "descargan el martes 3, esta el feriado del lunes" -> lo de vie 30 y sab 31 descarga
+    # el martes 3 (regla de siempre: lunes -> martes), no el miercoles 4.
+    $feriadosBR = @('2026-10-12', '2026-11-15', '2026-11-20', '2026-12-25', '2027-01-01')
     $diaDe = { param($d) $x = $d
         if ($x.DayOfWeek -eq [DayOfWeek]::Sunday) { $x = $x.AddDays(1) }
         if ($x.DayOfWeek -eq [DayOfWeek]::Monday) { $x = $x.AddDays(1) }

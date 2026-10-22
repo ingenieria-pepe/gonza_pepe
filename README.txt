@@ -1357,6 +1357,8 @@ LOG DE CAMBIOS:
                mensaje muestra la cuenta (cierre sab, + descargado, - vendido, = stock). Sin cruce fresco vuelve al conteo de camaras.
                Mismo cambio en Get-PlanSemanaCuenta (avisos) y simulador.html.
   22/10/2026 -> dictado semana 26-31/10: segundo Fischer pasa de mie 28 a vie 30 y Jhony de mar 27 a sab 31 (semana 19-25 sin cambios).
+  22/10/2026 -> mensaje de descargas: el 02/11 (Finados) ya no corre un dia mas el cruce; lo cargado vie 30 y sab 31 descarga el martes 3
+               (Gonzalo: "descargan el martes 3, esta el feriado del lunes").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
