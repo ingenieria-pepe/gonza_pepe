@@ -1383,6 +1383,9 @@ LOG DE CAMBIOS:
   22/10/2026 -> historico_cargas.ps1 (paso 5h2): no se cae con un productor nuevo sin descargados (Jaime Zimerman, 1 camion en camino):
                Ymd devuelve null con null y "primera" usa la primera carga activa. Pedido de Uruguay; reproducido y probado en la laptop.
   22/10/2026 -> aviso diario: "Descargan manana" con un productor por renglon (Gonzalo: "siiiiii").
+  22/10/2026 -> objetivo del sabado 27.000 -> 30.000 (supuestos > minimo_cajas_sabado). Gonzalo: "desde Uruguay quieren aumentar el
+               stock a 30 mil, la banana esta demorando mas en tomar color segun Charlie" (Aloha /plan-salida/maduracion: protocolo
+               Invierno en todas las camaras BR, 63 % de la madera en color 1 con salida 26-29/10).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
