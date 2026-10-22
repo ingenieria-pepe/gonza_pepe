@@ -1368,6 +1368,7 @@ LOG DE CAMBIOS:
                el aviso de compras (miercoles) y el aviso del mediodia NO salen a la lista: solo va una linea a ...8111
                ("No salio el mensaje de ...: Aloha sin datos desde ..."). Get-PlanVencido / Send-AvisoBloqueo.
                El "Actualiza el del jueves" al reenviar a mano queda como regla de esta ventana, sin codigo.
+  22/10/2026 -> plan de compras: Ivo cargo el miercoles 21 (no el martes 20); descarga el sabado 24. En Aloha todavia no figura.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
