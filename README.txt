@@ -1346,6 +1346,17 @@ LOG DE CAMBIOS:
   21/10/2026 -> plan de compras: Paraguay 3 en la semana de carga 26-31/10 (Alvarito lun, Guido mar, Milciades lun 26).
   21/10/2026 -> mensaje de descargas, semana del conteo: "Descargaron lun-mie: N (ya en camara)" + "Faltan descargar: M" en vez de
                "Descargan lun-mie 0" (Gonzalo: "como me vas a decir que no hubo descargas").
+  22/10/2026 -> plan de compras, "que tenemos que corregir para que no vuelva a pasar" (dos mensajes del 15 y 16/10 con arranques
+               distintos; Celso y Shapo contados sin estar en Aloha). Gonzalo: "dale hacemos esas dos":
+               (1) CRUCE CON ALOHA: aloha_datos.ps1 baja GET /plan-cargas a fuentes\aloha_plan_cargas.json; generar_datos empareja
+               cada camion (productor, origen, carga +-3 dias, primero fechas exactas) y marca estado_aloha. El mensaje de descargas
+               lista la semana entera: ✔️ descargado · 🚛 en camino · ⏳ Solicitado con la carga ya pasada · ❓ no esta en Aloha.
+               No cambia fechas dictadas (solo pone la fecha real de lo ya descargado).
+               (2) BASE FIJA DEL ERP: con la semana vendiendo, stock = cierre ERP del sabado + ingresos - venta - descartes (Aloha);
+               falta = lo no descargado en Aloha, aunque su fecha haya pasado; venta que falta = venta semana - venta real. El
+               mensaje muestra la cuenta (cierre sab, + descargado, - vendido, = stock). Sin cruce fresco vuelve al conteo de camaras.
+               Mismo cambio en Get-PlanSemanaCuenta (avisos) y simulador.html.
+  22/10/2026 -> dictado semana 26-31/10: segundo Fischer pasa de mie 28 a vie 30 y Jhony de mar 27 a sab 31 (semana 19-25 sin cambios).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

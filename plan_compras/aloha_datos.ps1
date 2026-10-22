@@ -309,6 +309,23 @@ try {
     }
     Guardar 'aloha_pizarron.json' $pizarron
     $resumenFinal += "pizarron: $($lotes.Count) lotes"
+
+    # ======================================================================
+    # 5) PLAN DE CARGAS (estado real de cada camion). [22/10/2026] Gonzalo: "que tenemos que corregir para que no vuelva a pasar":
+    #    los mensajes cruzan cada camion dictado con Aloha (descargado / en camino / no figura) y la cuenta del sabado no cuenta dos
+    #    veces lo ya descargado. Antes esto solo venia del export .xlsx del paso 3b, que en la laptop tenia 10 dias de atraso.
+    # ======================================================================
+    try {
+        $pcR = Get-Aloha '/plan-cargas' @{ limit = 5000 }
+        $pcRows = @(); foreach ($k in 'data', 'items', 'rows', 'cargas') { if ($pcR.PSObject.Properties.Name -contains $k) { $pcRows = @($pcR.$k); break } }; if (-not $pcRows.Count) { $pcRows = @($pcR) }
+        $desdePc = $ahora.Date.AddDays(-45).ToString('yyyy-MM-dd')
+        $pcOut = @($pcRows | Where-Object { [string]$_.fecha_carga -ge $desdePc } | ForEach-Object {
+            [ordered]@{ productor = ((([string]$_.productor).Trim()) -replace '\s+', ' '); pais = [string]$_.pais_origen; status = [string]$_.status
+                        carga = $(if ($_.fecha_carga) { ([string]$_.fecha_carga).Substring(0, 10) }); frontera = $(if ($_.fecha_frontera) { ([string]$_.fecha_frontera).Substring(0, 10) })
+                        descarga = $(if ($_.fecha_descarga) { ([string]$_.fecha_descarga).Substring(0, 10) }); cajas_mic = [int](Num $_.cajas_mic); cajas_desc = [int](Num $_.cajas_desc); fuente = [string]$_.fuente } })
+        Guardar 'aloha_plan_cargas.json' ([ordered]@{ generado = $ahora.ToString('yyyy-MM-dd HH:mm'); fuente = 'Aloha API GET /plan-cargas (cargas de los ultimos 45 dias y futuras)'; cargas = $pcOut })
+        $resumenFinal += "plan-cargas: $($pcOut.Count) filas"
+    } catch { Log "  plan-cargas no disponible: $($_.Exception.Message)" 'DarkYellow' }
 } finally {
     try { Invoke-RestMethod -Uri "$apiBase/auth/logout" -Method Post -Headers $hdr -TimeoutSec 15 -UserAgent $UA | Out-Null; Log "logout" } catch {}
 }

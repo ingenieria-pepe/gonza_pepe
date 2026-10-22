@@ -91,6 +91,34 @@ if (Test-Path $alohaCam) {
         }
     } catch { Write-Host "  (aviso) aloha_camaras.json ilegible: $($_.Exception.Message)" }
 }
+# [22/10/2026] BASE FIJA DEL ERP (Gonzalo: "que tenemos que corregir para que no vuelva a pasar" -> "dale hacemos esas dos").
+#     El conteo de camaras a mitad de semana es parcial y se mueve cada dia (el 15/10 y el 16/10 salieron dos mensajes con
+#     arranques distintos). Con la semana ya vendiendo, la base es el ERP de Aloha: cierre del sabado anterior + ingresos reales
+#     - venta real - descartes = stock ERP de ahora (aloha_ventas.json, semana parcial). Lo que falta = camiones dictados que
+#     Aloha todavia no dio por descargados (cruce mas abajo) y la venta que falta = venta de la semana - venta real.
+#     Sin semana parcial (sabado tarde, domingo, lunes antes de vender) queda el conteo de arriba.
+$alohaVenE = Join-Path $repo 'fuentes\aloha_ventas.json'
+try {
+    if ((Test-Path $alohaVenE) -and $ac -and $ac.ultimo_cierre -and $ac.ultimo_cierre.sabado) {
+        $avE = Get-Content $alohaVenE -Raw -Encoding UTF8 | ConvertFrom-Json
+        $sabE = ([DateTime]$ac.ultimo_cierre.sabado).Date; $lunE = $sabE.AddDays(2)
+        $parE = @($avE.semanas | Where-Object { $_.parcial -and [string]$_.semana_lunes -eq (Ymd $lunE) }) | Select-Object -First 1
+        if ($parE -and ((Get-Date).Date - $sabE).TotalDays -le 7) {
+            $hastaE = ([DateTime]$parE.hasta).Date
+            $conteoAntes = $conteo; $fechaAntes = $fechaConteo
+            $conteo = [ordered]@{ fecha = (Ymd $hastaE); modo = 'erp' }
+            foreach ($o in 'BR', 'PY', 'BO', 'EC') { $conteo[$o] = [int]$parE.$o.stock }
+            $conteo.base_sabado = (Ymd $sabE); $conteo.base_cajas = [int]$ac.ultimo_cierre.madera_bo
+            $conteo.ingresos_semana = 0; $conteo.venta_real_semana = 0; $conteo.descartes_semana = 0
+            $conteo.venta_real = [ordered]@{}
+            foreach ($o in 'BR', 'PY', 'BO') { $conteo.ingresos_semana += [int]$parE.$o.ingresos; $conteo.venta_real_semana += [int]$parE.$o.present; $conteo.descartes_semana += [int]$parE.$o.descartes; $conteo.venta_real[$o] = [int]$parE.$o.present }
+            $conteo.contado_hasta = $(if ($avE.generado) { ([DateTime]$avE.generado).ToString('yyyy-MM-dd HH:mm') } else { (Ymd $hastaE) })
+            $conteo.tipo = 'erp'
+            $conteo.fuente = "Aloha ERP: cierre sab $($sabE.ToString('dd/MM')) $($conteo.base_cajas) + ingresos $($conteo.ingresos_semana) - venta $($conteo.venta_real_semana) - descartes $(-$conteo.descartes_semana) (lun a $($hastaE.ToString('dd/MM')))"
+            $fechaConteo = $conteo.fecha
+        }
+    }
+} catch { Write-Host "  (aviso) base ERP no disponible: $($_.Exception.Message)" -ForegroundColor DarkYellow }
 # [11/10/2026] VENTA REAL desde Aloha (fuentes\aloha_ventas.json, /stock/ventas-presentacion por semana lun-sab):
 #     reemplaza a la hoja ventas_semanales (transcripcion de fotos) cuando existe. Semanas parciales no cuentan.
 $alohaVen = Join-Path $repo 'fuentes\aloha_ventas.json'
@@ -286,6 +314,69 @@ foreach ($p in ($prog | Sort-Object carga)) {
 $sombraAloha = @(for ($i = 0; $i -lt $camiones.Count; $i++) { if ($quitar.ContainsKey($i)) { $camiones[$i] } })
 if ($quitar.Count -gt 0) { $camiones = @(for ($i = 0; $i -lt $camiones.Count; $i++) { if (-not $quitar.ContainsKey($i)) { $camiones[$i] } }) }
 
+# [22/10/2026] CRUCE CON ALOHA (Gonzalo: "dale hacemos esas dos"): cada camion se busca en fuentes\aloha_plan_cargas.json
+#     (GET /plan-cargas, lo baja aloha_datos.ps1) por origen, productor y fecha de carga (+-3 dias). estado_aloha:
+#     descargado / en_camino (cargado, liberado, frontera...) / solicitado / cancelado / no_figura. No cambia las fechas del
+#     dictado: solo marca. Lo descargado queda en_stock (ya esta en el ERP: la cuenta no lo vuelve a sumar). Si el archivo
+#     tiene mas de 36 horas no se marca nada y la cuenta queda como antes.
+$cruceAloha = [ordered]@{ ok = $false }
+$apcF = Join-Path $repo 'fuentes\aloha_plan_cargas.json'
+try {
+    if (Test-Path $apcF) {
+        $apc = Get-Content $apcF -Raw -Encoding UTF8 | ConvertFrom-Json
+        $apcGen = [DateTime]$apc.generado
+        $cruceAloha.generado = $apc.generado
+        if (((Get-Date) - $apcGen).TotalHours -le 36) {
+            $alR = @(foreach ($a in @($apc.cargas)) {
+                $pa = [string]$a.pais; $pr = [string]$a.productor
+                if ($pr -match '(?i)^varios|exotic') { continue }
+                $o = $(if ($pa -eq 'BO') { 'BO' } elseif ($pa -in '', 'BR', 'PY') { $(if ($pr -match '(?i)^paraguay') { 'PY' } else { 'BR' }) } else { $null })
+                if (-not $o -or -not $a.carga) { continue }
+                [PSCustomObject]@{ o = $o; k = $(if ($o -eq 'BO') { 'bolivia' } else { Canon $pr }); carga = [DateTime]$a.carga; st = [string]$a.status; desc = $a.descarga; usado = $false }
+            })
+            $hoyX = (Get-Date).Date; $nX = @{}
+            # misma persona con nombre corto o largo ("Muller" en Aloha, "Muller Fabricio" dictado): se compara tambien la primera palabra
+            $k1 = { param($s) $w = @((Norm $s) -split ' ')[0]; if ($w.Length -ge 4) { $w } else { Norm $s } }
+            foreach ($r in $alR) { $r | Add-Member -NotePropertyName k1 -NotePropertyValue $(if ($r.o -ne 'BR') { $r.k } else { & $k1 $r.k }) -Force }
+            $camX = @($camiones | Where-Object { $_.fuente -ne 'supuesto' -and $_.origen -in 'BR', 'PY', 'BO' -and ([DateTime]$_.carga) -ge $hoyX.AddDays(-30) -and -not ($_.PSObject.Properties.Name -contains 'parcial' -and [bool]$_.parcial) } | Sort-Object carga)
+            $parX = @{}
+            # emparejar primero las fechas exactas, despues +-1, +-2, +-3 dias: un camion no le roba la fila a otro del mismo productor
+            foreach ($tol in 0, 1, 2, 3) {
+                for ($ix = 0; $ix -lt $camX.Count; $ix++) { $c = $camX[$ix]
+                    if ($parX.ContainsKey($ix)) { continue }
+                    $kc = $(if ($c.origen -eq 'BO') { 'bolivia' } else { Canon $c.productor }); $kc1 = $(if ($c.origen -ne 'BR') { $kc } else { & $k1 $kc }); $fc = [DateTime]$c.carga   # PY: "Paraguay AS/MS/GM" no se mezclan por la primera palabra
+                    $m = @($alR | Where-Object { -not $_.usado -and $_.o -eq $c.origen -and ($_.k -eq $kc -or $_.k1 -eq $kc1) -and [math]::Abs(($_.carga - $fc).TotalDays) -le $tol } | Sort-Object { [int]($_.st -match '^Cancel') }) | Select-Object -First 1
+                    if ($m) { $m.usado = $true; $parX[$ix] = $m }
+                }
+            }
+            for ($ix = 0; $ix -lt $camX.Count; $ix++) { $c = $camX[$ix]
+                $m = $parX[$ix]
+                # sin fila en Aloha: si la carga es futura es normal (Aloha la crea unos dias antes); si ya paso, no figura
+                $est = $(if ([DateTime]$c.carga -gt $hoyX) { 'pendiente' } else { 'no_figura' })
+                if ($m) {
+                    $est = $(if ($m.st -match '^Descargado') { 'descargado' } elseif ($m.st -match '^(Cancel|Destru)') { 'cancelado' } elseif ($m.st -match '^Solicitado') { 'solicitado' } else { 'en_camino' })
+                }
+                $c | Add-Member -NotePropertyName estado_aloha -NotePropertyValue $est -Force
+                if ($m) { $c | Add-Member -NotePropertyName aloha -NotePropertyValue ([ordered]@{ status = $m.st; carga = (Ymd $m.carga); descarga = $m.desc }) -Force }
+                if ($est -eq 'descargado') {
+                    $c | Add-Member -NotePropertyName en_stock -NotePropertyValue $true -Force
+                    if (-not $c.descarga -and $m.desc) { $c.descarga = [string]$m.desc }
+                    if ($m.desc -and [string]$c.descarga -ne [string]$m.desc -and [string]$c.fuente -eq 'plan_compras') { $c.descarga = [string]$m.desc }   # el hecho de Aloha manda sobre la fecha estimada a mano
+                    $c.status = 'Descargado'
+                }
+                $nX[$est] = 1 + [int]$nX[$est]
+            }
+            # descargados en Aloha esta semana que no se emparejaron con nada (nombre distinto?): avisar, la cuenta del ERP ya los tiene
+            $lunX = $hoyX.AddDays(-((([int]$hoyX.DayOfWeek) + 6) % 7))
+            $sueltos = @($alR | Where-Object { -not $_.usado -and $_.st -match '^Descargado' -and $_.desc -and ([DateTime]$_.desc) -ge $lunX } | ForEach-Object { "$($_.o) $($_.k) $($_.carga.ToString('dd/MM'))" })
+            $cruceAloha.ok = $true; $cruceAloha.estados = $nX; $cruceAloha.descargados_sin_dictado = $sueltos
+            Write-Host ("  cruce Aloha ({0}): {1}" -f $apc.generado, (($nX.GetEnumerator() | Sort-Object Name | ForEach-Object { "$($_.Key) $($_.Value)" }) -join ' · ')) -ForegroundColor Green
+            if ($sueltos.Count) { Write-Host "  (aviso) descargados en Aloha esta semana sin dictado que los empareje: $($sueltos -join ', ')" -ForegroundColor DarkYellow }
+        } else { Write-Host "  (aviso) aloha_plan_cargas.json tiene mas de 36 horas ($($apc.generado)): sin cruce" -ForegroundColor DarkYellow }
+    }
+} catch { Write-Host "  (aviso) cruce con Aloha fallo: $($_.Exception.Message)" -ForegroundColor DarkYellow }
+if ($conteo.modo -eq 'erp' -and -not $cruceAloha.ok) { $conteo = $conteoAntes; $fechaConteo = $fechaAntes; Write-Host '  (aviso) sin cruce con Aloha: la base vuelve al conteo de camaras' -ForegroundColor DarkYellow }
+
 # ---- grupos [27/09/2026]: Gonzalo pidio unificar la compra Brasil + Paraguay ("para mi es lo mismo una u otra,
 #      de ahi despues yo veo que cargar"); Bolivia sigue aparte. El simulador proyecta por grupo; cada camion
 #      conserva su origen (bandera en la grilla) y el conteo y la venta se suman.
@@ -469,6 +560,7 @@ foreach ($c in $camiones) {
     lags = [ordered]@{ BR = [ordered]@{ descarga = $LAG_DESC.BR; madurar = 7 }; PY = [ordered]@{ descarga = $LAG_DESC.PY; madurar = 7 }; BO = [ordered]@{ descarga = $LAG_DESC.BO; madurar = 7 }; TODO = [ordered]@{ descarga = 3; madurar = 7 } }
     cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; TODO = 1000 }
     conteo = $conteo
+    cruce_aloha = $cruceAloha
     ventas_plan = $ventas
     ventas_reales = $ventasReales
     # [03/10/2026] lo dictado por semana de carga (lunes como clave; domingo = semana que arranca) ANTES de descontar lo que
