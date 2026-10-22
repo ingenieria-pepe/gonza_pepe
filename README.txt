@@ -1380,6 +1380,8 @@ LOG DE CAMBIOS:
                Sin token: login con username/password como antes (la laptop sigue con gpepe). 401 con token = mensaje "token de Aloha
                invalido o revocado... cargar_token_aloha.ps1" y corta; 429 = 60 s y un reintento; pausa de 0,55 s entre GETs con token.
                El token nunca se imprime. Probado en la laptop sin token y con un token falso contra prod.
+  22/10/2026 -> historico_cargas.ps1 (paso 5h2): no se cae con un productor nuevo sin descargados (Jaime Zimerman, 1 camion en camino):
+               Ymd devuelve null con null y "primera" usa la primera carga activa. Pedido de Uruguay; reproducido y probado en la laptop.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
