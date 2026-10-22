@@ -1359,6 +1359,8 @@ LOG DE CAMBIOS:
   22/10/2026 -> dictado semana 26-31/10: segundo Fischer pasa de mie 28 a vie 30 y Jhony de mar 27 a sab 31 (semana 19-25 sin cambios).
   22/10/2026 -> mensaje de descargas: el 02/11 (Finados) ya no corre un dia mas el cruce; lo cargado vie 30 y sab 31 descarga el martes 3
                (Gonzalo: "descargan el martes 3, esta el feriado del lunes").
+  22/10/2026 -> REVERTIDO lo anterior: el feriado del 02/11 corre el cruce al martes 3 y lo de vie 30 y sab 31 llega el miercoles 4
+               (Gonzalo: "feriado es el 2 y los camiones recien cruzan el martes 3 en el correr del dia, llegan a destino miercoles 4").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
