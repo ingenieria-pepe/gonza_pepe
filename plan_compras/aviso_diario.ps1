@@ -73,7 +73,7 @@ try {
         if (-not $semMsgs.ContainsKey($k)) { $semMsgs[$k] = @((Get-DescargasSemanaTexto -Path (Join-Path $aqui 'plan_compras.json') -Lunes $lw -Hoy $hoy) -split "`n") }
         $ls = $semMsgs[$k]; $i = [array]::IndexOf($ls, "*$($NOMD[[int]$dx.DayOfWeek]) $($dx.ToString('dd'))*"); $px = @()
         if ($i -ge 0) { for ($q = $i + 1; $q -lt $ls.Count -and $ls[$q].Trim(); $q++) { $px += ($ls[$q] -replace '^\S+\s', '') } }
-        if ($px.Count) { $L += ''; $L += "*Descargan $(if ($dd -eq 1) { 'mañana' } else { '' }) $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):*".Replace('  ', ' ').Replace('* ', '*'); $L += ($px -join ', '); break }
+        if ($px.Count) { $L += ''; $L += "*Descargan $(if ($dd -eq 1) { 'mañana' } else { '' }) $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):*".Replace('  ', ' ').Replace('* ', '*'); $L += $px; break }   # [22/10/2026] Gonzalo: un productor por renglon (antes iban seguidos con comas)
     }
     $txt = ($L -join "`n")
     # [22/10/2026] Gonzalo: "dale" (no mandar con datos viejos): si Aloha no se leyo en las ultimas 24 horas, en vez del aviso va una linea

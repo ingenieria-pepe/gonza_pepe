@@ -1382,6 +1382,7 @@ LOG DE CAMBIOS:
                El token nunca se imprime. Probado en la laptop sin token y con un token falso contra prod.
   22/10/2026 -> historico_cargas.ps1 (paso 5h2): no se cae con un productor nuevo sin descargados (Jaime Zimerman, 1 camion en camino):
                Ymd devuelve null con null y "primera" usa la primera carga activa. Pedido de Uruguay; reproducido y probado en la laptop.
+  22/10/2026 -> aviso diario: "Descargan manana" con un productor por renglon (Gonzalo: "siiiiii").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
