@@ -76,6 +76,9 @@ try {
         if ($px.Count) { $L += ''; $L += "*Descargan $(if ($dd -eq 1) { 'mañana' } else { '' }) $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):*".Replace('  ', ' ').Replace('* ', '*'); $L += ($px -join ', '); break }
     }
     $txt = ($L -join "`n")
+    # [22/10/2026] Gonzalo: "dale" (no mandar con datos viejos): si Aloha no se leyo en las ultimas 24 horas, en vez del aviso va una linea
+    $vencX = Get-PlanVencido -Path (Join-Path $aqui 'plan_compras.json')
+    if ($vencX -and -not $Fecha) { Log "aviso diario NO SALE: $vencX"; $txt = "⚠️ No salió el aviso del mediodía: $vencX. Revisemos Aloha." }
     Write-Host $txt
     if ($Dry) { Log 'aviso diario (dry): no se manda'; return }
     $wa = Get-Content (Join-Path $repo 'config\whatsapp.json') -Raw -Encoding UTF8 | ConvertFrom-Json

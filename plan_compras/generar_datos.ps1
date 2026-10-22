@@ -119,6 +119,9 @@ try {
         }
     }
 } catch { Write-Host "  (aviso) base ERP no disponible: $($_.Exception.Message)" -ForegroundColor DarkYellow }
+# [22/10/2026] cuando se leyo Aloha por ultima vez (aloha_datos.ps1): los mensajes no salen si tiene mas de 24 horas
+$alohaLeido = $null
+try { if (Test-Path $alohaVenE) { $gL = (Get-Content $alohaVenE -Raw -Encoding UTF8 | ConvertFrom-Json).generado; if ($gL) { $alohaLeido = ([DateTime]$gL).ToString('yyyy-MM-dd HH:mm') } } } catch {}
 # [11/10/2026] VENTA REAL desde Aloha (fuentes\aloha_ventas.json, /stock/ventas-presentacion por semana lun-sab):
 #     reemplaza a la hoja ventas_semanales (transcripcion de fotos) cuando existe. Semanas parciales no cuentan.
 $alohaVen = Join-Path $repo 'fuentes\aloha_ventas.json'
@@ -301,6 +304,10 @@ function Canon($name) {
 #   - Aloha queda solo para lo que no se dicta: Bolivia (fuente OTROS) y semanas sin ninguna carga dictada del origen.
 #   (El 06/10 se habia dejado que lo ya cargado/descargado en Aloha mandara sobre el dictado; eso se saco.)
 $dictOW = @{}; foreach ($p in $prog) { $dictOW[([string]$p.origen) + '|' + $p.semana_carga] = $true }
+# [22/10/2026] REPETIDOS EN EL DICTADO (Gonzalo: "dale"; el 15/10 Gilson salio dos veces el sabado 24): mismo productor y misma fecha de
+#     carga mas de una vez. No se borra nada (puede haber dos camiones de verdad): se avisa y queda en duplicados_dictado para preguntar.
+$duplicados = @($prog | Where-Object { -not $_.parcial -and [DateTime]$_.carga -ge (Get-Date).Date.AddDays(-7) } | Group-Object { "$(Canon $_.productor)|$($_.carga)" } | Where-Object { $_.Count -gt 1 } | ForEach-Object { [ordered]@{ productor = $_.Group[0].productor; carga = $_.Group[0].carga; veces = $_.Count } })
+foreach ($dp in $duplicados) { Write-Host "  (REVISAR) $($dp.productor) aparece $($dp.veces) veces cargando el $($dp.carga): ¿son $($dp.veces) camiones?" -ForegroundColor Yellow }
 $quitar = @{}; $descartadas = 0
 for ($i = 0; $i -lt $camiones.Count; $i++) { $c = $camiones[$i]; if ($dictOW.ContainsKey(([string]$c.origen) + '|' + $c.semana_carga)) { $quitar[$i] = $true; $descartadas++ } }
 $usadas = 0; $omitidas = 0; $reemplazadas = 0
@@ -561,6 +568,8 @@ foreach ($c in $camiones) {
     cajas_camion = [ordered]@{ BR = 1008; PY = 980; BO = 1050; TODO = 1000 }
     conteo = $conteo
     cruce_aloha = $cruceAloha
+    aloha_leido = $alohaLeido
+    duplicados_dictado = $duplicados
     ventas_plan = $ventas
     ventas_reales = $ventasReales
     # [03/10/2026] lo dictado por semana de carga (lunes como clave; domingo = semana que arranca) ANTES de descontar lo que

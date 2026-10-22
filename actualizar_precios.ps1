@@ -4737,6 +4737,25 @@ function Get-PlanSemanaCuenta {
     $venta = & $prorrateo $Lunes (& $ventaDe $Lunes)
     return [PSCustomObject]@{ lunes = $Lunes; arranque = $saldo; camiones = @($ll | Where-Object { -not $_.parcial }).Count; parciales = @($ll | Where-Object { $_.parcial }).Count; cajas = $tot; venta = $venta; fila = (& $filaDe $Lunes); cargas = @($ll | ForEach-Object { $_.carga } | Sort-Object -Unique); cierre = ($saldo + $tot - $venta) }
 }
+function Get-PlanVencido {
+    # [22/10/2026] Gonzalo: "dale" (no mandar con datos viejos): $null si el plan se armo con Aloha leido hace menos de $Horas;
+    # si no, el motivo. Con motivo el mensaje NO sale a la lista: solo va una linea al telefono de Gonzalo (...8111).
+    param([string]$Path, [int]$Horas = 24)
+    try { $Jv = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return 'plan_compras.json ilegible' }
+    if (-not $Jv.aloha_leido) { return 'el plan no dice cuándo se leyó Aloha' }
+    $tL = [DateTime]$Jv.aloha_leido
+    if (((Get-Date) - $tL).TotalHours -gt $Horas) { return "Aloha sin datos desde $($tL.ToString('dd/MM HH:mm'))" }
+    return $null
+}
+function Send-AvisoBloqueo {
+    # [22/10/2026] una linea a Gonzalo (telefono que termina en 8111) cuando un mensaje del plan no sale por datos viejos
+    param($Cfg, [string]$Que, [string]$Motivo)
+    $tel = @(@($Cfg.phones) | ForEach-Object { ([string]$_) -replace '[^\d]', '' } | Where-Object { $_.EndsWith('8111') }) | Select-Object -First 1
+    if (-not $tel -or [string]::IsNullOrWhiteSpace($Cfg.token)) { Write-Host "    (aviso) no se pudo avisar el bloqueo: sin telefono ...8111 o token" -ForegroundColor DarkYellow; return }
+    $txtB = "⚠️ No salió el mensaje de $($Que): $Motivo. Revisemos Aloha antes de mandarlo."
+    try { Invoke-RestMethod -Uri 'https://gate.whapi.cloud/messages/text' -Method Post -Headers @{ 'Authorization' = "Bearer $($Cfg.token)" } -Body ([System.Text.Encoding]::UTF8.GetBytes((@{ to = $tel; body = $txtB } | ConvertTo-Json -Compress))) -ContentType 'application/json; charset=utf-8' -TimeoutSec 90 | Out-Null; Write-Host "    aviso de bloqueo enviado a ...8111" -ForegroundColor Yellow }
+    catch { Write-Host "    (aviso) no se pudo mandar el aviso de bloqueo: $($_.Exception.Message)" -ForegroundColor DarkYellow }
+}
 function Get-AvisoComprasTexto {
     # "Aviso de compras" del MIERCOLES 12:00 [11/10/2026]. Gonzalo: "sumas la venta de lunes, martes, miercoles, la multiplicas
     # por dos, y si la venta fue buena me mandas un mensaje el miercoles al mediodia avisando: la venta fue superior, se
@@ -4840,6 +4859,10 @@ if ($waSoloDescargas) {
     if ($waDry) { }
     elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $waPrueba)) { Write-Host "    WhatsApp deshabilitado (config/whatsapp.json): no se mandan" -ForegroundColor DarkYellow }
     elseif ([string]::IsNullOrWhiteSpace($waConfig.token)) { Write-Host "    Falta token en config/whatsapp.json" -ForegroundColor DarkYellow }
+    elseif ($msgsDesc.Count -and ($vencD = Get-PlanVencido -Path $pcjDesc)) {
+        Write-Host "    DESCARGAS NO SE MANDAN: $vencD" -ForegroundColor Red; Add-Falla -Paso 'WhatsApp descargas' -Detalle "no salio: $vencD"
+        Send-AvisoBloqueo -Cfg $waConfig -Que 'descargas' -Motivo $vencD
+    }
     else {
         # [09/10/2026] Gonzalo: "es otro mensaje, son mas numeros": el mensaje de cargas va a su PROPIA lista, clave
         # "phones_descargas" de config\whatsapp.json (no viaja por git: cargarla en el servidor y en la laptop). Si la clave
@@ -4882,6 +4905,10 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
             if ($waDry) { }
             elseif ($null -eq $waConfig -or (-not $waConfig.enabled -and -not $avisoForzado)) { Write-Host "    WhatsApp deshabilitado (config/whatsapp.json): el aviso no se manda" -ForegroundColor DarkYellow }
             elseif ([string]::IsNullOrWhiteSpace($waConfig.token)) { Write-Host "    Falta token en config/whatsapp.json" -ForegroundColor DarkYellow }
+            elseif ($vencA = Get-PlanVencido -Path $pcjAv) {
+                Write-Host "    AVISO DE COMPRAS NO SE MANDA: $vencA" -ForegroundColor Red; Add-Falla -Paso 'WhatsApp aviso de compras' -Detalle "no salio: $vencA"
+                Send-AvisoBloqueo -Cfg $waConfig -Que 'compras del miércoles' -Motivo $vencA
+            }
             else {
                 $phAv = @(); if ($waConfig.PSObject.Properties.Name -contains 'phones_descargas' -and $waConfig.phones_descargas) { $phAv = @($waConfig.phones_descargas) }
                 if ($phAv.Count -eq 0) { $phAv = $waPhones; Write-Host "    (aviso) sin phones_descargas en config/whatsapp.json: el aviso va a la lista phones" -ForegroundColor DarkYellow }

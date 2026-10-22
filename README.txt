@@ -1361,6 +1361,13 @@ LOG DE CAMBIOS:
                (Gonzalo: "descargan el martes 3, esta el feriado del lunes").
   22/10/2026 -> REVERTIDO lo anterior: el feriado del 02/11 corre el cruce al martes 3 y lo de vie 30 y sab 31 llega el miercoles 4
                (Gonzalo: "feriado es el 2 y los camiones recien cruzan el martes 3 en el correr del dia, llegan a destino miercoles 4").
+  22/10/2026 -> los otros dos arreglos (Gonzalo: "dale"):
+               REPETIDOS: generar_datos avisa "(REVISAR) X aparece N veces cargando el dd" si un productor repite fecha de carga
+               (desde hace 7 dias en adelante); no borra nada, queda en duplicados_dictado para preguntarle.
+               DATOS VIEJOS: plan_compras.json trae aloha_leido; si Aloha no se leyo en 24 horas el mensaje de descargas (viernes),
+               el aviso de compras (miercoles) y el aviso del mediodia NO salen a la lista: solo va una linea a ...8111
+               ("No salio el mensaje de ...: Aloha sin datos desde ..."). Get-PlanVencido / Send-AvisoBloqueo.
+               El "Actualiza el del jueves" al reenviar a mano queda como regla de esta ventana, sin codigo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
