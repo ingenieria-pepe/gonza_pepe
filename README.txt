@@ -1386,6 +1386,8 @@ LOG DE CAMBIOS:
   22/10/2026 -> objetivo del sabado 27.000 -> 30.000 (supuestos > minimo_cajas_sabado). Gonzalo: "desde Uruguay quieren aumentar el
                stock a 30 mil, la banana esta demorando mas en tomar color segun Charlie" (Aloha /plan-salida/maduracion: protocolo
                Invierno en todas las camaras BR, 63 % de la madera en color 1 con salida 26-29/10).
+  24/10/2026 -> plan de compras: cancelada la carga de Guido (Paraguay GM) del martes 27/10 (Gonzalo: "la fruta de el no llego buena").
+               Semana de carga 26-31/10: 22 camiones. Sigue en el Excel de Nacho / Aloha como Solicitado: cancelarla alla.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
