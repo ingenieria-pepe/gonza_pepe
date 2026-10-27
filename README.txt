@@ -1393,6 +1393,9 @@ LOG DE CAMBIOS:
                mediodia. Sab 31: 23.170; sab 7/11: 22.234. En el Excel de Nacho / Aloha siguen como Solicitado: cancelarlas alla.
   27/10/2026 -> Bolivia: no se descarga mas desde esta semana (Gonzalo). generar_datos solo toma camiones BO cargados hasta el 24/10;
                el Banexfrut cargado el sab 24 (descarga sab 31) es el ultimo y cuenta. Sab 31: 24.220.
+  27/10/2026 -> dictado nuevo semana de carga 26-31/10: vuelven al miercoles 28 Cassio (Nilton), Ivo y Aryste (Chabat), descargan vie 30
+               confirmado; BAHIA (Gral) mie 28 descarga sab 31; viernes 30 Fischer (Amaro) y Corupa (Nilton); sabado 31 se suma Marconi (Nilton).
+               Gilson sigue cancelado. Sab 31: 28.252; sab 7/11: 30.340.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
