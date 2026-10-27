@@ -1388,6 +1388,9 @@ LOG DE CAMBIOS:
                Invierno en todas las camaras BR, 63 % de la madera en color 1 con salida 26-29/10).
   24/10/2026 -> plan de compras: cancelada la carga de Guido (Paraguay GM) del martes 27/10 (Gonzalo: "la fruta de el no llego buena").
                Semana de carga 26-31/10: 22 camiones. Sigue en el Excel de Nacho / Aloha como Solicitado: cancelarla alla.
+  27/10/2026 -> plan de compras: canceladas las 8 cargas del miercoles 28/10 (Fischer, Cassio, Corupa, Gilson, BAHIA, Ivo, Marconi, Aryste).
+               Gonzalo: el feriado del servidor publico en Brasil se corrio al viernes 30 y la frontera trabaja solo hasta el jueves al
+               mediodia. Sab 31: 23.170; sab 7/11: 22.234. En el Excel de Nacho / Aloha siguen como Solicitado: cancelarlas alla.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
