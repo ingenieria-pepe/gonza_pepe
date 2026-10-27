@@ -261,6 +261,8 @@ if ($pcO) {
         if ((Cel $f $oPais) -ne 'BO') { continue }
         if ($st -match '^Cancelado|^Destruida') { continue }
         $fc = Fecha $f[$oFc]; if (-not $fc -or $fc -lt (Get-Date '2026-08-01')) { continue }
+        # [27/10/2026] Gonzalo: "a partir de esta semana no descargamos mas boliviana"; el Banexfrut cargado el sab 24/10 (descarga sab 31) es el ultimo
+        if ($fc.Date -gt (Get-Date '2026-10-24')) { continue }
         $mic = 0; [void][int]::TryParse(((Cel $f $oMic) -replace '[^\d]', ''), [ref]$mic); if ($mic -le 0) { $mic = 1050 }
         $fd = Fecha $f[$oFd]; $real = ($st -match '^(Descargado|Arribado)')
         $ex = Cel $f $oEx; if (-not $ex) { $ex = 'Bolivia' }

@@ -1391,6 +1391,8 @@ LOG DE CAMBIOS:
   27/10/2026 -> plan de compras: canceladas las 8 cargas del miercoles 28/10 (Fischer, Cassio, Corupa, Gilson, BAHIA, Ivo, Marconi, Aryste).
                Gonzalo: el feriado del servidor publico en Brasil se corrio al viernes 30 y la frontera trabaja solo hasta el jueves al
                mediodia. Sab 31: 23.170; sab 7/11: 22.234. En el Excel de Nacho / Aloha siguen como Solicitado: cancelarlas alla.
+  27/10/2026 -> Bolivia: no se descarga mas desde esta semana (Gonzalo). generar_datos solo toma camiones BO cargados hasta el 24/10;
+               el Banexfrut cargado el sab 24 (descarga sab 31) es el ultimo y cuenta. Sab 31: 24.220.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
