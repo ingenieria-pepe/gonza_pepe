@@ -1400,6 +1400,8 @@ LOG DE CAMBIOS:
                y venta prevista: 22.000 la semana del 26/10 y 18.000 la del 2/11 (Gonzalo). Sin Bolivia en la venta prevista.
   27/10/2026 -> semana 2-7/11: Fischer 3 (mie 4, vie 6, sab 7) y Andre Pauli 2 (mie 4, vie 6), confirmados por Gonzalo.
   27/10/2026 -> semana 2-7/11: Muller, Josemar y Jhony pasan del vie 6 al mar 3 (descargan vie 6).
+  27/10/2026 -> Paraguay en pausa (Gonzalo: "el dolar se disparo en PY y subio el flete; Brasil con el real devaluandose esta mejor"):
+               salen Milciades lun 2/11 y Alvarito mar 3/11.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
