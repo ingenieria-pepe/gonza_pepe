@@ -1399,6 +1399,7 @@ LOG DE CAMBIOS:
   27/10/2026 -> dictado semana de carga 2-7/11 (20 camiones BR; Ivo sale; Fischer y Andre Pauli pendientes de confirmar dias; PY sin cambios)
                y venta prevista: 22.000 la semana del 26/10 y 18.000 la del 2/11 (Gonzalo). Sin Bolivia en la venta prevista.
   27/10/2026 -> semana 2-7/11: Fischer 3 (mie 4, vie 6, sab 7) y Andre Pauli 2 (mie 4, vie 6), confirmados por Gonzalo.
+  27/10/2026 -> semana 2-7/11: Muller, Josemar y Jhony pasan del vie 6 al mar 3 (descargan vie 6).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
