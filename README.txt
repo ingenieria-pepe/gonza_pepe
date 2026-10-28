@@ -1396,6 +1396,8 @@ LOG DE CAMBIOS:
   27/10/2026 -> dictado nuevo semana de carga 26-31/10: vuelven al miercoles 28 Cassio (Nilton), Ivo y Aryste (Chabat), descargan vie 30
                confirmado; BAHIA (Gral) mie 28 descarga sab 31; viernes 30 Fischer (Amaro) y Corupa (Nilton); sabado 31 se suma Marconi (Nilton).
                Gilson sigue cancelado. Sab 31: 28.252; sab 7/11: 30.340.
+  27/10/2026 -> dictado semana de carga 2-7/11 (20 camiones BR; Ivo sale; Fischer y Andre Pauli pendientes de confirmar dias; PY sin cambios)
+               y venta prevista: 22.000 la semana del 26/10 y 18.000 la del 2/11 (Gonzalo). Sin Bolivia en la venta prevista.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
