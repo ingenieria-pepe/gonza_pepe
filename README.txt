@@ -1406,6 +1406,7 @@ LOG DE CAMBIOS:
   27/10/2026 -> Cassio carga el sabado 31/10 (descarga mie 4).
   28/10/2026 -> semana 2-7/11: Cassio mar 3, mie 4 y sab 7 (el del vie 6 pasa al mie 4, descarga sab 7).
   29/10/2026 -> semana 2-7/11 re-dictada con transportistas: Aryste 3 (se suma mar 3), Marconi y Josemar al vie 6, sale la BAHIA del mie 4.
+  29/10/2026 -> Jhony pasa del mar 3 al vie 6 (descarga mar 10).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
