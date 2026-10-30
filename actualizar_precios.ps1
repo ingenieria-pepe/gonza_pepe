@@ -4770,6 +4770,19 @@ function Get-PlanVencido {
     if (((Get-Date) - $tL).TotalHours -gt $Horas) { return "Aloha sin datos desde $($tL.ToString('dd/MM HH:mm'))" }
     return $null
 }
+function Get-PlanDudas {
+    # [30/10/2026] Gonzalo: "quedamos que se verificaba todo antes de mandar" (el 30/10 salio el arranque con el Aryste contado dos
+    # veces). $null si no hay dudas; si no, el motivo: camiones dictados que ya cargaron (carga antes de hoy), no estan descargados y
+    # Aloha no los tiene (no_figura) o los tiene cancelados, con descarga desde el lunes de esta semana. Con motivo el mensaje NO sale.
+    param([string]$Path)
+    try { $Jd = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return 'plan_compras.json ilegible' }
+    $hoyD = (Get-Date).Date; $lunD = $hoyD.AddDays(-((([int]$hoyD.DayOfWeek) + 6) % 7))
+    $dud = @($Jd.camiones | Where-Object { -not $_.en_stock -and [string]$_.estado_aloha -in 'no_figura', 'cancelado' -and ([DateTime]$_.carga).Date -lt $hoyD -and ([DateTime]$_.carga).Date -ge $lunD.AddDays(-14) } | ForEach-Object {
+        $nm = $(if ($_.nombre) { [string]$_.nombre } else { [string]$_.productor })
+        "$nm (carga $(([DateTime]$_.carga).ToString('dd/MM')), $(if ($_.estado_aloha -eq 'cancelado') { 'cancelado en Aloha' } else { 'no está en Aloha' }))" })
+    if ($dud.Count) { return ($dud -join '; ') }
+    return $null
+}
 function Send-AvisoBloqueo {
     # [22/10/2026] una linea a Gonzalo (telefono que termina en 8111) cuando un mensaje del plan no sale por datos viejos
     param($Cfg, [string]$Que, [string]$Motivo)
@@ -4886,6 +4899,10 @@ if ($waSoloDescargas) {
         Write-Host "    DESCARGAS NO SE MANDAN: $vencD" -ForegroundColor Red; Add-Falla -Paso 'WhatsApp descargas' -Detalle "no salio: $vencD"
         Send-AvisoBloqueo -Cfg $waConfig -Que 'descargas' -Motivo $vencD
     }
+    elseif ($msgsDesc.Count -and ($dudaD = Get-PlanDudas -Path $pcjDesc)) {
+        Write-Host "    DESCARGAS NO SE MANDAN (dudas): $dudaD" -ForegroundColor Red; Add-Falla -Paso 'WhatsApp descargas' -Detalle "no salio: $dudaD"
+        Send-AvisoBloqueo -Cfg $waConfig -Que 'descargas' -Motivo $dudaD
+    }
     else {
         # [09/10/2026] Gonzalo: "es otro mensaje, son mas numeros": el mensaje de cargas va a su PROPIA lista, clave
         # "phones_descargas" de config\whatsapp.json (no viaja por git: cargarla en el servidor y en la laptop). Si la clave
@@ -4931,6 +4948,10 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
             elseif ($vencA = Get-PlanVencido -Path $pcjAv) {
                 Write-Host "    AVISO DE COMPRAS NO SE MANDA: $vencA" -ForegroundColor Red; Add-Falla -Paso 'WhatsApp aviso de compras' -Detalle "no salio: $vencA"
                 Send-AvisoBloqueo -Cfg $waConfig -Que 'compras del miércoles' -Motivo $vencA
+            }
+            elseif ($dudaA = Get-PlanDudas -Path $pcjAv) {
+                Write-Host "    AVISO DE COMPRAS NO SE MANDA (dudas): $dudaA" -ForegroundColor Red; Add-Falla -Paso 'WhatsApp aviso de compras' -Detalle "no salio: $dudaA"
+                Send-AvisoBloqueo -Cfg $waConfig -Que 'compras del miércoles' -Motivo $dudaA
             }
             else {
                 $phAv = @(); if ($waConfig.PSObject.Properties.Name -contains 'phones_descargas' -and $waConfig.phones_descargas) { $phAv = @($waConfig.phones_descargas) }

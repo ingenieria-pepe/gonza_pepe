@@ -347,6 +347,8 @@ try {
             # misma persona con nombre corto o largo ("Muller" en Aloha, "Muller Fabricio" dictado): se compara tambien la primera palabra
             $k1 = { param($s) $w = @((Norm $s) -split ' ')[0]; if ($w.Length -ge 4) { $w } else { Norm $s } }
             foreach ($r in $alR) { $r | Add-Member -NotePropertyName k1 -NotePropertyValue $(if ($r.o -ne 'BR') { $r.k } else { & $k1 $r.k }) -Force }
+            # [30/10/2026] letras de mas en el Excel ("Arysteu Mittelman" = Aryste Mittelman): primera palabra que empieza igual (5+ letras)
+            $mismoNombre = { param($a, $b) $a = [string]$a; $b = [string]$b; ($a -eq $b) -or ($a.Length -ge 5 -and $b.Length -ge 5 -and ($a.StartsWith($b) -or $b.StartsWith($a))) }
             $camX = @($camiones | Where-Object { $_.fuente -ne 'supuesto' -and $_.origen -in 'BR', 'PY', 'BO' -and ([DateTime]$_.carga) -ge $hoyX.AddDays(-30) -and -not ($_.PSObject.Properties.Name -contains 'parcial' -and [bool]$_.parcial) } | Sort-Object carga)
             $parX = @{}
             # emparejar primero las fechas exactas, despues +-1, +-2, +-3 dias: un camion no le roba la fila a otro del mismo productor
@@ -354,7 +356,7 @@ try {
                 for ($ix = 0; $ix -lt $camX.Count; $ix++) { $c = $camX[$ix]
                     if ($parX.ContainsKey($ix)) { continue }
                     $kc = $(if ($c.origen -eq 'BO') { 'bolivia' } else { Canon $c.productor }); $kc1 = $(if ($c.origen -ne 'BR') { $kc } else { & $k1 $kc }); $fc = [DateTime]$c.carga   # PY: "Paraguay AS/MS/GM" no se mezclan por la primera palabra
-                    $m = @($alR | Where-Object { -not $_.usado -and $_.o -eq $c.origen -and ($_.k -eq $kc -or $_.k1 -eq $kc1) -and [math]::Abs(($_.carga - $fc).TotalDays) -le $tol } | Sort-Object { [int]($_.st -match '^Cancel') }) | Select-Object -First 1
+                    $m = @($alR | Where-Object { -not $_.usado -and $_.o -eq $c.origen -and ($_.k -eq $kc -or $_.k1 -eq $kc1 -or ($c.origen -eq 'BR' -and (& $mismoNombre $_.k1 $kc1))) -and [math]::Abs(($_.carga - $fc).TotalDays) -le $tol } | Sort-Object { [int]($_.st -match '^Cancel') }) | Select-Object -First 1
                     if ($m) { $m.usado = $true; $parX[$ix] = $m }
                 }
             }
@@ -374,6 +376,26 @@ try {
                     $c.status = 'Descargado'
                 }
                 $nX[$est] = 1 + [int]$nX[$est]
+            }
+            # [30/10/2026] SEGUNDA VERIFICACION CON LA CAMARA (Gonzalo: "si"): un camion que no figura en el Excel pero cuyo productor ya
+            # tiene lote(s) ingresado(s) en el pizarron desde su fecha de carga (700+ cajas) se toma como descargado: ya esta en el stock del
+            # ERP y no se cuenta dos veces (el 30/10 el Aryste del 28 salio como pendiente y estaba ingresado: "Arysteu" en el Excel).
+            $pzF = Join-Path $repo 'fuentes\aloha_pizarron.json'
+            if (Test-Path $pzF) {
+                $pz = Get-Content $pzF -Raw -Encoding UTF8 | ConvertFrom-Json
+                $lotesPz = @(@($pz.lotes) | Where-Object { $_.productor -and $_.fecha_ingreso } | ForEach-Object { [PSCustomObject]@{ k1 = (& $k1 (Canon ([string]$_.productor))); ing = ([DateTime]$_.fecha_ingreso).Date; cajas = [double]$_.cantidad; usado = $false } })
+                foreach ($c in @($camX | Where-Object { $_.estado_aloha -eq 'no_figura' -and $_.origen -eq 'BR' } | Sort-Object carga)) {
+                    $kc1 = & $k1 (Canon $c.productor); $fc = ([DateTime]$c.carga).Date
+                    $ls = @($lotesPz | Where-Object { -not $_.usado -and $_.ing -ge $fc -and (& $mismoNombre $_.k1 $kc1) } | Sort-Object ing)
+                    if (($ls | Measure-Object cajas -Sum).Sum -ge 700) {
+                        $acum = 0; foreach ($l in $ls) { if ($acum -ge 700) { break }; $l.usado = $true; $acum += $l.cajas }
+                        $c.estado_aloha = 'descargado'; $c | Add-Member -NotePropertyName en_stock -NotePropertyValue $true -Force
+                        $c | Add-Member -NotePropertyName verificado_camara -NotePropertyValue $true -Force
+                        if (-not $c.descarga) { $c.descarga = Ymd (@($ls | Select-Object -First 1).ing) }
+                        $c.status = 'Descargado'; $nX['no_figura'] = [int]$nX['no_figura'] - 1; $nX['descargado'] = 1 + [int]$nX['descargado']
+                        Write-Host "  (camara) $($c.productor) cargado $(Ymd $fc): no figura en el Excel pero ingreso en camara ($([int]$acum) cajas) -> descargado" -ForegroundColor DarkYellow
+                    }
+                }
             }
             # descargados en Aloha esta semana que no se emparejaron con nada (nombre distinto?): avisar, la cuenta del ERP ya los tiene
             $lunX = $hoyX.AddDays(-((([int]$hoyX.DayOfWeek) + 6) % 7))

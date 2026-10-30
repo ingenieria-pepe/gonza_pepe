@@ -1407,6 +1407,13 @@ LOG DE CAMBIOS:
   28/10/2026 -> semana 2-7/11: Cassio mar 3, mie 4 y sab 7 (el del vie 6 pasa al mie 4, descarga sab 7).
   29/10/2026 -> semana 2-7/11 re-dictada con transportistas: Aryste 3 (se suma mar 3), Marconi y Josemar al vie 6, sale la BAHIA del mie 4.
   29/10/2026 -> Jhony pasa del mar 3 al vie 6 (descarga mar 10).
+  30/10/2026 -> el mensaje de descargas de hoy salio con el Aryste del 28 contado dos veces (estaba ingresado; en el Excel dice "Arysteu").
+               Gonzalo: "quedamos que se verificaba todo antes de mandar" -> "si" a los tres arreglos:
+               (1) cruce: nombres que empiezan igual (5+ letras) son el mismo productor ("Arysteu" = "Aryste");
+               (2) segunda verificacion con la camara: si un camion no figura en el Excel pero su productor tiene lotes ingresados en el
+               pizarron desde la fecha de carga (700+ cajas), se toma como descargado (verificado_camara);
+               (3) Get-PlanDudas: si queda algun camion ya cargado que no esta en Aloha o esta cancelado, el mensaje de descargas y el aviso
+               de compras NO salen a la lista; va una linea a ...8111 con los camiones. Sab 31: 27.111; sab 7: 30.279.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
