@@ -1414,6 +1414,8 @@ LOG DE CAMBIOS:
                pizarron desde la fecha de carga (700+ cajas), se toma como descargado (verificado_camara);
                (3) Get-PlanDudas: si queda algun camion ya cargado que no esta en Aloha o esta cancelado, el mensaje de descargas y el aviso
                de compras NO salen a la lista; va una linea a ...8111 con los camiones. Sab 31: 27.111; sab 7: 30.279.
+  30/10/2026 -> cargas 2026.xlsx: precios de la Semana 44 (26/10 al 31/10), 16 camiones BR dictados por Gonzalo (Fischer y Cassio 31, Agro 32,
+               Ivo 34, BAHIA 38, el resto 33). El resumen deja de mostrar la semana del 24/10 como la ultima de Almar.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
