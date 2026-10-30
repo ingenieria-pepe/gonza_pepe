@@ -1417,6 +1417,7 @@ LOG DE CAMBIOS:
   30/10/2026 -> cargas 2026.xlsx: precios de la Semana 44 (26/10 al 31/10), 16 camiones BR dictados por Gonzalo (Fischer y Cassio 31, Agro 32,
                Ivo 34, BAHIA 38, el resto 33). El resumen deja de mostrar la semana del 24/10 como la ultima de Almar.
   30/10/2026 -> Semana 44: se suma Cassio del sab 31 a R$ 31 (17 camiones BR) y Paraguay a 8 USD/caja (Alvarito y Milciades, lunes 26).
+  30/10/2026 -> Cassio del sab 31 con Nilton (precios y plan).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
