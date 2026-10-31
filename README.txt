@@ -1418,6 +1418,8 @@ LOG DE CAMBIOS:
                Ivo 34, BAHIA 38, el resto 33). El resumen deja de mostrar la semana del 24/10 como la ultima de Almar.
   30/10/2026 -> Semana 44: se suma Cassio del sab 31 a R$ 31 (17 camiones BR) y Paraguay a 8 USD/caja (Alvarito y Milciades, lunes 26).
   30/10/2026 -> Cassio del sab 31 con Nilton (precios y plan).
+  31/10/2026 -> aviso del mediodia: desde 11 dias antes de un feriado de Brasil de lunes a viernes (lista $feriadosBR) avisa que lo del
+               miercoles no llega al sabado y hasta que dia cargar (Gonzalo: "avisame con tiempo lo del feriado 20, hay que recargar la semana anterior").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

@@ -75,6 +75,25 @@ try {
         if ($i -ge 0) { for ($q = $i + 1; $q -lt $ls.Count -and $ls[$q].Trim(); $q++) { $px += ($ls[$q] -replace '^\S+\s', '') } }
         if ($px.Count) { $L += ''; $L += "*Descargan $(if ($dd -eq 1) { 'mañana' } else { '' }) $($DOW[[int]$dx.DayOfWeek]) $($dx.ToString('dd')) ($($px.Count)):*".Replace('  ', ' ').Replace('* ', '*'); $L += $px; break }   # [22/10/2026] Gonzalo: un productor por renglon (antes iban seguidos con comas)
     }
+    # [31/10/2026] Gonzalo: "preciso que me avises con tiempo lo del feriado 20 porque hay que recargar la semana anterior": desde 11 dias
+    # antes de un feriado de Brasil de lunes a viernes (lista $feriadosBR de actualizar_precios.ps1, la misma de los mensajes) va un aviso.
+    $mF = [regex]::Match($tt, '\$feriadosBR = @\(([^)]*)\)')
+    $ferBR = @(); if ($mF.Success) { $ferBR = @([regex]::Matches($mF.Groups[1].Value, "'(\d{4}-\d{2}-\d{2})'") | ForEach-Object { [DateTime]$_.Groups[1].Value }) }
+    $objF = 30000; try { $jF = Get-Content (Join-Path $aqui 'plan_compras.json') -Raw -Encoding UTF8 | ConvertFrom-Json; if ($jF.minimos.TODO) { $objF = [int]$jF.minimos.TODO } } catch {}
+    $dd2 = { param($d) "$($DOW[[int]$d.DayOfWeek]) $($d.ToString('dd/MM'))" }
+    foreach ($fF in ($ferBR | Sort-Object)) {
+        $dF = ($fF - $hoy).TotalDays
+        if ($dF -lt 1 -or $dF -gt 11 -or $fF.DayOfWeek -in [DayOfWeek]::Saturday, [DayOfWeek]::Sunday) { continue }
+        $L += ''; $L += "📅 *Feriado en Brasil: $(& $dd2 $fF)*"
+        if ($fF.DayOfWeek -eq [DayOfWeek]::Friday) {
+            $L += "Lo que cargue el $(& $dd2 $fF.AddDays(-2)) no llega al $(& $dd2 $fF.AddDays(1)): cruza el $(& $dd2 $fF.AddDays(3)) y descarga el $(& $dd2 $fF.AddDays(4))."
+            $L += "Para cerrar el $(& $dd2 $fF.AddDays(1)) en $($objF.ToString('N0')), recargá antes: cargas hasta el $(& $dd2 $fF.AddDays(-3))."
+        } elseif ($fF.DayOfWeek -eq [DayOfWeek]::Monday) {
+            $L += "Lo que cargue el $(& $dd2 $fF.AddDays(-3)) y el $(& $dd2 $fF.AddDays(-2)) cruza el $(& $dd2 $fF.AddDays(1)) y descarga el $(& $dd2 $fF.AddDays(2))."
+        } else {
+            $L += "La frontera no trabaja ese día: lo que llegue el $(& $dd2 $fF) cruza el $(& $dd2 $fF.AddDays(1))."
+        }
+    }
     $txt = ($L -join "`n")
     # [22/10/2026] Gonzalo: "dale" (no mandar con datos viejos): si Aloha no se leyo en las ultimas 24 horas, en vez del aviso va una linea
     $vencX = Get-PlanVencido -Path (Join-Path $aqui 'plan_compras.json')
