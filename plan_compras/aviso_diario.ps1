@@ -39,14 +39,19 @@ try {
     $todos = @($av.semanas | Where-Object { $_.PSObject.Properties.Name -contains 'dias' } | ForEach-Object { @($_.dias) })
     $hechos = @($diasA | Where-Object { ([DateTime]$_.fecha).Date -le $hoy -and [int]$_.madera_bo -gt 0 } | Sort-Object fecha)   # [19/10/2026] la UAM vende de 3 a 11: a las 12 el dia de hoy ya esta completo
     $esCierre = $false
-    if (-not $hechos.Count -and $diasP.Count) { $hechos = @($diasP | Sort-Object fecha); $esCierre = $true }
+    # [02/11/2026] Gonzalo: "si no hay venta para que quiero la informacion de la semana pasada? ... hoy venta 0, semana pasada tantas cajas,
+    # mas las descargas ... mismo padron que siempre": un dia sin venta (feriado) va como un renglon en 0 contra el mismo dia de la semana
+    # pasada, con el formato de siempre. Ya no se repite la semana cerrada.
+    if ($hoy.DayOfWeek -ne [DayOfWeek]::Sunday -and -not @($hechos | Where-Object { ([DateTime]$_.fecha).Date -eq $hoy }).Count) {
+        $hechos = @($hechos) + @([PSCustomObject]@{ fecha = $hoy.ToString('yyyy-MM-dd'); madera_bo = 0; dow = [int]$hoy.DayOfWeek; cero = $true })
+    }
     if ($hechos.Count) {
         $L += $(if ($esCierre) { "*Semana del $(([DateTime]$hechos[0].fecha).ToString('dd/MM')) (cerrada)*" } else { '*Venta por día*' })
         $suma = 0; $sumP = 0; $sumS = 0.0
         foreach ($d in $hechos) {
             $fd = ([DateTime]$d.fecha).Date; $p = @($todos | Where-Object { [string]$_.fecha -eq $fd.AddDays(-7).ToString('yyyy-MM-dd') }) | Select-Object -First 1
             $L += "$($DOW[[int]$fd.DayOfWeek]) $($fd.ToString('dd')): $(& $fI $d.madera_bo)" + $(if ($p) { "  (pasado $(& $fI $p.madera_bo))" } else { '' })
-            $suma += [int]$d.madera_bo; if ($p) { $sumP += [int]$p.madera_bo }; $sumS += $SH[[int]$d.dow]
+            $suma += [int]$d.madera_bo; if ($p) { $sumP += [int]$p.madera_bo }; if (-not $d.cero) { $sumS += $SH[[int]$d.dow] }   # el dia en 0 no entra en la estimacion de la semana
         }
         if ($hechos.Count -gt 1) { $L += "*Total: $(& $fI $suma)*" + $(if ($sumP) { "  (pasada $(& $fI $sumP))" } else { '' }) }   # con un solo dia el total repetia el numero
         if (-not $esCierre -and $sumS -gt 0 -and $sumS -lt 0.99) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }

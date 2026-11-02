@@ -1420,6 +1420,8 @@ LOG DE CAMBIOS:
   30/10/2026 -> Cassio del sab 31 con Nilton (precios y plan).
   31/10/2026 -> aviso del mediodia: desde 11 dias antes de un feriado de Brasil de lunes a viernes (lista $feriadosBR) avisa que lo del
                miercoles no llega al sabado y hasta que dia cargar (Gonzalo: "avisame con tiempo lo del feriado 20, hay que recargar la semana anterior").
+  02/11/2026 -> aviso del mediodia en dia sin venta (feriado): mismo formato de siempre con el renglon de hoy en 0 contra el mismo dia de
+               la semana pasada, camara y descargas; ya no repite la semana cerrada (Gonzalo: "hoy venta 0, semana pasada tantas cajas, mas las descargas").
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
