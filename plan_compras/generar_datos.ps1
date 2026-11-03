@@ -348,7 +348,8 @@ try {
             $k1 = { param($s) $w = @((Norm $s) -split ' ')[0]; if ($w.Length -ge 4) { $w } else { Norm $s } }
             foreach ($r in $alR) { $r | Add-Member -NotePropertyName k1 -NotePropertyValue $(if ($r.o -ne 'BR') { $r.k } else { & $k1 $r.k }) -Force }
             # [30/10/2026] letras de mas en el Excel ("Arysteu Mittelman" = Aryste Mittelman): primera palabra que empieza igual (5+ letras)
-            $mismoNombre = { param($a, $b) $a = [string]$a; $b = [string]$b; ($a -eq $b) -or ($a.Length -ge 5 -and $b.Length -ge 5 -and ($a.StartsWith($b) -or $b.StartsWith($a))) }
+            # [03/11/2026] Gonzalo: "podes corregirlo vos?" ("Ariste" en el Excel = Aryste): la "y" cuenta como "i" al comparar
+            $mismoNombre = { param($a, $b) $a = ([string]$a).Replace('y', 'i'); $b = ([string]$b).Replace('y', 'i'); ($a -eq $b) -or ($a.Length -ge 5 -and $b.Length -ge 5 -and ($a.StartsWith($b) -or $b.StartsWith($a))) }
             $camX = @($camiones | Where-Object { $_.fuente -ne 'supuesto' -and $_.origen -in 'BR', 'PY', 'BO' -and ([DateTime]$_.carga) -ge $hoyX.AddDays(-30) -and -not ($_.PSObject.Properties.Name -contains 'parcial' -and [bool]$_.parcial) } | Sort-Object carga)
             $parX = @{}
             # emparejar primero las fechas exactas, despues +-1, +-2, +-3 dias: un camion no le roba la fila a otro del mismo productor

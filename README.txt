@@ -1422,6 +1422,8 @@ LOG DE CAMBIOS:
                miercoles no llega al sabado y hasta que dia cargar (Gonzalo: "avisame con tiempo lo del feriado 20, hay que recargar la semana anterior").
   02/11/2026 -> aviso del mediodia en dia sin venta (feriado): mismo formato de siempre con el renglon de hoy en 0 contra el mismo dia de
                la semana pasada, camara y descargas; ya no repite la semana cerrada (Gonzalo: "hoy venta 0, semana pasada tantas cajas, mas las descargas").
+  03/11/2026 -> cruce con Aloha: la "y" cuenta como "i" al comparar nombres ("Ariste" del mar 3 en el Excel = Aryste Mittelman).
+               Unico camion que cambia; sin dudas pendientes para el mensaje del viernes. Sab 7: 30.610 (la BAHIA del 28 sigue en frontera).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
