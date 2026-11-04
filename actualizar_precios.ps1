@@ -2932,8 +2932,53 @@ if (Test-Path $merP) {
     } catch { Add-Falla -Paso 'Ecuador (Penta)' -Detalle $_.Exception.Message }
 }
 
-# --- referencia: IndexMundi (Banco Mundial) ---
-$cacheIM = Join-Path $fuentes "indexmundi_cache.json"
+# --- referencia: Banco Mundial directo (Pink Sheet)  [04/11/2026] ---
+# Pedido del servidor via Gonzalo: IndexMundi quedo trabado en 2026-03; el Banco Mundial publica la misma serie al dia
+# (CMO-Historical-Data-Monthly.xlsx, hoja "Monthly Prices", columnas "Banana, US" y "Banana, Europe" en $/kg, meses "2026M10").
+# El link cambia cada año: se saca de la pagina de commodity markets. Si falla, sigue IndexMundi (abajo) o el cache.
+$cacheIM = Join-Path $fuentes "indexmundi_cache.json"   # nombre historico: guarda el bloque mundial, venga de donde venga
+$okWB = $false
+try {
+    $pgWB = Invoke-WebRequest -UseBasicParsing -Uri 'https://www.worldbank.org/en/research/commodity-markets' -UserAgent $UA_BROWSER -TimeoutSec 60 -ErrorAction Stop
+    $mWB = [regex]::Match($pgWB.Content, 'href="([^"]*CMO-Historical-Data-Monthly\.xlsx)"')
+    $urlWB = $(if ($mWB.Success) { $mWB.Groups[1].Value } else { 'https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx' })
+    if ($urlWB -notmatch '^https?://') { $urlWB = 'https://www.worldbank.org' + $urlWB }
+    $tmpWB = Join-Path $env:TEMP 'poronga_cmo_monthly.xlsx'
+    Invoke-WebRequest -UseBasicParsing -Uri $urlWB -OutFile $tmpWB -UserAgent $UA_BROWSER -TimeoutSec 180 -ErrorAction Stop
+    Import-Module ImportExcel -ErrorAction Stop
+    $pkWB = Open-ExcelPackage -Path $tmpWB
+    $serieUS = @(); $serieEU = @()
+    try {
+        $wsWB = $pkWB.Workbook.Worksheets['Monthly Prices']; if (-not $wsWB) { throw "el xlsx no trae la hoja 'Monthly Prices'" }
+        $hWB = $null; $colUS = $null; $colEU = $null
+        for ($rw = 1; $rw -le 12 -and -not $hWB; $rw++) {
+            for ($cc = 1; $cc -le $wsWB.Dimension.End.Column; $cc++) { $vv = [string]$wsWB.Cells[$rw, $cc].Value; if ($vv -match '^Banana,\s*US') { $hWB = $rw; $colUS = $cc } elseif ($vv -match '^Banana,\s*Europe') { $colEU = $cc } }
+        }
+        if (-not $colUS) { throw "no encontre la columna 'Banana, US'" }
+        for ($rw = $hWB + 1; $rw -le $wsWB.Dimension.End.Row; $rw++) {
+            $txWB = [string]$wsWB.Cells[$rw, 1].Value   # (aparte: PS 5.1 no acepta Cells[$rw, 1] dentro de los argumentos de un metodo)
+            $mmWB = [regex]::Match($txWB, '^(\d{4})M(\d{2})$'); if (-not $mmWB.Success) { continue }
+            $feWB = "$($mmWB.Groups[1].Value)-$($mmWB.Groups[2].Value)"
+            $vu = $wsWB.Cells[$rw, $colUS].Value; if ($vu -is [double] -or $vu -is [int]) { $serieUS += [PSCustomObject]@{ fecha = $feWB; usdKg = [math]::Round([double]$vu, 3) } }
+            if ($colEU) { $ve = $wsWB.Cells[$rw, $colEU].Value; if ($ve -is [double] -or $ve -is [int]) { $serieEU += [PSCustomObject]@{ fecha = $feWB; usdKg = [math]::Round([double]$ve, 3) } } }
+        }
+    } finally { Close-ExcelPackage $pkWB -NoSave }
+    $serieUS = @($serieUS | Select-Object -Last 60); $serieEU = @($serieEU | Select-Object -Last 60)
+    if ($serieUS.Count -lt 12) { throw "serie corta ($($serieUS.Count) meses)" }
+    $eco.mundial = [ordered]@{
+        fuente = 'Banco Mundial (Pink Sheet) · banana Centroamerica y Ecuador, FOB puertos EEUU'
+        unidad = 'USD/kg'; puntos = $serieUS.Count
+        ultimo = $serieUS[-1].fecha; ultimoValor = $serieUS[-1].usdKg
+        serie = $serieUS
+        europa = $(if ($serieEU.Count -ge 12) { [ordered]@{ fuente = 'Banco Mundial (Pink Sheet) · banana Europa'; ultimo = $serieEU[-1].fecha; ultimoValor = $serieEU[-1].usdKg; serie = $serieEU } } else { $null })
+    }
+    $eco | ConvertTo-Json -Depth 8 -Compress | Out-File $cacheIM -Encoding UTF8
+    $okWB = $true
+    Write-Host "    mundial (Banco Mundial): $($serieUS.Count) meses, ultimo $($serieUS[-1].fecha) = US $($serieUS[-1].usdKg) · Europa $(if ($serieEU.Count) { $serieEU[-1].usdKg } else { '-' }) USD/kg" -ForegroundColor Green
+} catch { Add-Falla -Paso 'Ecuador (Banco Mundial)' -Detalle "$($_.Exception.Message) - sigo con IndexMundi o el cache" }
+
+# --- respaldo: IndexMundi (solo si el Banco Mundial fallo) ---
+if (-not $okWB) {
 try {
     $rIM = Invoke-WebRequest -UseBasicParsing -Uri 'https://www.indexmundi.com/commodities/?commodity=bananas&months=60' `
              -UserAgent $UA_BROWSER -Headers $HDR_BROWSER -TimeoutSec 40 -ErrorAction Stop
@@ -2964,6 +3009,7 @@ try {
     if (Test-Path $cacheIM) {
         try { $eco.mundial = (Get-Content $cacheIM -Raw -Encoding UTF8 | ConvertFrom-Json).mundial } catch {}
     }
+}
 }
 
 # --- oportunista: Tridge, si el sidecar viejo tiene algo ---
@@ -4234,8 +4280,14 @@ $script:ecHasNewExport = $false
 $script:ecLastPoint    = $null
 $script:ecPrevLastPoint = $null
 
-$ecParsed = Get-EcuadorFromTridge -url $ecUrl -ua $ecUA
-if ($ecParsed.error) {
+# [04/11/2026] Tridge da 403 a todo programa desde ~24/07/2026 y no se esquiva (nada de headless, headers ni proxies): no se consulta
+# mas y no es falla del pipeline. El ultimo dato (06/10) queda como historico en el panel, con su fecha. Para volver a probarlo, poner
+# $TRIDGE_ACTIVO = $true. La referencia mundial sale del Banco Mundial (paso 5f).
+$TRIDGE_ACTIVO = $false
+$ecParsed = $(if ($TRIDGE_ACTIVO) { Get-EcuadorFromTridge -url $ecUrl -ua $ecUA } else { @{ error = 'Tridge bloqueado (403) desde ~24/07/2026: no se consulta'; desactivado = $true } })
+if ($ecParsed.desactivado) {
+    Write-Host "omitido ($($ecParsed.error); queda el ultimo dato como historico)" -ForegroundColor DarkGray
+} elseif ($ecParsed.error) {
     Write-Host "FAIL ($($ecParsed.error))" -ForegroundColor Red
     # [04/11/2026] edad por el dato (ultimo punto de export y ultima lectura buena), no por la fecha del archivo
     $ultEc = $null; if ($ecData -and $ecData.export) { $ultEc = (@($ecData.export) | Sort-Object date | Select-Object -Last 1).date }

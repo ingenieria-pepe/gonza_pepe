@@ -1446,6 +1446,11 @@ LOG DE CAMBIOS:
                desde la laptop); si es mas viejo, avisa con la fecha del dato. Gonzalo: "si".
   04/11/2026 -> resumen, clima: el 🥶 sale solo con minimas de 10 °C o menos (antes 14), en la semana pasada y en los proximos 7 dias.
                Gonzalo: "sticker de frio solo si figura de 10 grados para abajo". Paneles regenerados en la laptop (corrida de prueba).
+  04/11/2026 -> Ecuador (pedido del servidor): referencia mundial del Banco Mundial directo (Pink Sheet CMO-Historical-Data-Monthly.xlsx,
+               link sacado de worldbank.org/en/research/commodity-markets, hoja Monthly Prices, Banana US y Europe $/kg, leida con
+               ImportExcel); IndexMundi queda de respaldo. ecuador.json mundial.europa nuevo; index_ecuador.html: fuente Banco Mundial,
+               linea punteada de Europa y aviso de atraso solo si hay atraso. Tridge: no se consulta mas ($TRIDGE_ACTIVO = $false) ni es
+               falla; queda el ultimo dato (06/10) como historico. Prueba en seco: US 1,18 / Europa 1,10 a 2026-10, sin fallas.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
