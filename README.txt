@@ -1439,6 +1439,9 @@ LOG DE CAMBIOS:
                de Gonzalo en la laptop: las 4 regiones con datos hasta el 30/10 (SC 0,67 · VRibeira 1,26 · NMinas 1,13 · BJLapa 0,84 R$/kg).
   04/11/2026 -> correr_servidor.ps1: las 4 planillas de Cepea salen de $preservar (las baja la laptop con el navegador y llegan por git);
                queda solo precios_ecuador.json.
+  04/11/2026 -> bajar_cepea_navegador.ps1 (SOLO LAPTOP): abre en el Edge los 4 links de exportacion del Cepea, reconoce cada region,
+               y si hay semana nueva copia a fuentes\ y sube a GitHub. Tarea Poronga_Cepea_Navegador mie 10:30 y vie 17:30 (antes de las corridas
+               del servidor). Log fuentes\cepea_navegador.log (gitignore). Tambien se corre a mano cuando Gonzalo pide "baja el Cepea".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
