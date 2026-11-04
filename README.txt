@@ -1427,6 +1427,9 @@ LOG DE CAMBIOS:
   03/11/2026 -> venta prevista semana del 2/11: 18.500 (Gonzalo).
   04/11/2026 -> aviso del mediodia en semana con feriado: todos los dias sin venta de la semana van en 0 contra la semana pasada (no solo hoy)
                y no se muestra "Semana estimada" (el 03/11 dio 53.400). Semanas normales sin cambios. Gonzalo: "si".
+  04/11/2026 -> "Falla del pipeline": la edad del cache se mide por la ultima fecha del dato (Get-EdadDato), no por la fecha del archivo
+               (el reset --hard del servidor les pone fecha de hoy y decia "hace 0 dias"). Cepea, regiones Cepea y Ecuador:
+               "sigo con datos del 09/10 (hace 26 dias)". Pedido del Claude del servidor via Gonzalo.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

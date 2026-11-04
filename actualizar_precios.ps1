@@ -160,6 +160,14 @@ function Add-Falla {
     $col = if ($Fatal) { 'Red' } else { 'DarkYellow' }
     Write-Host "    [falla] $Paso : $Detalle" -ForegroundColor $col
 }
+# [04/11/2026] La edad de un cache se mide por la ULTIMA FECHA DEL DATO, no por el archivo: los xlsx/json de fuentes\ estan en git y
+# el reset --hard del servidor les pone fecha de hoy ("sigo con el cache de hace 0 dias" con datos de semanas). Devuelve
+# "datos del dd/MM (hace N dias)".
+function Get-EdadDato {
+    param($Fecha)
+    try { $d = ([DateTime]$Fecha).Date; $n = [int][math]::Floor(((Get-Date).Date - $d).TotalDays); return "datos del $($d.ToString('dd/MM')) (hace $n dias)" }
+    catch { return 'datos de fecha desconocida' }
+}
 
 # 1) Descargar la planilla de Cepea
 Write-Host "[1/6] Descargando Cepea ($anoInicial-$anoFinal)..." -ForegroundColor Cyan
@@ -176,10 +184,10 @@ try {
     if (Test-Path $xlsxPath) {
         # Hay cache local: seguir con el xlsx viejo en vez de morir. Los datos
         # quedan desactualizados, y eso se avisa por WhatsApp y en el log.
-        $edad = [math]::Round(((Get-Date) - (Get-Item $xlsxPath).LastWriteTime).TotalDays,1)
-        Add-Falla -Paso 'Cepea (descarga)' -Detalle "$msg — sigo con el cache de hace $edad dias"
+        # [04/11/2026] la falla se anota despues de leer la serie, con la ultima fecha del dato (Get-EdadDato), no la del archivo
+        $script:cepeaFallaMsg = $msg
         $cepeaDesactualizado = $true
-        Write-Host "    (cache de $edad dias, el pipeline continua)" -ForegroundColor DarkYellow
+        Write-Host "    (sigo con el cache, el pipeline continua)" -ForegroundColor DarkYellow
     } else {
         Add-Falla -Paso 'Cepea (descarga)' -Detalle "$msg — y no hay cache local" -Fatal
         Write-Host "    Sin cache: no hay nada con que seguir." -ForegroundColor Red
@@ -219,6 +227,7 @@ finally {
     $ws = $null; $pkg = $null
 }
 $nanica = @($nanica | Sort-Object fecha -Unique)   # -Unique: una sola fila por semana (09/09/2026)
+if ($script:cepeaFallaMsg) { Add-Falla -Paso 'Cepea (descarga)' -Detalle "$($script:cepeaFallaMsg) — sigo con $(if ($nanica.Count) { Get-EdadDato $nanica[-1].fecha } else { 'el cache (sin fecha legible)' })" }
 Write-Host "    Semanas obtenidas: $($nanica.Count)" -ForegroundColor Green
 
 # Promedios mensuales (todos los anios)
@@ -328,7 +337,7 @@ try {
     foreach ($r in $regCfg) {
         $id = [int]$r.id
         $slug = switch ($id) { 25 { 'SC' } 52 { 'VRibeira' } 24 { 'NMinas' } 6 { 'BJLapa' } default { "R$id" } }
-        $serieR = $null; $desact = $false; $edadR = 0
+        $serieR = $null; $desact = $false; $edadR = 0; $faltaR = $null
         if ($id -eq 25) {
             $serieR = @($nanica | ForEach-Object { [PSCustomObject]@{ fecha = $_.fecha; precio = $_.precio } })
             $desact = [bool]$cepeaDesactualizado
@@ -345,9 +354,8 @@ try {
             } catch {
                 if (Test-Path $tmpR) { Remove-Item -LiteralPath $tmpR -Force -ErrorAction SilentlyContinue }
                 if (Test-Path $xr) {
-                    $edadR = [math]::Round(((Get-Date) - (Get-Item $xr).LastWriteTime).TotalDays, 1)
                     $desact = $true
-                    Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$($_.Exception.Message) - sigo con el cache de hace $edadR dias"
+                    $faltaR = $_.Exception.Message   # [04/11/2026] se anota despues de leer la serie, con la ultima fecha del dato
                 } else {
                     Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$($_.Exception.Message) - sin cache, la region queda afuera esta vez"
                     continue
@@ -355,6 +363,10 @@ try {
             }
             try { $serieR = Read-CepeaXlsx -Path $xr } catch { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "no pude leer el xlsx: $($_.Exception.Message)"; continue }
             if (-not $serieR -or $serieR.Count -eq 0) { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "el xlsx no trae 'Nanica primeira - produtor'"; continue }
+            if ($faltaR) {
+                $edadR = [int][math]::Floor(((Get-Date).Date - ([DateTime]$serieR[-1].fecha).Date).TotalDays)
+                Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$faltaR - sigo con $(Get-EdadDato $serieR[-1].fecha)"
+            }
         }
         $fleteCaja = $null
         if ($null -ne $r.flete_caja_brl -and "$($r.flete_caja_brl)" -ne '') { $fleteCaja = [math]::Round([double]$r.flete_caja_brl, 2) }
@@ -4217,8 +4229,9 @@ $script:ecPrevLastPoint = $null
 $ecParsed = Get-EcuadorFromTridge -url $ecUrl -ua $ecUA
 if ($ecParsed.error) {
     Write-Host "FAIL ($($ecParsed.error))" -ForegroundColor Red
-    $edadEc = if (Test-Path $ecJsonPath) { [math]::Round(((Get-Date)-(Get-Item $ecJsonPath).LastWriteTime).TotalDays,0) } else { -1 }
-    $detEc = if ($edadEc -ge 0) { "$($ecParsed.error) — datos de hace $edadEc dias" } else { $ecParsed.error }
+    # [04/11/2026] edad por el dato (ultimo punto de export y ultima lectura buena), no por la fecha del archivo
+    $ultEc = $null; if ($ecData -and $ecData.export) { $ultEc = (@($ecData.export) | Sort-Object date | Select-Object -Last 1).date }
+    $detEc = if ($ultEc) { "$($ecParsed.error) — sigo con $(Get-EdadDato $ultEc)$(if ($ecData.fetched_at) { "; ultima lectura buena $(([DateTime]$ecData.fetched_at).ToString('dd/MM'))" })" } else { $ecParsed.error }
     Add-Falla -Paso 'Ecuador (Tridge)' -Detalle $detEc
 } else {
     # snapshot del ultimo punto anterior para alertas
