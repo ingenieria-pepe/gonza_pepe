@@ -42,9 +42,15 @@ try {
     # [02/11/2026] Gonzalo: "si no hay venta para que quiero la informacion de la semana pasada? ... hoy venta 0, semana pasada tantas cajas,
     # mas las descargas ... mismo padron que siempre": un dia sin venta (feriado) va como un renglon en 0 contra el mismo dia de la semana
     # pasada, con el formato de siempre. Ya no se repite la semana cerrada.
-    if ($hoy.DayOfWeek -ne [DayOfWeek]::Sunday -and -not @($hechos | Where-Object { ([DateTime]$_.fecha).Date -eq $hoy }).Count) {
-        $hechos = @($hechos) + @([PSCustomObject]@{ fecha = $hoy.ToString('yyyy-MM-dd'); madera_bo = 0; dow = [int]$hoy.DayOfWeek; cero = $true })
+    # [04/11/2026] todos los dias de la semana hasta hoy sin venta (el lunes feriado tambien, no solo hoy) van en 0 contra la semana pasada
+    for ($dx = $lun; $dx -le $hoy; $dx = $dx.AddDays(1)) {
+        if ($dx.DayOfWeek -eq [DayOfWeek]::Sunday) { continue }
+        if (-not @($hechos | Where-Object { ([DateTime]$_.fecha).Date -eq $dx }).Count) {
+            $hechos = @($hechos) + @([PSCustomObject]@{ fecha = $dx.ToString('yyyy-MM-dd'); madera_bo = 0; dow = [int]$dx.DayOfWeek; cero = $true })
+        }
     }
+    $hechos = @($hechos | Sort-Object fecha)
+    $conFeriado = [bool]@($hechos | Where-Object { $_.cero }).Count   # semana con un dia sin venta: la "semana estimada" sale mal, no se muestra
     if ($hechos.Count) {
         $L += $(if ($esCierre) { "*Semana del $(([DateTime]$hechos[0].fecha).ToString('dd/MM')) (cerrada)*" } else { '*Venta por día*' })
         $suma = 0; $sumP = 0; $sumS = 0.0
@@ -54,7 +60,7 @@ try {
             $suma += [int]$d.madera_bo; if ($p) { $sumP += [int]$p.madera_bo }; if (-not $d.cero) { $sumS += $SH[[int]$d.dow] }   # el dia en 0 no entra en la estimacion de la semana
         }
         if ($hechos.Count -gt 1) { $L += "*Total: $(& $fI $suma)*" + $(if ($sumP) { "  (pasada $(& $fI $sumP))" } else { '' }) }   # con un solo dia el total repetia el numero
-        if (-not $esCierre -and $sumS -gt 0 -and $sumS -lt 0.99) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }
+        if (-not $esCierre -and -not $conFeriado -and $sumS -gt 0 -and $sumS -lt 0.99) { $L += "*Semana estimada:* $(& $fI ([math]::Round(($suma / $sumS) / 100) * 100))" }
     }
     $hoyD = @($diasA | Where-Object { [string]$_.fecha -eq $hoy.ToString('yyyy-MM-dd') }) | Select-Object -First 1
     # (hoy ya va en la lista: la UAM cierra a las 11)

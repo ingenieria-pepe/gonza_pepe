@@ -1425,6 +1425,8 @@ LOG DE CAMBIOS:
   03/11/2026 -> cruce con Aloha: la "y" cuenta como "i" al comparar nombres ("Ariste" del mar 3 en el Excel = Aryste Mittelman).
                Unico camion que cambia; sin dudas pendientes para el mensaje del viernes. Sab 7: 30.610 (la BAHIA del 28 sigue en frontera).
   03/11/2026 -> venta prevista semana del 2/11: 18.500 (Gonzalo).
+  04/11/2026 -> aviso del mediodia en semana con feriado: todos los dias sin venta de la semana van en 0 contra la semana pasada (no solo hoy)
+               y no se muestra "Semana estimada" (el 03/11 dio 53.400). Semanas normales sin cambios. Gonzalo: "si".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
