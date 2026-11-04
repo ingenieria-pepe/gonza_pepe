@@ -1444,6 +1444,8 @@ LOG DE CAMBIOS:
                del servidor). Log fuentes\cepea_navegador.log (gitignore). Tambien se corre a mano cuando Gonzalo pide "baja el Cepea".
   04/11/2026 -> falla de Cepea (403): no se avisa ni se marca desactualizado si el dato del repo tiene 8 dias o menos (llega por git
                desde la laptop); si es mas viejo, avisa con la fecha del dato. Gonzalo: "si".
+  04/11/2026 -> resumen, clima: el 🥶 sale solo con minimas de 10 °C o menos (antes 14), en la semana pasada y en los proximos 7 dias.
+               Gonzalo: "sticker de frio solo si figura de 10 grados para abajo". Paneles regenerados en la laptop (corrida de prueba).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

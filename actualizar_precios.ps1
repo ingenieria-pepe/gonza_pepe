@@ -5533,6 +5533,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
                     $nHot = 0; $nCold = 0
                     if ($null -ne $sp.dias_max32) { $nHot = [int]$sp.dias_max32 }
                     if ($null -ne $sp.dias_min14) { $nCold = [int]$sp.dias_min14 }
+                    $nCold = $(if ([double]$sp.tmin_c -le 10) { 1 } else { 0 })   # [04/11/2026] Gonzalo: "sticker de frio solo si figura de 10 grados para abajo" (antes 14)
                     $linea += $(if ($nHot -gt 0) { "🔥" } else { "" }) + ([double]$sp.tmax_c).ToString('F0') + "/" + ([double]$sp.tmin_c).ToString('F0') + $(if ($nCold -gt 0) { "🥶" } else { "" })
                     if ($null -ne $sp.lluvia_total_mm -and [double]$sp.lluvia_total_mm -ge 1) { $linea += " $(([double]$sp.lluvia_total_mm).ToString('F0'))mm" }
                 } else { $linea += "s/d" }
@@ -5543,7 +5544,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
                 if ($fc.Count -gt 0) {
                     $tmaxs = @($fc | Where-Object { $null -ne $_.tmax } | ForEach-Object { [double]$_.tmax }); $tmins = @($fc | Where-Object { $null -ne $_.tmin } | ForEach-Object { [double]$_.tmin })
                     $mmTot = ($fc | Where-Object { $null -ne $_.lluvia } | ForEach-Object { [double]$_.lluvia } | Measure-Object -Sum).Sum
-                    $frios  = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 14 })
+                    $frios  = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 10 })   # [04/11/2026] 🥶 solo con 10 °C o menos (antes 14)
                     $helada = @($fc | Where-Object { $null -ne $_.tmin -and [double]$_.tmin -le 2 })
                     $calor  = @($fc | Where-Object { $null -ne $_.tmax -and [double]$_.tmax -ge 32 })
                     $lluvia = @($fc | Where-Object { $null -ne $_.lluvia -and [double]$_.lluvia -ge 50 })
