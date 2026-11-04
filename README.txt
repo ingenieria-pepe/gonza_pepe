@@ -1432,6 +1432,9 @@ LOG DE CAMBIOS:
                "sigo con datos del 09/10 (hace 26 dias)". Pedido del Claude del servidor via Gonzalo.
   04/11/2026 -> dictado semana de carga 9-14/11: 25 camiones BR (mar 10: 3, mie 11: 7, vie 13: 11, sab 14: 4), sin transportistas;
                Jhony fuera, Andre 1; Furlani y Wagner pendientes de confirmar.
+  04/11/2026 -> correr_servidor.ps1: el servidor conserva entre corridas sus propias planillas de Cepea (SC, VRibeira, NMinas, BJLapa) y
+               precios_ecuador.json. Antes el reset --hard las pisaba con la copia del repo (datos del 09/10) y, si ese dia la pagina fallaba,
+               el resumen seguia con datos de un mes. Rige desde la segunda corrida (la primera todavia usa el script viejo en memoria).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

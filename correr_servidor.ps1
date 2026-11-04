@@ -42,6 +42,13 @@ $preservar = @(
     'fuentes/state_whatsapp.json',
     'fuentes/precios_py_cache.json',
     'fuentes/indexmundi_cache.json',
+    # [04/11/2026] lo que baja el propio servidor de Cepea y Tridge: si un dia la pagina falla, sigue con lo del dia anterior y no con
+    # la copia del repo (la de la laptop, con datos del 09/10). Gonzalo: "si".
+    'fuentes/precios_banana_SC_2023-2026.xlsx',
+    'fuentes/precios_banana_VRibeira.xlsx',
+    'fuentes/precios_banana_NMinas.xlsx',
+    'fuentes/precios_banana_BJLapa.xlsx',
+    'fuentes/precios_ecuador.json',
     'alertas.log'
 )
 $preservarDirs = @('fuentes/clima_archive_cache')
