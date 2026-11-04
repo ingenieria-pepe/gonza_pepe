@@ -1435,6 +1435,8 @@ LOG DE CAMBIOS:
   04/11/2026 -> correr_servidor.ps1: el servidor conserva entre corridas sus propias planillas de Cepea (SC, VRibeira, NMinas, BJLapa) y
                precios_ecuador.json. Antes el reset --hard las pisaba con la copia del repo (datos del 09/10) y, si ese dia la pagina fallaba,
                el resumen seguia con datos de un mes. Rige desde la segunda corrida (la primera todavia usa el script viejo en memoria).
+  04/11/2026 -> Cepea: hfbrasil devuelve 403 a todo acceso por programa (servidor y laptop, hasta la pagina principal). Bajado con el Edge
+               de Gonzalo en la laptop: las 4 regiones con datos hasta el 30/10 (SC 0,67 · VRibeira 1,26 · NMinas 1,13 · BJLapa 0,84 R$/kg).
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
