@@ -227,7 +227,14 @@ finally {
     $ws = $null; $pkg = $null
 }
 $nanica = @($nanica | Sort-Object fecha -Unique)   # -Unique: una sola fila por semana (09/09/2026)
-if ($script:cepeaFallaMsg) { Add-Falla -Paso 'Cepea (descarga)' -Detalle "$($script:cepeaFallaMsg) — sigo con $(if ($nanica.Count) { Get-EdadDato $nanica[-1].fecha } else { 'el cache (sin fecha legible)' })" }
+# [04/11/2026] Gonzalo: "si" -> hfbrasil da 403 siempre y el Cepea llega por git desde la laptop (bajar_cepea_navegador.ps1): si el dato
+# tiene 8 dias o menos no es falla (no se avisa ni se marca desactualizado); si es mas viejo, se avisa con la fecha del dato.
+$script:CEPEA_DIAS_OK = 8
+if ($script:cepeaFallaMsg) {
+    $diasC = $(if ($nanica.Count) { [int][math]::Floor(((Get-Date).Date - ([DateTime]$nanica[-1].fecha).Date).TotalDays) } else { 999 })
+    if ($diasC -le $script:CEPEA_DIAS_OK) { $cepeaDesactualizado = $false; Write-Host "    descarga bloqueada, pero el Cepea del repo esta al dia ($(Get-EdadDato $nanica[-1].fecha)): no es falla" -ForegroundColor DarkGray }
+    else { Add-Falla -Paso 'Cepea (descarga)' -Detalle "$($script:cepeaFallaMsg) — sigo con $(if ($nanica.Count) { Get-EdadDato $nanica[-1].fecha } else { 'el cache (sin fecha legible)' })" }
+}
 Write-Host "    Semanas obtenidas: $($nanica.Count)" -ForegroundColor Green
 
 # Promedios mensuales (todos los anios)
@@ -365,7 +372,8 @@ try {
             if (-not $serieR -or $serieR.Count -eq 0) { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "el xlsx no trae 'Nanica primeira - produtor'"; continue }
             if ($faltaR) {
                 $edadR = [int][math]::Floor(((Get-Date).Date - ([DateTime]$serieR[-1].fecha).Date).TotalDays)
-                Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$faltaR - sigo con $(Get-EdadDato $serieR[-1].fecha)"
+                if ($edadR -le $script:CEPEA_DIAS_OK) { $desact = $false }   # [04/11/2026] al dia por git: no es falla
+                else { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$faltaR - sigo con $(Get-EdadDato $serieR[-1].fecha)" }
             }
         }
         $fleteCaja = $null

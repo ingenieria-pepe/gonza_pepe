@@ -1442,6 +1442,8 @@ LOG DE CAMBIOS:
   04/11/2026 -> bajar_cepea_navegador.ps1 (SOLO LAPTOP): abre en el Edge los 4 links de exportacion del Cepea, reconoce cada region,
                y si hay semana nueva copia a fuentes\ y sube a GitHub. Tarea Poronga_Cepea_Navegador mie 10:30 y vie 17:30 (antes de las corridas
                del servidor). Log fuentes\cepea_navegador.log (gitignore). Tambien se corre a mano cuando Gonzalo pide "baja el Cepea".
+  04/11/2026 -> falla de Cepea (403): no se avisa ni se marca desactualizado si el dato del repo tiene 8 dias o menos (llega por git
+               desde la laptop); si es mas viejo, avisa con la fecha del dato. Gonzalo: "si".
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
