@@ -1430,6 +1430,8 @@ LOG DE CAMBIOS:
   04/11/2026 -> "Falla del pipeline": la edad del cache se mide por la ultima fecha del dato (Get-EdadDato), no por la fecha del archivo
                (el reset --hard del servidor les pone fecha de hoy y decia "hace 0 dias"). Cepea, regiones Cepea y Ecuador:
                "sigo con datos del 09/10 (hace 26 dias)". Pedido del Claude del servidor via Gonzalo.
+  04/11/2026 -> dictado semana de carga 9-14/11: 25 camiones BR (mar 10: 3, mie 11: 7, vie 13: 11, sab 14: 4), sin transportistas;
+               Jhony fuera, Andre 1; Furlani y Wagner pendientes de confirmar.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
