@@ -48,7 +48,7 @@ $preservar = @(
     'fuentes/precios_ecuador.json',
     'alertas.log'
 )
-$preservarDirs = @('fuentes/clima_archive_cache')
+$preservarDirs = @('fuentes/clima_archive_cache', 'fuentes/cepea_servidor')   # [04/11/2026] Cepea que baja el propio servidor con su Edge (sin git)
 
 $entradas = @(
     'fuentes/cargas 2026.xlsx',

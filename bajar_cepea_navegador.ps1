@@ -9,13 +9,19 @@
 #  Gonzalo: "las dos, deja automatico" (tarea Poronga_Cepea_Navegador, mie 10:30
 #  y vie 17:30, antes de las corridas del servidor de mie 12:00 y vie 19:00).
 #
-#  Uso: powershell -ExecutionPolicy Bypass -File bajar_cepea_navegador.ps1 [-SinSubir]
+#  -Servidor [04/11/2026, pedido del servidor]: en la PC de Ingenieria (sesion User). Guarda en fuentes\cepea_servidor\ con los
+#  nombres de siempre, log ahi mismo, SIN git (el servidor no commitea; esa carpeta esta en $preservarDirs y en .gitignore).
+#  actualizar_precios.ps1 usa, por region, el xlsx con la fecha de dato mas nueva entre fuentes\ (laptop) y fuentes\cepea_servidor\.
+#
+#  Uso: powershell -ExecutionPolicy Bypass -File bajar_cepea_navegador.ps1 [-SinSubir] [-Servidor]
 # ==========================================================================
-param([switch]$SinSubir)
+param([switch]$SinSubir, [switch]$Servidor)
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
 $dl   = Join-Path $env:USERPROFILE 'Downloads'
-$log  = Join-Path $repo 'fuentes\cepea_navegador.log'
+$destDir = $(if ($Servidor) { Join-Path $repo 'fuentes\cepea_servidor' } else { Join-Path $repo 'fuentes' })
+if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir | Out-Null }
+$log  = $(if ($Servidor) { Join-Path $destDir 'cepea_servidor.log' } else { Join-Path $repo 'fuentes\cepea_navegador.log' })
 function Log($s) { $l = "$((Get-Date).ToString('yyyy-MM-dd HH:mm:ss')) $s"; Write-Host $l; try { Add-Content -Path $log -Value $l -Encoding UTF8 } catch {} }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
@@ -54,7 +60,7 @@ try {
         if (-not $r) { Log "FALLA: $($x.Name) no es de ninguna de las 4 regiones"; continue }
         $serie = Read-CepeaXlsx -Path $x.FullName
         if (-not $serie -or $serie.Count -lt 10) { Log "FALLA: $($x.Name) ($($r.clave)) sin serie legible"; continue }
-        $dest = Join-Path $repo "fuentes\$($r.destino)"
+        $dest = Join-Path $destDir $r.destino
         $ultViejo = $null; if (Test-Path $dest) { try { $ultViejo = (Read-CepeaXlsx -Path $dest)[-1].fecha } catch {} }
         $ultNuevo = $serie[-1].fecha
         if ($ultViejo -and $ultNuevo -le $ultViejo) { Log "$($r.clave): sin semana nueva (ultima $ultNuevo)"; continue }
@@ -67,6 +73,7 @@ try {
     foreach ($x in $nuevos) { try { Move-Item $x.FullName (Join-Path $arch $x.Name) -Force } catch {} }
 
     if (-not $cambios.Count) { Log 'nada nuevo: no se sube nada'; exit 0 }
+    if ($Servidor) { Log "guardados en fuentes\cepea_servidor (sin git): $($cambios -join ' · ')"; exit 0 }
     if ($SinSubir) { Log "copiados sin subir (-SinSubir): $($cambios -join ' · ')"; exit 0 }
     Push-Location $repo
     try {

@@ -163,6 +163,32 @@ function Add-Falla {
 # [04/11/2026] La edad de un cache se mide por la ULTIMA FECHA DEL DATO, no por el archivo: los xlsx/json de fuentes\ estan en git y
 # el reset --hard del servidor les pone fecha de hoy ("sigo con el cache de hace 0 dias" con datos de semanas). Devuelve
 # "datos del dd/MM (hace N dias)".
+# [04/11/2026] Cepea desde dos lados (pedido del servidor): la laptop lo baja con el Edge y lo sube por git (fuentes\precios_banana_*.xlsx)
+# y el servidor lo baja con su propio Edge a fuentes\cepea_servidor\ (sin git). Por region gana el xlsx con la fecha de DATO mas nueva.
+function Get-CepeaUltimaFecha {
+    param([string]$Path)
+    $pk = $null
+    try {
+        $pk = Open-ExcelPackage -Path $Path; $wsC = $pk.Workbook.Worksheets | Select-Object -First 1; $ult = $null
+        for ($rr = 2; $rr -le $wsC.Dimension.End.Row; $rr++) {
+            if ($wsC.Cells[$rr, 1].Text -like 'Nanica primeira - produtor*') {
+                $fx = '{0:0000}-{1:00}-{2:00}' -f [int]$wsC.Cells[$rr, 5].Text, [int]$wsC.Cells[$rr, 4].Text, [int]$wsC.Cells[$rr, 3].Text
+                if (-not $ult -or $fx -gt $ult) { $ult = $fx }
+            }
+        }
+        return $ult
+    } catch { return $null } finally { if ($pk) { Close-ExcelPackage $pk -NoSave } }
+}
+function Select-CepeaMasNuevo {
+    param([string]$Nombre)
+    $cands = @()
+    foreach ($c in @(@{ path = (Join-Path $fuentes $Nombre); origen = 'laptop' }, @{ path = (Join-Path $fuentes "cepea_servidor\$Nombre"); origen = 'servidor' })) {
+        if (Test-Path $c.path) { $fu = Get-CepeaUltimaFecha -Path $c.path; if ($fu) { $cands += [PSCustomObject]@{ path = $c.path; origen = $c.origen; fecha = $fu } } }
+    }
+    if (-not $cands.Count) { return $null }
+    return ($cands | Sort-Object @{ e = { $_.fecha }; Descending = $true }, @{ e = { $_.origen -eq 'laptop' }; Descending = $true } | Select-Object -First 1)
+}
+$script:AVISO_REINICIO = 'si el servidor se reinicio, hay que iniciar sesion en la PC de Ingenieria (usuario User)'
 function Get-EdadDato {
     param($Fecha)
     try { $d = ([DateTime]$Fecha).Date; $n = [int][math]::Floor(((Get-Date).Date - $d).TotalDays); return "datos del $($d.ToString('dd/MM')) (hace $n dias)" }
@@ -181,7 +207,7 @@ try {
     Write-Host "    OK ($tam bytes)" -ForegroundColor Green
 } catch {
     $msg = $_.Exception.Message
-    if (Test-Path $xlsxPath) {
+    if ((Test-Path $xlsxPath) -or (Test-Path (Join-Path $fuentes "cepea_servidor\$(Split-Path $xlsxPath -Leaf)"))) {
         # Hay cache local: seguir con el xlsx viejo en vez de morir. Los datos
         # quedan desactualizados, y eso se avisa por WhatsApp y en el log.
         # [04/11/2026] la falla se anota despues de leer la serie, con la ultima fecha del dato (Get-EdadDato), no la del archivo
@@ -194,6 +220,9 @@ try {
         exit 1
     }
 }
+# [04/11/2026] gana el xlsx con el dato mas nuevo entre la laptop (fuentes\) y el servidor (fuentes\cepea_servidor\)
+$selSC = Select-CepeaMasNuevo (Split-Path $xlsxPath -Leaf)
+if ($selSC) { $xlsxPath = $selSC.path; Write-Host "    Cepea SC: $($selSC.origen) $(([DateTime]$selSC.fecha).ToString('dd/MM'))" -ForegroundColor Green }
 
 # 2) Extraer datos del Excel a objeto PSCustom
 Write-Host "[2/6] Leyendo Excel Cepea y construyendo dataset..." -ForegroundColor Cyan
@@ -232,8 +261,8 @@ $nanica = @($nanica | Sort-Object fecha -Unique)   # -Unique: una sola fila por 
 $script:CEPEA_DIAS_OK = 8
 if ($script:cepeaFallaMsg) {
     $diasC = $(if ($nanica.Count) { [int][math]::Floor(((Get-Date).Date - ([DateTime]$nanica[-1].fecha).Date).TotalDays) } else { 999 })
-    if ($diasC -le $script:CEPEA_DIAS_OK) { $cepeaDesactualizado = $false; Write-Host "    descarga bloqueada, pero el Cepea del repo esta al dia ($(Get-EdadDato $nanica[-1].fecha)): no es falla" -ForegroundColor DarkGray }
-    else { Add-Falla -Paso 'Cepea (descarga)' -Detalle "$($script:cepeaFallaMsg) — sigo con $(if ($nanica.Count) { Get-EdadDato $nanica[-1].fecha } else { 'el cache (sin fecha legible)' })" }
+    if ($diasC -le $script:CEPEA_DIAS_OK) { $cepeaDesactualizado = $false; Write-Host "    descarga bloqueada, pero el Cepea esta al dia ($(if ($selSC) { $selSC.origen + ', ' })$(Get-EdadDato $nanica[-1].fecha)): no es falla" -ForegroundColor DarkGray }
+    else { Add-Falla -Paso 'Cepea (descarga)' -Detalle "$($script:cepeaFallaMsg) — sigo con $(if ($nanica.Count) { Get-EdadDato $nanica[-1].fecha } else { 'el cache (sin fecha legible)' }); $($script:AVISO_REINICIO)" }
 }
 Write-Host "    Semanas obtenidas: $($nanica.Count)" -ForegroundColor Green
 
@@ -360,7 +389,7 @@ try {
                 Move-Item -LiteralPath $tmpR -Destination $xr -Force
             } catch {
                 if (Test-Path $tmpR) { Remove-Item -LiteralPath $tmpR -Force -ErrorAction SilentlyContinue }
-                if (Test-Path $xr) {
+                if ((Test-Path $xr) -or (Test-Path (Join-Path $fuentes "cepea_servidor\precios_banana_$slug.xlsx"))) {
                     $desact = $true
                     $faltaR = $_.Exception.Message   # [04/11/2026] se anota despues de leer la serie, con la ultima fecha del dato
                 } else {
@@ -368,12 +397,15 @@ try {
                     continue
                 }
             }
+            # [04/11/2026] gana el dato mas nuevo entre la laptop (fuentes\) y el servidor (fuentes\cepea_servidor\)
+            $selR = Select-CepeaMasNuevo "precios_banana_$slug.xlsx"
+            if ($selR) { $xr = $selR.path; Write-Host "    Cepea $($r.corto): $($selR.origen) $(([DateTime]$selR.fecha).ToString('dd/MM'))" -ForegroundColor Green }
             try { $serieR = Read-CepeaXlsx -Path $xr } catch { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "no pude leer el xlsx: $($_.Exception.Message)"; continue }
             if (-not $serieR -or $serieR.Count -eq 0) { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "el xlsx no trae 'Nanica primeira - produtor'"; continue }
             if ($faltaR) {
                 $edadR = [int][math]::Floor(((Get-Date).Date - ([DateTime]$serieR[-1].fecha).Date).TotalDays)
                 if ($edadR -le $script:CEPEA_DIAS_OK) { $desact = $false }   # [04/11/2026] al dia por git: no es falla
-                else { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$faltaR - sigo con $(Get-EdadDato $serieR[-1].fecha)" }
+                else { Add-Falla -Paso "Cepea region $($r.corto)" -Detalle "$faltaR - sigo con $(Get-EdadDato $serieR[-1].fecha); $($script:AVISO_REINICIO)" }
             }
         }
         $fleteCaja = $null

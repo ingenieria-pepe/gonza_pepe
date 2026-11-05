@@ -1451,6 +1451,12 @@ LOG DE CAMBIOS:
                ImportExcel); IndexMundi queda de respaldo. ecuador.json mundial.europa nuevo; index_ecuador.html: fuente Banco Mundial,
                linea punteada de Europa y aviso de atraso solo si hay atraso. Tridge: no se consulta mas ($TRIDGE_ACTIVO = $false) ni es
                falla; queda el ultimo dato (06/10) como historico. Prueba en seco: US 1,18 / Europa 1,10 a 2026-10, sin fallas.
+  04/11/2026 -> Cepea tambien desde el SERVIDOR (pedido del servidor): bajar_cepea_navegador.ps1 -Servidor guarda en fuentes\cepea_servidor\
+               (sin git; en $preservarDirs y .gitignore). actualizar_precios.ps1 pasos 1 y 2b: por region gana el xlsx con la fecha de dato
+               mas nueva entre laptop (fuentes\) y servidor (Select-CepeaMasNuevo; log "Cepea SC: servidor 30/10"). La regla de 8 dias sigue;
+               el aviso de mas de 8 dias agrega "si el servidor se reinicio, hay que iniciar sesion en la PC de Ingenieria (usuario User)".
+               setup_servidor.ps1 registra Poronga_Cepea_Servidor (User, Interactive, Limited, mie 11:15 y vie 18:15, 5 min, idempotente).
+               Probado en seco en la laptop: empate -> laptop; servidor mas nuevo -> servidor sin falla; ambos viejos -> falla con fecha.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido

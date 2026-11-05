@@ -174,6 +174,33 @@ try {
     Write-Host "  -> Reabri PowerShell COMO ADMINISTRADOR y volve a correr este setup." -ForegroundColor Red
 }
 
+# --- 3b) Tarea Poronga_Cepea_Servidor [04/11/2026] --------------------------
+# hfbrasil (Cepea) devuelve 403 a todo programa. Con la sesion de User iniciada (aunque este desconectada por RDP/RustDesk), una tarea
+# Interactive abre los 4 links de exportar en el Edge y bajan normal: bajar_cepea_navegador.ps1 -Servidor los guarda en
+# fuentes\cepea_servidor\ (sin git). Mie 11:15 y vie 18:15: despues de la laptop (10:30 / 17:30) y antes de las corridas (12:00 / 19:00).
+# NO S4U ni SYSTEM: sin sesion no hay Edge. Si la PC se reinicia, no corre hasta que alguien inicie sesion como User. Idempotente (-Force).
+Titulo "[3b] Registrando tarea 'Poronga_Cepea_Servidor'"
+try {
+    $cepeaScript = Join-Path $base 'bajar_cepea_navegador.ps1'
+    if (-not (Test-Path $cepeaScript)) { throw "falta bajar_cepea_navegador.ps1 al lado de este setup" }
+    $actCep = New-ScheduledTaskAction -Execute 'powershell.exe' `
+        -Argument ("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"{0}`" -Servidor" -f $cepeaScript) `
+        -WorkingDirectory $base
+    $trgCepW = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At '11:15AM'
+    $trgCepF = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '6:15PM'
+    $setCep = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+        -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -MultipleInstances IgnoreNew
+    $priCep = New-ScheduledTaskPrincipal -UserId ("{0}\{1}" -f $env:USERDOMAIN, $env:USERNAME) -LogonType Interactive -RunLevel Limited
+    Register-ScheduledTask -TaskName 'Poronga_Cepea_Servidor' -Action $actCep -Trigger @($trgCepW, $trgCepF) `
+        -Settings $setCep -Principal $priCep `
+        -Description 'Baja el Cepea con el Edge de la sesion User (hfbrasil bloquea programas) a fuentes\cepea_servidor. Mie 11:15 y vie 18:15.' `
+        -Force | Out-Null
+    Write-Host "  Tarea Poronga_Cepea_Servidor registrada OK (mie 11:15 y vie 18:15, Interactive, $env:USERNAME)." -ForegroundColor Green
+    Write-Host "  Si la PC se reinicia, hay que iniciar sesion como $env:USERNAME para que corra." -ForegroundColor Yellow
+} catch {
+    Write-Host "  ERROR registrando Poronga_Cepea_Servidor: $($_.Exception.Message)" -ForegroundColor Red
+}
+
 # --- 4) Prueba opcional ---------------------------------------------------
 Titulo "[4/4] Listo"
 Write-Host "  Para probar UNA corrida ahora mismo:" -ForegroundColor White
