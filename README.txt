@@ -1457,6 +1457,7 @@ LOG DE CAMBIOS:
                el aviso de mas de 8 dias agrega "si el servidor se reinicio, hay que iniciar sesion en la PC de Ingenieria (usuario User)".
                setup_servidor.ps1 registra Poronga_Cepea_Servidor (User, Interactive, Limited, mie 11:15 y vie 18:15, 5 min, idempotente).
                Probado en seco en la laptop: empate -> laptop; servidor mas nuevo -> servidor sin falla; ambos viejos -> falla con fecha.
+  05/11/2026 -> Furlani carga sab 7/11 camion completo (1.008) con Nilton: esta semana no hay camion de exoticos. Descarga mar 10.
   09/09/2026 → paso 2b: Cepea por región (Vale do Ribeira, Norte de Minas,
                Bom Jesus da Lapa) con config/cepea_regiones.json y sección
                'Cepea por región' en index_brasil. Filtro Cepea corregido
