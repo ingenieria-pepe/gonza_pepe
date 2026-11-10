@@ -4697,6 +4697,15 @@ $nuevoEstado | ConvertTo-Json -Depth 5 | Out-File $statePath -Encoding UTF8
 # ==========================================================================
 # 7) Alertas WhatsApp via Whapi.cloud
 # ==========================================================================
+# Feriados de Brasil (frontera cerrada). La lee tambien plan_compras\aviso_diario.ps1 (regex sobre esta linea: no cambiar el formato).
+$feriadosBR = @('2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25', '2027-01-01')
+function Get-UltimoDiaCarga {
+    # [10/11/2026] Gonzalo: con feriado el viernes en Brasil, lo cargado el miercoles cruza recien el lunes siguiente y no llega
+    # al sabado: el ultimo dia de carga que sirve para el sabado es el martes (mismo criterio que el aviso diario). Si no, miercoles.
+    param([DateTime]$Lunes)
+    if ($feriadosBR -contains $Lunes.AddDays(4).ToString('yyyy-MM-dd')) { return $Lunes.AddDays(1) }
+    return $Lunes.AddDays(2)
+}
 function Get-DescargasSemanaTexto {
     # Mensaje "Descargas semana dd-dd/MM" por dia, numerado de corrido [06/10/2026]. Gonzalo: "las descargas por dia las
     # quiero tipo orden numerico 1 xxx 2 xxx", "yo pondria la semana entera, a pesar de lo que se pudo haber descargado",
@@ -4758,7 +4767,7 @@ function Get-DescargasSemanaTexto {
     # lunes y descarga el martes); si el dia de cruce es feriado, un dia mas. Las fechas REALES de descarga no se tocan.
     # [22/10/2026] el 02/11 (Finados) SI corre el dia: Gonzalo, "feriado es el 2 y los camiones recien cruzan el martes 3 en el correr
     # del dia, llegan a destino miercoles 4" (lo cargado vie 30 y sab 31 descarga el miercoles 4).
-    $feriadosBR = @('2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25', '2027-01-01')
+    # (la lista $feriadosBR esta arriba de esta funcion, a nivel script: la usa tambien Get-AvisoComprasTexto) [10/11/2026]
     $diaDe = { param($d) $x = $d
         if ($x.DayOfWeek -eq [DayOfWeek]::Sunday) { $x = $x.AddDays(1) }
         if ($x.DayOfWeek -eq [DayOfWeek]::Monday) { $x = $x.AddDays(1) }
@@ -4827,7 +4836,8 @@ function Get-DescargasSemanaTexto {
         $faltan = [int][math]::Ceiling(($min - $cierre) / $cxc)
         if ($sab.AddDays(-$lagG) -ge $Hoy) {
             $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
-            $L += "entre lun $($Lunes.ToString('dd')) y mié $($Lunes.AddDays(2).ToString('dd'))"
+            $ultC = Get-UltimoDiaCarga -Lunes $Lunes
+            $L += "entre lun $($Lunes.ToString('dd')) y $(if ($ultC.DayOfWeek -eq [DayOfWeek]::Tuesday) { 'mar' } else { 'mié' }) $($ultC.ToString('dd'))"
         } else { $L += 'Bajo el objetivo, ya cerrado' }
     }
     $L += "*Nuevo objetivo: $($min.ToString('N0')) de stock*"   # [14/10/2026] Gonzalo: en negrita, 'nuevo objetivo' (27.000 desde hoy)
@@ -4947,7 +4957,8 @@ function Get-AvisoComprasTexto {
     $L += "Cierre estimado sáb $($lun1.AddDays(5).ToString('dd')): $($s1.cierre.ToString('N0'))" + $(if ($faltan -gt 0) { ' ⚠️' } else { ' ✅' })
     if ($faltan -gt 0) {
         $L += $(if ($faltan -eq 1) { 'Falta 1 camión, cargado' } else { "Faltan $faltan camiones, cargados" })
-        $L += "entre lun $($lun1.ToString('dd')) y mié $($lun1.AddDays(2).ToString('dd'))"
+        $ultC = Get-UltimoDiaCarga -Lunes $lun1
+        $L += "entre lun $($lun1.ToString('dd')) y $(if ($ultC.DayOfWeek -eq [DayOfWeek]::Tuesday) { 'mar' } else { 'mié' }) $($ultC.ToString('dd'))"
     }
     $L += "*Nuevo objetivo: $($min.ToString('N0')) de stock*"   # [14/10/2026] Gonzalo: en negrita, 'nuevo objetivo' (27.000 desde hoy)
     $L += '*al cierre de los sábados*'
