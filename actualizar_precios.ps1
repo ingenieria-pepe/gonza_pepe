@@ -4772,12 +4772,21 @@ function Get-DescargasSemanaTexto {
         if ($x.DayOfWeek -eq [DayOfWeek]::Sunday) { $x = $x.AddDays(1) }
         if ($x.DayOfWeek -eq [DayOfWeek]::Monday) { $x = $x.AddDays(1) }
         if ($feriadosBR -contains $x.AddDays(-1).ToString('yyyy-MM-dd')) { $x = $x.AddDays(1) }
-        while ($feriadosBR -contains $x.ToString('yyyy-MM-dd') -or $x.DayOfWeek -eq [DayOfWeek]::Sunday) { $x = $x.AddDays(1) }
+        # [11/11/2026] Gonzalo: "cruzan el jueves, descargan el viernes": el feriado de Brasil cierra la frontera, no la descarga en
+        # Uruguay. Lo que descarga el mismo dia del feriado (cruzo antes) no se corre; solo cuenta el feriado en el dia de cruce (arriba).
+        # 25/12 y 01/01 son feriado tambien en Uruguay (no se descarga): esos si se corren.
+        while ($x.DayOfWeek -eq [DayOfWeek]::Sunday -or $x.ToString('MM-dd') -in '12-25', '01-01') { $x = $x.AddDays(1) }
         $x }
     $DOW = @{ 1 = 'Lun'; 2 = 'Mar'; 3 = 'Mié'; 4 = 'Jue'; 5 = 'Vie'; 6 = 'Sáb'; 0 = 'Dom' }
     $ordenO = @{ BR = 0; PY = 1; BO = 2 }
     $L = @()
     $L += "*🚚 Descargas semana $($Lunes.ToString('dd'))–$($sab.ToString('dd/MM'))*"
+    # [11/11/2026] Gonzalo: "avisa que no hay cargas el miercoles: el viernes esta cerrada la frontera y no cruza nada"
+    $vieF = $Lunes.AddDays(4)
+    if ($feriadosBR -contains $vieF.ToString('yyyy-MM-dd')) {
+        $L += "📅 *Feriado en Brasil vie $($vieF.ToString('dd/MM')):* la frontera está cerrada y no cruza nada."
+        $L += "No hay cargas el mié $($Lunes.AddDays(2).ToString('dd/MM'))."
+    }
     $DOWm = @('dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb')
     $semConteo = ($Lunes -eq $lunC)
     if ($erp -and $semConteo) {
