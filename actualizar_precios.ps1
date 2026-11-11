@@ -4888,11 +4888,13 @@ function Get-PlanVencido {
 function Get-PlanDudas {
     # [30/10/2026] Gonzalo: "quedamos que se verificaba todo antes de mandar" (el 30/10 salio el arranque con el Aryste contado dos
     # veces). $null si no hay dudas; si no, el motivo: camiones dictados que ya cargaron (carga antes de hoy), no estan descargados y
-    # Aloha no los tiene (no_figura) o los tiene cancelados, con descarga desde el lunes de esta semana. Con motivo el mensaje NO sale.
+    # Aloha los tiene cancelados, con descarga desde el lunes de esta semana. Con motivo el mensaje NO sale.
+    # [11/11/2026] Gonzalo: "manda todo igual y listo, pones un ? a la de Shapo nada mas": lo que Aloha no tiene (no_figura) ya NO
+    # frena el envio; sale igual con ❓ en el renglon del camion (Get-DescargasSemanaTexto). Solo frena lo cancelado en Aloha.
     param([string]$Path)
     try { $Jd = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return 'plan_compras.json ilegible' }
     $hoyD = (Get-Date).Date; $lunD = $hoyD.AddDays(-((([int]$hoyD.DayOfWeek) + 6) % 7))
-    $dud = @($Jd.camiones | Where-Object { -not $_.en_stock -and [string]$_.estado_aloha -in 'no_figura', 'cancelado' -and ([DateTime]$_.carga).Date -lt $hoyD -and ([DateTime]$_.carga).Date -ge $lunD.AddDays(-14) } | ForEach-Object {
+    $dud = @($Jd.camiones | Where-Object { -not $_.en_stock -and [string]$_.estado_aloha -eq 'cancelado' -and ([DateTime]$_.carga).Date -lt $hoyD -and ([DateTime]$_.carga).Date -ge $lunD.AddDays(-14) } | ForEach-Object {
         $nm = $(if ($_.nombre) { [string]$_.nombre } else { [string]$_.productor })
         "$nm (carga $(([DateTime]$_.carga).ToString('dd/MM')), $(if ($_.estado_aloha -eq 'cancelado') { 'cancelado en Aloha' } else { 'no está en Aloha' }))" })
     if ($dud.Count) { return ($dud -join '; ') }
