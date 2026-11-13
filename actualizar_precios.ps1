@@ -4731,6 +4731,9 @@ function Get-DescargasSemanaTexto {
         $lag = 3; if ($J.lags.($c.origen) -and $null -ne $J.lags.($c.origen).descarga) { $lag = [int]$J.lags.($c.origen).descarga }
         if (($c.PSObject.Properties.Name -contains 'lag') -and $null -ne $c.lag) { $lag = [int]$c.lag }   # [12/10/2026] lag por productor (historico)
         $desc = if ($c.descarga) { [DateTime]$c.descarga } else { ([DateTime]$c.carga).AddDays($lag) }
+        # [13/11/2026] Gonzalo: "por que figura lunes si sabes que no se descarga?" (Gilson, carga mar 17, salio el lun 23: lag 4 -> sab 21 ->
+        # feriado -> dom -> lun). Semana con feriado BR el viernes: lo que carga el martes cruza el jueves y descarga el viernes, sea cual sea el lag.
+        if (-not $c.descarga -and [string]$c.origen -eq 'BR') { $cgF = ([DateTime]$c.carga).Date; if ($cgF.DayOfWeek -eq [DayOfWeek]::Tuesday -and $feriadosBR -contains $cgF.AddDays(3).ToString('yyyy-MM-dd')) { $desc = $cgF.AddDays(3) } }
         $nm = if ($c.PSObject.Properties.Name -contains 'nombre' -and $c.nombre) { [string]$c.nombre } else { [string]$c.productor }
         $esParc = ($c.PSObject.Properties.Name -contains 'parcial' -and [bool]$c.parcial)
         $est = [string]$c.estado_aloha
@@ -4775,7 +4778,8 @@ function Get-DescargasSemanaTexto {
         # [11/11/2026] Gonzalo: "cruzan el jueves, descargan el viernes": el feriado de Brasil cierra la frontera, no la descarga en
         # Uruguay. Lo que descarga el mismo dia del feriado (cruzo antes) no se corre; solo cuenta el feriado en el dia de cruce (arriba).
         # 25/12 y 01/01 son feriado tambien en Uruguay (no se descarga): esos si se corren.
-        while ($x.DayOfWeek -eq [DayOfWeek]::Sunday -or $x.ToString('MM-dd') -in '12-25', '01-01') { $x = $x.AddDays(1) }
+        # [13/11/2026] lunes nunca se descarga: si la cuenta cae en lunes (venia de domingo), pasa al martes.
+        while ($x.DayOfWeek -eq [DayOfWeek]::Sunday -or $x.DayOfWeek -eq [DayOfWeek]::Monday -or $x.ToString('MM-dd') -in '12-25', '01-01') { $x = $x.AddDays(1) }
         $x }
     $DOW = @{ 1 = 'Lun'; 2 = 'Mar'; 3 = 'Mié'; 4 = 'Jue'; 5 = 'Vie'; 6 = 'Sáb'; 0 = 'Dom' }
     $ordenO = @{ BR = 0; PY = 1; BO = 2 }
