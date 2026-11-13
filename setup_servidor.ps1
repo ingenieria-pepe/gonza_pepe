@@ -132,7 +132,7 @@ try {
         -Argument ("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -Command `"{0}`"" -f $cmd) `
         -WorkingDirectory $base
 
-    $trigFri = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '7:00PM'
+    $trigFri = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '8:30PM'   # [13/11/2026] era 7:00PM: Cepea publica el viernes ~19:00 y el resumen salia con la semana vieja
     $trigWed = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At '12:00PM'
 
     $settings = New-ScheduledTaskSettingsSet `
@@ -154,7 +154,7 @@ try {
         Register-ScheduledTask -TaskName $TASK_NAME `
             -Action $action -Trigger @($trigFri, $trigWed) `
             -Settings $settings -Principal $principal `
-            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 19:00.' `
+            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 20:30.' `
             -Force | Out-Null
     } catch {
         $modo = 'Interactive (solo con el usuario logueado)'
@@ -162,12 +162,12 @@ try {
         Register-ScheduledTask -TaskName $TASK_NAME `
             -Action $action -Trigger @($trigFri, $trigWed) `
             -Settings $settings -Principal $principal `
-            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 19:00.' `
+            -Description 'Pipeline banana Almar: baja precios Cepea/Ecuador/PY + clima y manda alertas WhatsApp. Mie 12:00 y Vie 20:30.' `
             -Force | Out-Null
     }
 
     Write-Host "  Tarea registrada OK." -ForegroundColor Green
-    Write-Host "  Disparos: Miercoles 12:00  y  Viernes 19:00" -ForegroundColor Green
+    Write-Host "  Disparos: Miercoles 12:00  y  Viernes 20:30" -ForegroundColor Green
     Write-Host "  Corre como: $userId - $modo" -ForegroundColor Green
 } catch {
     Write-Host "  ERROR registrando la tarea: $($_.Exception.Message)" -ForegroundColor Red
@@ -187,15 +187,15 @@ try {
         -Argument ("-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"{0}`" -Servidor" -f $cepeaScript) `
         -WorkingDirectory $base
     $trgCepW = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Wednesday -At '11:15AM'
-    $trgCepF = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '6:15PM'
+    $trgCepF = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday    -At '8:00PM'   # [13/11/2026] era 6:15PM (antes de que Cepea publique)
     $setCep = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
         -ExecutionTimeLimit (New-TimeSpan -Minutes 5) -MultipleInstances IgnoreNew
     $priCep = New-ScheduledTaskPrincipal -UserId ("{0}\{1}" -f $env:USERDOMAIN, $env:USERNAME) -LogonType Interactive -RunLevel Limited
     Register-ScheduledTask -TaskName 'Poronga_Cepea_Servidor' -Action $actCep -Trigger @($trgCepW, $trgCepF) `
         -Settings $setCep -Principal $priCep `
-        -Description 'Baja el Cepea con el Edge de la sesion User (hfbrasil bloquea programas) a fuentes\cepea_servidor. Mie 11:15 y vie 18:15.' `
+        -Description 'Baja el Cepea con el Edge de la sesion User (hfbrasil bloquea programas) a fuentes\cepea_servidor. Mie 11:15 y vie 20:00.' `
         -Force | Out-Null
-    Write-Host "  Tarea Poronga_Cepea_Servidor registrada OK (mie 11:15 y vie 18:15, Interactive, $env:USERNAME)." -ForegroundColor Green
+    Write-Host "  Tarea Poronga_Cepea_Servidor registrada OK (mie 11:15 y vie 20:00, Interactive, $env:USERNAME)." -ForegroundColor Green
     Write-Host "  Si la PC se reinicia, hay que iniciar sesion como $env:USERNAME para que corra." -ForegroundColor Yellow
 } catch {
     Write-Host "  ERROR registrando Poronga_Cepea_Servidor: $($_.Exception.Message)" -ForegroundColor Red

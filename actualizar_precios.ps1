@@ -5315,11 +5315,22 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
         } else { $sendResumen = $true }
     }
     if ($waPrueba) { $sendResumen = $true }
+    # [13/11/2026] Gonzalo: "no mandes el mensaje de wasap si no estan los datos nuevos. es al pedo seguir repitiendo los precios"
+    # (el vie 13/11 19:00 salio "Precio hoy 0,64" con el Cepea del 06/11; el del 13/11 se publico a esa misma hora). Regla: el
+    # resumen y los avisos de precio (criticas, cambio de zona, movimiento, forecast) solo salen si el Cepea trae una fecha que
+    # todavia no se mando en un resumen (state 'cepea_fecha_enviada'). Clima severo, Paraguay y fallas del pipeline no cambian.
+    $cepeaFechaWA   = $(if ($nanica.Count) { ([DateTime]$nanica[-1].fecha).ToString('yyyy-MM-dd') } else { '' })
+    $cepeaYaEnviado = $(if ($waState.ContainsKey('cepea_fecha_enviada')) { [string]$waState['cepea_fecha_enviada'] } else { '' })
+    $sinPrecioNuevo = (-not $waPrueba) -and ($cepeaFechaWA -eq '' -or $cepeaFechaWA -le $cepeaYaEnviado)
+    if ($sinPrecioNuevo) {
+        $sendResumen = $false
+        Write-Host "    Cepea sin semana nueva (ultimo $cepeaFechaWA, ya enviado $cepeaYaEnviado): no sale el resumen ni los avisos de precio" -ForegroundColor DarkYellow
+    }
     $novedades = @()   # lineas cortas que van arriba del resumen
     function Get-FechaCortaWA { param([string]$iso) try { ([DateTime]::Parse($iso)).ToString('dd/MM') } catch { $iso } }
 
     # ===== ALERTAS CRITICAS DE COMPRA =====
-    if ($waConfig.alerts.criticas_compra) {
+    if ($waConfig.alerts.criticas_compra -and -not $sinPrecioNuevo) {
         # Score crossing thresholds (+4 or -4)
         $wasGood = $prevScore -ge 4
         $isGood  = $oppScore  -ge 4
@@ -5346,7 +5357,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
             $msg = "🍌 *ALMAR — Cambio de zona*`n$emoji $zonaAct activada (era $prevZona)`n`n"
             $vsHistWA = if ($oppPM -gt 0) { (($oppLast - $oppPM) / $oppPM) * 100 } else { 0 }
             $sgnWA    = if ($vsHistWA -ge 0) { "+" } else { "" }
-            $msg += "Precio hoy: R$ $($oppLast.ToString('F2'))/kg`n"
+            $msg += "Cierre del $(Get-FechaCortaWA $nanica[-1].fecha): R$ $($oppLast.ToString('F2'))/kg`n"   # [13/11/2026] antes "Precio hoy": el dato es del viernes de Cepea, no de hoy
             $msg += "Histórico de $nombreMes (todos los años): R$ $($oppPM.ToString('F2'))/kg`n"
             $msg += "Real $nombreMes/$($anioUlt): R$ $($promMesReal.ToString('F2'))/kg`n"
             $msg += "Precio vs histórico: *$sgnWA$([math]::Round($vsHistWA))%*`n`n"
@@ -5359,7 +5370,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
     }
 
     # ===== MOVIMIENTOS DE PRECIO =====
-    if ($waConfig.alerts.movimientos_precio) {
+    if ($waConfig.alerts.movimientos_precio -and -not $sinPrecioNuevo) {
         # Cepea ±15% sem
         if ($nanica.Count -ge 2) {
             $deltaSem = (([double]$nanica[-1].precio - [double]$nanica[-2].precio) / [double]$nanica[-2].precio) * 100
@@ -5390,7 +5401,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
                     $tendencia = if ($fcPct -gt 0) {"📈 AL ALZA"} else {"📉 A LA BAJA"}
                     $fc4Date = $correlData[0].forecast_4w[-1].fecha
                     $msg = "🍌 *ALMAR — Forecast 4 sem*`n🔮 Tendencia: $tendencia ($($fcPct.ToString('F1'))%)`n`n"
-                    $msg += "Hoy: R$ $($hoyPrec.ToString('F2'))/kg`n"
+                    $msg += "Cierre del $(Get-FechaCortaWA $nanica[-1].fecha): R$ $($hoyPrec.ToString('F2'))/kg`n"   # [13/11/2026] antes "Hoy"
                     $msg += "$(Get-FechaCortaWA $fc4Date) proyectado: R$ $($fc4Avg.ToString('F2'))/kg`n`n"
                     $accion = if ($fcPct -gt 0) { "Cerrá precio antes del repunte" } else { "Esperá la baja antes de cerrar" }
                     $msg += "👉 $accion"
@@ -5801,7 +5812,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
     # apagada el trigger de logon dispara la corrida horas (o dias) despues, y el
     # mensaje llega fuera de hora sin que se note. Lo marcamos en el propio mensaje.
     $slotsProgramados = @(
-        @{ dow = [DayOfWeek]::Friday;    hora = 19; min = 0 },
+        @{ dow = [DayOfWeek]::Friday;    hora = 20; min = 30 },   # [13/11/2026] era 19:00: Cepea publica el viernes ~19:00
         @{ dow = [DayOfWeek]::Wednesday; hora = 12; min = 0 }
     )
     $ahora = Get-Date
@@ -5851,6 +5862,7 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
                 $det = if ($envio.todos) { '' } else { " - NO le llego a: $($envio.fallidos -join ', ')" }
                 Write-Host ("      => {0}/{1} entregados{2}" -f $envio.enviados.Count, $envio.total, $det) -ForegroundColor $col
                 $waState["ts_$($a.tipo)"] = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
+                if ($a.tipo -eq 'resumen' -and -not $waPrueba) { $waState['cepea_fecha_enviada'] = $cepeaFechaWA }   # [13/11/2026] esta semana de Cepea ya se mando: no se repite
                 Start-Sleep -Milliseconds 500  # Whapi acepta ~10 msg/s, margen amplio
             } else {
                 Write-Host ("      => 0/{0} entregados - alerta '{1}' PERDIDA" -f $envio.total, $a.tipo) -ForegroundColor Red
@@ -5873,8 +5885,12 @@ if (-not $waSoloDescargas -and ($avisoForzado -or ($esMiercoles -and -not $waPru
     }
 
     # Actualizar score y zona en state
-    $waState['ultimo_score'] = $oppScore
-    $waState['ultima_zona']  = $zonaAct
+    # [13/11/2026] sin Cepea nuevo no se evaluaron los cruces de score ni el cambio de zona: se dejan como estaban para
+    # que se evaluen en la corrida que traiga la semana nueva.
+    if (-not $sinPrecioNuevo) {
+        $waState['ultimo_score'] = $oppScore
+        $waState['ultima_zona']  = $zonaAct
+    }
     # Marca que este slot ya fue servido (aunque no haya salido ninguna alerta),
     # asi una corrida posterior por logon no se anuncia como atrasada.
     $waState['ts_corrida']   = $ahora.ToString('yyyy-MM-dd HH:mm:ss')

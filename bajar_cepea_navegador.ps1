@@ -7,7 +7,8 @@
 #  Descargas, reconoce la region por el contenido, y si traen una semana nueva
 #  los copia a fuentes\ y los sube a GitHub (el servidor los toma por git).
 #  Gonzalo: "las dos, deja automatico" (tarea Poronga_Cepea_Navegador, mie 10:30
-#  y vie 17:30, antes de las corridas del servidor de mie 12:00 y vie 19:00).
+#  y vie 19:45, antes de las corridas del servidor de mie 12:00 y vie 20:30; hasta el 13/11/2026 era vie 17:30 / 19:00,
+#  antes de que Cepea publique (~19:00), y el resumen del viernes salia con la semana vieja).
 #
 #  -Servidor [04/11/2026, pedido del servidor]: en la PC de Ingenieria (sesion User). Guarda en fuentes\cepea_servidor\ con los
 #  nombres de siempre, log ahi mismo, SIN git (el servidor no commitea; esa carpeta esta en $preservarDirs y en .gitignore).
