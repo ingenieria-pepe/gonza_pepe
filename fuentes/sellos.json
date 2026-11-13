@@ -1,11 +1,11 @@
 ﻿{
     "index_brasil.html|CARGAS_JSON":  {
-                                          "hash":  "25F9B7CBF0FB29CA1CDFE0AAF561665DF4CADA38B7263110240DCE58CA0F4520",
-                                          "datos_actualizado":  "2026-11-13 16:54"
+                                          "hash":  "12454AADADACAB783FA2FE4C40771641A781AE829C576FC8890836F8C204A67C",
+                                          "datos_actualizado":  "2026-11-13 19:11"
                                       },
     "index_brasil.html|CEPEA_JSON":  {
-                                         "hash":  "8CE4586D2A667118BFF620E29CA36263B37A50A38703D3B8B59DF4EA984CE0B3",
-                                         "datos_actualizado":  "2026-11-13 16:54"
+                                         "hash":  "14D1C0DE8E977AF8DC651FB2A6D740FBA25B7422353CF19F365C270657B369D4",
+                                         "datos_actualizado":  "2026-11-13 19:11"
                                      },
     "index_brasil.html|FIFO_JSON":  {
                                         "hash":  "F859EADE40643A4C91343D6F33671FDEBA8FF38DD8545508880CFA2E6276F3F2",
@@ -36,12 +36,12 @@
                                         "datos_actualizado":  "2026-11-13 14:32"
                                     },
     "index_comparativo_anual.html|COMPARATIVO_JSON":  {
-                                                          "hash":  "5C237AB2B339C90EE26565FEBEA8341150E9B784245EA5CE867E30DD84D52EDB",
-                                                          "datos_actualizado":  "2026-11-11 20:30"
+                                                          "hash":  "81F7876FC6483BFC3C3555DA4724699C2956992D1018894F6B0009DDC7716D8A",
+                                                          "datos_actualizado":  "2026-11-13 19:11"
                                                       },
     "index_ecuador.html|EC_RANKING_JSON":  {
-                                               "hash":  "2EB1E37BD35CC2F2A136F589EAC24BB7FB718ED07ED41E2158253F49EDF59E63",
-                                               "datos_actualizado":  "2026-10-08 17:44"
+                                               "hash":  "2D47D76E3E879D638284E999F933154622E45171BBB92139E4F334209F4A268A",
+                                               "datos_actualizado":  "2026-11-13 19:11"
                                            },
     "index_ecuador.html|EC_SERIE_JSON":  {
                                              "hash":  "DF7DE02986F25974D1D9688A3DE7E6E3E1BE06161B9400FD9C5D510014B6DC1C",
@@ -56,27 +56,27 @@
                                             "datos_actualizado":  "2026-11-13 14:32"
                                         },
     "index_paraguay_bolivia.html|CARGAS_JSON":  {
-                                                    "hash":  "25F9B7CBF0FB29CA1CDFE0AAF561665DF4CADA38B7263110240DCE58CA0F4520",
-                                                    "datos_actualizado":  "2026-11-13 16:54"
+                                                    "hash":  "12454AADADACAB783FA2FE4C40771641A781AE829C576FC8890836F8C204A67C",
+                                                    "datos_actualizado":  "2026-11-13 19:11"
                                                 },
     "index_paraguay_bolivia.html|CEPEA_JSON":  {
-                                                   "hash":  "8CE4586D2A667118BFF620E29CA36263B37A50A38703D3B8B59DF4EA984CE0B3",
-                                                   "datos_actualizado":  "2026-11-13 16:54"
+                                                   "hash":  "14D1C0DE8E977AF8DC651FB2A6D740FBA25B7422353CF19F365C270657B369D4",
+                                                   "datos_actualizado":  "2026-11-13 19:11"
                                                },
     "index_paraguay_bolivia.html|MERCADO_PYBO_JSON":  {
                                                           "hash":  "72F7157E40A537F0A45AABAE52CDD6C397D4335CEBFFED08E86AD52BDD41749D",
                                                           "datos_actualizado":  "2026-11-13 14:32"
                                                       },
     "index_proyeccion.html|PROYECCION_JSON":  {
-                                                  "hash":  "2678E0899D5295199FA189230C48424FE589E73FE67200B16A843739BFC719A5",
-                                                  "datos_actualizado":  "2026-11-13 16:54"
+                                                  "hash":  "904891449F7C52DD245DED8C8F4850A803EECD76D3A31B2258B0B5A97D69F2AB",
+                                                  "datos_actualizado":  "2026-11-13 19:11"
                                               },
     "inicio.html|PORTADA_JSON":  {
-                                     "hash":  "1C05588B156336186A32C8455FE26E214A7AAC18C3BF300582E1466F5FB2ECAD",
-                                     "datos_actualizado":  "2026-11-13 16:54"
+                                     "hash":  "FA24B2D02925EC7E4AFF2F66CEA61048A42A0E86C82A67B848C0CC52CE34A791",
+                                     "datos_actualizado":  "2026-11-13 19:11"
                                  },
     "simulador.html|COMPRAS_JSON":  {
-                                        "hash":  "1F66E2D6860324956829334D19CF4DA43FCF2D09C03D9FC5DDE6C4FFCC5FED8E",
-                                        "datos_actualizado":  "2026-11-13 16:54"
+                                        "hash":  "9919B803E5A8451497EE9C5B23CA705C0AAD8B0456AFEC5F68BD4B1F668BD10D",
+                                        "datos_actualizado":  "2026-11-13 19:11"
                                     }
 }
