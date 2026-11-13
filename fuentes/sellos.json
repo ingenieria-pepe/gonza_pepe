@@ -1,11 +1,11 @@
 ﻿{
     "index_brasil.html|CARGAS_JSON":  {
-                                          "hash":  "6677EF712DB7D9F5D73518A46D3674BAA9574EDDE2299C9D3A1070063CE40EBB",
-                                          "datos_actualizado":  "2026-11-13 14:32"
+                                          "hash":  "25F9B7CBF0FB29CA1CDFE0AAF561665DF4CADA38B7263110240DCE58CA0F4520",
+                                          "datos_actualizado":  "2026-11-13 16:54"
                                       },
     "index_brasil.html|CEPEA_JSON":  {
-                                         "hash":  "12FE871294069FF0A9961A8A9DDD8783E8C09BD39F5E5C8C42107E999BF9FC01",
-                                         "datos_actualizado":  "2026-11-13 14:32"
+                                         "hash":  "8CE4586D2A667118BFF620E29CA36263B37A50A38703D3B8B59DF4EA984CE0B3",
+                                         "datos_actualizado":  "2026-11-13 16:54"
                                      },
     "index_brasil.html|FIFO_JSON":  {
                                         "hash":  "F859EADE40643A4C91343D6F33671FDEBA8FF38DD8545508880CFA2E6276F3F2",
@@ -56,27 +56,27 @@
                                             "datos_actualizado":  "2026-11-13 14:32"
                                         },
     "index_paraguay_bolivia.html|CARGAS_JSON":  {
-                                                    "hash":  "6677EF712DB7D9F5D73518A46D3674BAA9574EDDE2299C9D3A1070063CE40EBB",
-                                                    "datos_actualizado":  "2026-11-13 14:32"
+                                                    "hash":  "25F9B7CBF0FB29CA1CDFE0AAF561665DF4CADA38B7263110240DCE58CA0F4520",
+                                                    "datos_actualizado":  "2026-11-13 16:54"
                                                 },
     "index_paraguay_bolivia.html|CEPEA_JSON":  {
-                                                   "hash":  "12FE871294069FF0A9961A8A9DDD8783E8C09BD39F5E5C8C42107E999BF9FC01",
-                                                   "datos_actualizado":  "2026-11-13 14:32"
+                                                   "hash":  "8CE4586D2A667118BFF620E29CA36263B37A50A38703D3B8B59DF4EA984CE0B3",
+                                                   "datos_actualizado":  "2026-11-13 16:54"
                                                },
     "index_paraguay_bolivia.html|MERCADO_PYBO_JSON":  {
                                                           "hash":  "72F7157E40A537F0A45AABAE52CDD6C397D4335CEBFFED08E86AD52BDD41749D",
                                                           "datos_actualizado":  "2026-11-13 14:32"
                                                       },
     "index_proyeccion.html|PROYECCION_JSON":  {
-                                                  "hash":  "2CF7670EDC25D0A6AEE11A999D9ACD5B9891CF0A2DC50F1A1E51FA1504232853",
-                                                  "datos_actualizado":  "2026-11-13 14:32"
+                                                  "hash":  "2678E0899D5295199FA189230C48424FE589E73FE67200B16A843739BFC719A5",
+                                                  "datos_actualizado":  "2026-11-13 16:54"
                                               },
     "inicio.html|PORTADA_JSON":  {
-                                     "hash":  "F1D94D7AD800442BDF12BEA4347518CC2D64B54BC9638FB5DF900F563D5D16D4",
-                                     "datos_actualizado":  "2026-11-13 14:32"
+                                     "hash":  "1C05588B156336186A32C8455FE26E214A7AAC18C3BF300582E1466F5FB2ECAD",
+                                     "datos_actualizado":  "2026-11-13 16:54"
                                  },
     "simulador.html|COMPRAS_JSON":  {
-                                        "hash":  "19B9555BF67599DFBC81824DF4EEAD1C681A448FC9FA83212F081576EC187C65",
-                                        "datos_actualizado":  "2026-11-13 14:32"
+                                        "hash":  "1F66E2D6860324956829334D19CF4DA43FCF2D09C03D9FC5DDE6C4FFCC5FED8E",
+                                        "datos_actualizado":  "2026-11-13 16:54"
                                     }
 }
