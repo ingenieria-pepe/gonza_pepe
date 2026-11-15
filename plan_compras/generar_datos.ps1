@@ -75,12 +75,14 @@ if (Test-Path $alohaCam) {
                 # que coincide con el conteo fisico del sabado: 27.462 vs 27.488 el 10/10), se arranca de ese cierre: la semana se
                 # cuenta entera (venta completa, descargas desde el domingo) y no depende de a que hora corrio el pipeline. Mas de
                 # 2 dias despues del sabado (miercoles, viernes) vale el conteo fisico del dia, que ya trae la realidad de la semana.
-                if ($conteo.tipo -eq 'parcial' -and $ac.PSObject.Properties.Name -contains 'ultimo_cierre' -and $ac.ultimo_cierre -and $ac.ultimo_cierre.sabado -and $ac.ultimo_cierre.porOrigen) {
+                # [15/11/2026] Gonzalo: "de 35.000 o de 36.000" -> si ya esta el cierre ERP de ese mismo sabado, manda el ERP tambien cuando el
+                # conteo es de sabado/domingo (el 14/11 el conteo de la manana dio 35.337 y el ERP al cierre 36.419; salian dos arranques).
+                if ($ac.PSObject.Properties.Name -contains 'ultimo_cierre' -and $ac.ultimo_cierre -and $ac.ultimo_cierre.sabado -and $ac.ultimo_cierre.porOrigen) {
                     $fSab = ([DateTime]$ac.ultimo_cierre.sabado).Date
                     if (($fAc.Date - $fSab).TotalDays -le 2 -and ($fAc.Date - $fSab).TotalDays -ge 0) {
                         $conteo = [ordered]@{ fecha = (Ymd $fSab) }
                         foreach ($o in 'BR', 'PY', 'BO', 'EC') { $conteo[$o] = [int]$ac.ultimo_cierre.porOrigen.$o }
-                        $conteo.fuente = "Aloha stock ERP al cierre del sab $($fSab.ToString('dd/MM')) 23:59 (ultimo_cierre; el conteo fisico del $($fAc.ToString('dd/MM HH:mm')) era parcial)"
+                        $conteo.fuente = "Aloha stock ERP al cierre del sab $($fSab.ToString('dd/MM')) 23:59 (ultimo_cierre; conteo fisico del $($fAc.ToString('dd/MM HH:mm')): $([int]$ac.madera) de madera)"
                         $conteo.contado_hasta = $fSab.ToString('yyyy-MM-dd') + ' 23:59'
                         $conteo.tipo = 'cierre'
                         $fechaConteo = $conteo.fecha
