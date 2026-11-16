@@ -76,7 +76,8 @@ try {
     # [20/10/2026] Gonzalo: "las descargas de manana? ... inclui-las": solo el proximo dia con descargas (manana, o el primero que tenga),
     # sin el cierre del sabado (ese va en los mensajes del miercoles y el viernes).
     $tt = [IO.File]::ReadAllText((Join-Path $repo 'actualizar_precios.ps1'), [Text.Encoding]::UTF8)
-    $i0 = $tt.IndexOf('function Get-DescargasSemanaTexto {'); $i1 = $tt.IndexOf('Write-Host "[WA] Evaluando alertas WhatsApp..."'); Invoke-Expression $tt.Substring($i0, $i1 - $i0)
+    # [16/11/2026] Get-DescargasSemanaTexto usa Get-UltimoDiaCarga (definida justo antes): el recorte arranca ahi, si no el aviso fallaba
+    $i0 = $tt.IndexOf('function Get-UltimoDiaCarga {'); if ($i0 -lt 0) { $i0 = $tt.IndexOf('function Get-DescargasSemanaTexto {') }; $i1 = $tt.IndexOf('Write-Host "[WA] Evaluando alertas WhatsApp..."'); Invoke-Expression $tt.Substring($i0, $i1 - $i0)
     $NOMD = @{1='Lun';2='Mar';3='Mié';4='Jue';5='Vie';6='Sáb';0='Dom'}; $semMsgs = @{}
     for ($dd = 1; $dd -le 10; $dd++) {
         $dx = $hoy.AddDays($dd); if ($dx.DayOfWeek -eq [DayOfWeek]::Sunday) { continue }
