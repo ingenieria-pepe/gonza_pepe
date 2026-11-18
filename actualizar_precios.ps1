@@ -4908,6 +4908,9 @@ function Get-PlanDudas {
     # frena el envio; sale igual con ❓ en el renglon del camion (Get-DescargasSemanaTexto). Solo frena lo cancelado en Aloha.
     param([string]$Path)
     try { $Jd = Get-Content $Path -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return 'plan_compras.json ilegible' }
+    # [18/11/2026] Gonzalo: "sacale el freno, si" (manda el dictado: Aloha tenia cancelados el Stein y el Jhony del sab 21 que el dicto).
+    # Lo cancelado en Aloha ya NO frena el envio. Solo frena un plan_compras.json ilegible.
+    return $null
     $hoyD = (Get-Date).Date; $lunD = $hoyD.AddDays(-((([int]$hoyD.DayOfWeek) + 6) % 7))
     $dud = @($Jd.camiones | Where-Object { -not $_.en_stock -and [string]$_.estado_aloha -eq 'cancelado' -and ([DateTime]$_.carga).Date -lt $hoyD -and ([DateTime]$_.carga).Date -ge $lunD.AddDays(-14) } | ForEach-Object {
         $nm = $(if ($_.nombre) { [string]$_.nombre } else { [string]$_.productor })
