@@ -4748,7 +4748,9 @@ function Get-DescargasSemanaTexto {
             if ($desc -le $fCon) { if ($desc -ge $Lunes -and -not $esParc) { $nYa++ }; continue }
         }
         # [22/10/2026] marca del cruce con Aloha: 🚛 cargado/en camino · ⏳ Aloha todavia en Solicitado y la carga ya paso · ❓ no figura · ❌ cancelado
-        $marca = switch ($est) { 'en_camino' { '🚛' } 'no_figura' { '❓' } 'cancelado' { '❌' } 'solicitado' { $(if (([DateTime]$c.carga).Date -lt (Get-Date).Date) { '⏳' } else { '' }) } default { '' } }
+        # [18/11/2026] Gonzalo: "tenes que basarte en lo que yo te digo" (Aloha tenia cancelados el Stein y el Jhony del sab 21 que el dicto):
+        # una carga dictada ya no sale con ❌ aunque Aloha la tenga cancelada. Lo que el cancela se borra del plan y no llega aca.
+        $marca = switch ($est) { 'en_camino' { '🚛' } 'no_figura' { '❓' } 'cancelado' { '' } 'solicitado' { $(if (([DateTime]$c.carga).Date -lt (Get-Date).Date) { '⏳' } else { '' }) } default { '' } }
         $cam += [PSCustomObject]@{ desc = $desc; sem = (& $lunesDe $desc); origen = [string]$c.origen; nombre = $nm; cajas = [int]$c.cajas; sup = ([string]$c.fuente -eq 'supuesto'); real = [bool]$c.descarga; parcial = $esParc; marca = $marca }
     }
     if ($erp) { $nYa = @($ya | Where-Object { -not $_.parcial }).Count }
