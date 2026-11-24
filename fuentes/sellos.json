@@ -1,11 +1,11 @@
 ﻿{
     "index_brasil.html|CARGAS_JSON":  {
-                                          "hash":  "3BEB5C8EB01D83E875F781820FEBEF89D9D6EC7918B7DA47B37A21346A57CA95",
-                                          "datos_actualizado":  "2026-11-23 07:22"
+                                          "hash":  "1E6B31ABBCB23F3CA1CCFDB3A54FAFC02D46578EF1FBC3AE504D28D46BAB3832",
+                                          "datos_actualizado":  "2026-11-24 10:20"
                                       },
     "index_brasil.html|CEPEA_JSON":  {
-                                         "hash":  "0B20EB6C6B0BC08D777FD4FBF7754B936299659ED30F0D4687D04A6A7550C8D2",
-                                         "datos_actualizado":  "2026-11-23 07:22"
+                                         "hash":  "BDB6A88487CEE019427BE5C5C2EA9A4E46279FA84845982F733AEB028EF4EB36",
+                                         "datos_actualizado":  "2026-11-24 10:20"
                                      },
     "index_brasil.html|FIFO_JSON":  {
                                         "hash":  "F859EADE40643A4C91343D6F33671FDEBA8FF38DD8545508880CFA2E6276F3F2",
@@ -16,12 +16,12 @@
                                               "datos_actualizado":  "2026-11-13 14:32"
                                           },
     "index_brasil.html|PRODUCTORES_JSON":  {
-                                               "hash":  "478CF202CEB278A2F4AC3FB660D6A666523B257C659AA7A913F0FEA86CCEFA9C",
-                                               "datos_actualizado":  "2026-11-23 07:22"
+                                               "hash":  "6A581DA7C19E5BED21073DA4D6A9B9C452806EF3D390E0FDC845925DAA253530",
+                                               "datos_actualizado":  "2026-11-24 10:20"
                                            },
     "index_brasil.html|VENTAS_DESC_JSON":  {
-                                               "hash":  "14DAB41C458BC6691B7B3CA3062D219D8F2394BA08E9BE9C466EDBAC62C18417",
-                                               "datos_actualizado":  "2026-11-23 07:22"
+                                               "hash":  "DB04351255F4BD098F4A1F54896B80C523A58C9331BEF5C9384D947BDB1629D3",
+                                               "datos_actualizado":  "2026-11-24 10:20"
                                            },
     "index_brasil.html|VENTAS_HIST_JSON":  {
                                                "hash":  "D8A87F3E36DC3CC72FC60C503F34C0374E7E0AF9FFD032CB3807E46D966E02DE",
@@ -48,35 +48,35 @@
                                              "datos_actualizado":  "2026-11-04 20:15"
                                          },
     "index_ecuador.html|ECUADOR2_JSON":  {
-                                             "hash":  "B198C68201A43327A014E55DB33535C8F34015C89BA21A2C40396A5C50B0D4ED",
-                                             "datos_actualizado":  "2026-11-23 07:22"
+                                             "hash":  "21055F82B1482861A71CC046B13C906C85B07D5049350CF8FBB9E67EB657CCF6",
+                                             "datos_actualizado":  "2026-11-24 10:20"
                                          },
     "index_mercado.html|MERCADO_JSON":  {
                                             "hash":  "C17F44907E9B060D29084020FB63CADE36C6DE37954C1DC9E59CD930781FCF8A",
                                             "datos_actualizado":  "2026-11-13 14:32"
                                         },
     "index_paraguay_bolivia.html|CARGAS_JSON":  {
-                                                    "hash":  "3BEB5C8EB01D83E875F781820FEBEF89D9D6EC7918B7DA47B37A21346A57CA95",
-                                                    "datos_actualizado":  "2026-11-23 07:22"
+                                                    "hash":  "1E6B31ABBCB23F3CA1CCFDB3A54FAFC02D46578EF1FBC3AE504D28D46BAB3832",
+                                                    "datos_actualizado":  "2026-11-24 10:20"
                                                 },
     "index_paraguay_bolivia.html|CEPEA_JSON":  {
-                                                   "hash":  "0B20EB6C6B0BC08D777FD4FBF7754B936299659ED30F0D4687D04A6A7550C8D2",
-                                                   "datos_actualizado":  "2026-11-23 07:22"
+                                                   "hash":  "BDB6A88487CEE019427BE5C5C2EA9A4E46279FA84845982F733AEB028EF4EB36",
+                                                   "datos_actualizado":  "2026-11-24 10:20"
                                                },
     "index_paraguay_bolivia.html|MERCADO_PYBO_JSON":  {
                                                           "hash":  "72F7157E40A537F0A45AABAE52CDD6C397D4335CEBFFED08E86AD52BDD41749D",
                                                           "datos_actualizado":  "2026-11-13 14:32"
                                                       },
     "index_proyeccion.html|PROYECCION_JSON":  {
-                                                  "hash":  "AB9B4B47B7D3FD9A82BCA624E9739227DD6B34AED8866358538F980A0E66D598",
-                                                  "datos_actualizado":  "2026-11-23 07:22"
+                                                  "hash":  "82E9390D338358460484F81BDA641A397D0CDFECE0FAC39B258AA4877259DC0E",
+                                                  "datos_actualizado":  "2026-11-24 10:20"
                                               },
     "inicio.html|PORTADA_JSON":  {
-                                     "hash":  "4A81E595FE0710F03F8322D00FB6759482A8A7CEABFDC32DFE97ECEA60DE95C3",
-                                     "datos_actualizado":  "2026-11-23 07:22"
+                                     "hash":  "712BA20D359CAF1EBE2352CC90699EFB8A0FF3407BB36B92533F4A0616FBAFD7",
+                                     "datos_actualizado":  "2026-11-24 10:20"
                                  },
     "simulador.html|COMPRAS_JSON":  {
-                                        "hash":  "55783A3D2A3D5265BF5781D48B55119636FE7C8370AAD922B61AAF532C09FDB3",
-                                        "datos_actualizado":  "2026-11-23 07:22"
+                                        "hash":  "862FED5AD8385348262D38B67AB038D5D4545392FEE8F72DE859E81F6447E789",
+                                        "datos_actualizado":  "2026-11-24 10:20"
                                     }
 }
